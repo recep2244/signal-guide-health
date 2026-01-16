@@ -1,11 +1,14 @@
-import { Heart, Bell, User } from 'lucide-react';
+import { Heart, Bell, User, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardHeaderProps {
   unreadAlerts?: number;
 }
 
 export function DashboardHeader({ unreadAlerts = 0 }: DashboardHeaderProps) {
+  const navigate = useNavigate();
+
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -20,6 +23,15 @@ export function DashboardHeader({ unreadAlerts = 0 }: DashboardHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/demo')}
+            className="hidden sm:flex gap-1.5"
+          >
+            <Smartphone size={16} />
+            Patient Demo
+          </Button>
           <Button variant="ghost" size="icon" className="relative">
             <Bell size={20} />
             {unreadAlerts > 0 && (
