@@ -4,6 +4,8 @@ CardioWatch is a clinical dashboard concept for post-discharge cardiac monitorin
 It helps care teams triage patients (red, amber, green), review alerts, and
 inspect wearable trends and structured summaries.
 
+Developed by Recep Adiyaman.
+
 ## Features
 
 - Triage overview with red, amber, and green queues
@@ -35,4 +37,3 @@ npm run test
 ## Notes
 
 - Demo data is synthetic and for product exploration only.
-- Ownership details live in `AUTHORS` and `LICENSE`.
