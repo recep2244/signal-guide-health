@@ -1,7 +1,14 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "signal-guide-health",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "CardioWatch clinical dashboard for post-discharge cardiac monitoring.",
+  "author": "Recep Adiyaman (recep2244)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/recep2244/signal-guide-health.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

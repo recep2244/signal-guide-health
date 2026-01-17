@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPatientById } from '@/data/mockPatients';
+import { applyResolvedAlerts, getPatientById, mockPatients } from '@/data/mockPatients';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { TriageBadge } from '@/components/TriageBadge';
 import { VitalTrends } from '@/components/VitalTrends';
@@ -22,16 +22,16 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useAlerts } from '@/context/AlertsContext';
 
 export default function PatientDetail() {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
-  const [alerts, setAlerts] = useState(() => {
-    const patient = getPatientById(patientId || '');
-    return patient?.alerts || [];
-  });
-
-  const patient = getPatientById(patientId || '');
+  const { resolvedAlertIds, resolveAlert } = useAlerts();
+  const patient = useMemo(() => {
+    const patients = applyResolvedAlerts(mockPatients, resolvedAlertIds);
+    return getPatientById(patientId || '', patients);
+  }, [patientId, resolvedAlertIds]);
 
   if (!patient) {
     return (
@@ -45,9 +45,7 @@ export default function PatientDetail() {
   }
 
   const handleResolveAlert = (alertId: string) => {
-    setAlerts(prev => 
-      prev.map(a => a.id === alertId ? { ...a, resolved: true } : a)
-    );
+    resolveAlert(alertId);
     toast.success('Alert marked as resolved');
   };
 
@@ -67,7 +65,7 @@ export default function PatientDetail() {
     });
   };
 
-  const unresolvedAlerts = alerts.filter(a => !a.resolved);
+  const unresolvedAlerts = patient.alerts.filter((a) => !a.resolved);
 
   return (
     <div className="min-h-screen bg-background">
@@ -223,13 +221,13 @@ export default function PatientDetail() {
         </Tabs>
 
         {/* Resolved alerts section */}
-        {alerts.filter(a => a.resolved).length > 0 && (
+        {patient.alerts.filter((a) => a.resolved).length > 0 && (
           <div className="mt-8 pt-6 border-t">
             <h3 className="text-sm font-medium text-muted-foreground mb-3">
-              Resolved Alerts ({alerts.filter(a => a.resolved).length})
+              Resolved Alerts ({patient.alerts.filter((a) => a.resolved).length})
             </h3>
             <div className="space-y-3">
-              {alerts.filter(a => a.resolved).map((alert) => (
+              {patient.alerts.filter((a) => a.resolved).map((alert) => (
                 <AlertCard key={alert.id} alert={alert} />
               ))}
             </div>

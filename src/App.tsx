@@ -7,23 +7,26 @@ import Dashboard from "./pages/Dashboard";
 import PatientDetail from "./pages/PatientDetail";
 import PatientDemo from "./pages/PatientDemo";
 import NotFound from "./pages/NotFound";
+import { AlertsProvider } from "./context/AlertsContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-right" />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/patient/:patientId" element={<PatientDetail />} />
-          <Route path="/demo" element={<PatientDemo />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AlertsProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner position="top-right" />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/patient/:patientId" element={<PatientDetail />} />
+            <Route path="/demo" element={<PatientDemo />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AlertsProvider>
   </QueryClientProvider>
 );
 

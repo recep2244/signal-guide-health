@@ -59,6 +59,8 @@ const URGENT_FLOW: { content: string; options?: string[] }[] = [
   },
 ];
 
+const AGENT_TYPING_DELAY_MS = 1100;
+
 export default function PatientDemo() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -102,7 +104,7 @@ export default function PatientDemo() {
         },
       ]);
       setIsTyping(false);
-    }, 1000 + Math.random() * 500);
+    }, AGENT_TYPING_DELAY_MS);
   };
 
   const startDemo = () => {
@@ -271,13 +273,13 @@ export default function PatientDemo() {
                     )}
                   >
                     <div
-                      className={cn(
-                        'chat-bubble whitespace-pre-wrap',
-                        message.role === 'patient' ? 'chat-bubble-agent' : 'chat-bubble-patient'
-                      )}
-                    >
-                      {message.content}
-                    </div>
+                    className={cn(
+                      'chat-bubble whitespace-pre-wrap',
+                      message.role === 'patient' ? 'chat-bubble-patient' : 'chat-bubble-agent'
+                    )}
+                  >
+                    {message.content}
+                  </div>
                     {message.options && message.role === 'agent' && (
                       <div className="flex flex-wrap gap-2 mt-1">
                         {message.options.map((option) => (
@@ -304,7 +306,7 @@ export default function PatientDemo() {
                   <div className="shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                     <Heart size={14} className="text-primary-foreground" />
                   </div>
-                  <div className="chat-bubble chat-bubble-patient">
+                  <div className="chat-bubble chat-bubble-agent">
                     <div className="flex gap-1">
                       <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                       <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />

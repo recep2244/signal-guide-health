@@ -3,29 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { TriageOverview } from '@/components/TriageOverview';
 import { PatientCard } from '@/components/PatientCard';
-import { mockPatients, getTriageStats } from '@/data/mockPatients';
+import { applyResolvedAlerts, getTriageStats, mockPatients } from '@/data/mockPatients';
+import { useAlerts } from '@/context/AlertsContext';
 
 type TriageFilter = 'all' | 'red' | 'amber' | 'green';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<TriageFilter>('all');
-  const stats = getTriageStats();
+  const { resolvedAlertIds } = useAlerts();
+  const patients = useMemo(
+    () => applyResolvedAlerts(mockPatients, resolvedAlertIds),
+    [resolvedAlertIds]
+  );
+  const stats = useMemo(() => getTriageStats(patients), [patients]);
 
-  const unreadAlerts = mockPatients.reduce(
-    (acc, p) => acc + p.alerts.filter(a => !a.resolved).length,
+  const unreadAlerts = patients.reduce(
+    (acc, p) => acc + p.alerts.filter((a) => !a.resolved).length,
     0
   );
 
   const filteredPatients = useMemo(() => {
-    const filtered = filter === 'all' 
-      ? mockPatients 
-      : mockPatients.filter(p => p.triageLevel === filter);
+    const filtered =
+      filter === 'all'
+        ? patients
+        : patients.filter((p) => p.triageLevel === filter);
 
     // Sort by triage level: red > amber > green
     const triageOrder = { red: 0, amber: 1, green: 2 };
-    return [...filtered].sort((a, b) => triageOrder[a.triageLevel] - triageOrder[b.triageLevel]);
-  }, [filter]);
+    return [...filtered].sort(
+      (a, b) => triageOrder[a.triageLevel] - triageOrder[b.triageLevel]
+    );
+  }, [filter, patients]);
 
   return (
     <div className="min-h-screen bg-background">

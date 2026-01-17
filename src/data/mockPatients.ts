@@ -50,6 +50,15 @@ export interface Patient {
   nhsNumber: string;
 }
 
+const createSeededRandom = (seed: number) => {
+  let value = seed % 2147483647;
+  if (value <= 0) value += 2147483646;
+  return () => {
+    value = (value * 16807) % 2147483647;
+    return (value - 1) / 2147483646;
+  };
+};
+
 // Generate last 14 days of dates
 const generateDates = (days: number): string[] => {
   const dates: string[] = [];
@@ -63,6 +72,9 @@ const generateDates = (days: number): string[] => {
 };
 
 const dates = generateDates(14);
+const patient1Rand = createSeededRandom(12001);
+const patient2Rand = createSeededRandom(12002);
+const patient3Rand = createSeededRandom(12003);
 
 export const mockPatients: Patient[] = [
   {
@@ -79,10 +91,10 @@ export const mockPatients: Patient[] = [
     medications: ['Aspirin 75mg', 'Clopidogrel 75mg', 'Atorvastatin 80mg', 'Bisoprolol 2.5mg'],
     wearableData: dates.map((date, i) => ({
       date,
-      restingHR: i < 10 ? 68 + Math.random() * 5 : 78 + i * 2 + Math.random() * 8, // Trending up last 4 days
-      hrv: i < 10 ? 42 + Math.random() * 8 : 35 - i * 0.5 + Math.random() * 5, // Declining
-      sleepHours: i < 10 ? 6.5 + Math.random() : 4.5 + Math.random() * 1.5, // Poor sleep
-      steps: i < 10 ? 4500 + Math.random() * 1500 : 1200 + Math.random() * 800, // Activity dropped
+      restingHR: i < 10 ? 68 + patient1Rand() * 5 : 78 + i * 2 + patient1Rand() * 8, // Trending up last 4 days
+      hrv: i < 10 ? 42 + patient1Rand() * 8 : 35 - i * 0.5 + patient1Rand() * 5, // Declining
+      sleepHours: i < 10 ? 6.5 + patient1Rand() : 4.5 + patient1Rand() * 1.5, // Poor sleep
+      steps: i < 10 ? 4500 + patient1Rand() * 1500 : 1200 + patient1Rand() * 800, // Activity dropped
     })),
     chatHistory: [
       { id: 'msg-1', role: 'agent', content: 'Good morning Margaret. How are you feeling today on a scale of 0-10?', timestamp: '2026-01-16T09:00:00' },
@@ -124,10 +136,10 @@ export const mockPatients: Patient[] = [
     medications: ['Aspirin 75mg', 'Ticagrelor 90mg BD', 'Ramipril 2.5mg', 'Bisoprolol 5mg', 'Atorvastatin 80mg'],
     wearableData: dates.map((date, i) => ({
       date,
-      restingHR: 72 + Math.random() * 6 + (i > 10 ? 8 : 0), // Slight uptick last 3 days
-      hrv: 38 + Math.random() * 10 - (i > 10 ? 5 : 0),
-      sleepHours: i > 10 ? 5.2 + Math.random() : 7 + Math.random(),
-      steps: i > 10 ? 3000 + Math.random() * 1000 : 5500 + Math.random() * 1500,
+      restingHR: 72 + patient2Rand() * 6 + (i > 10 ? 8 : 0), // Slight uptick last 3 days
+      hrv: 38 + patient2Rand() * 10 - (i > 10 ? 5 : 0),
+      sleepHours: i > 10 ? 5.2 + patient2Rand() : 7 + patient2Rand(),
+      steps: i > 10 ? 3000 + patient2Rand() * 1000 : 5500 + patient2Rand() * 1500,
     })),
     chatHistory: [
       { id: 'msg-1', role: 'agent', content: 'Good morning David. How are you feeling today on a scale of 0-10?', timestamp: '2026-01-16T08:00:00' },
@@ -169,10 +181,10 @@ export const mockPatients: Patient[] = [
     medications: ['Rivaroxaban 20mg', 'Bisoprolol 2.5mg', 'Omeprazole 20mg'],
     wearableData: dates.map((date) => ({
       date,
-      restingHR: 64 + Math.random() * 6,
-      hrv: 48 + Math.random() * 12,
-      sleepHours: 7 + Math.random() * 1.5,
-      steps: 6500 + Math.random() * 2500,
+      restingHR: 64 + patient3Rand() * 6,
+      hrv: 48 + patient3Rand() * 12,
+      sleepHours: 7 + patient3Rand() * 1.5,
+      steps: 6500 + patient3Rand() * 2500,
     })),
     chatHistory: [
       { id: 'msg-1', role: 'agent', content: 'Good morning Sarah. How are you feeling today on a scale of 0-10?', timestamp: '2026-01-16T07:30:00' },
@@ -191,15 +203,31 @@ export const mockPatients: Patient[] = [
   },
 ];
 
-export const getPatientById = (id: string): Patient | undefined => {
-  return mockPatients.find(patient => patient.id === id);
+export const applyResolvedAlerts = (
+  patients: Patient[],
+  resolvedAlertIds: Set<string>
+): Patient[] => {
+  if (resolvedAlertIds.size === 0) return patients;
+  return patients.map((patient) => ({
+    ...patient,
+    alerts: patient.alerts.map((alert) =>
+      resolvedAlertIds.has(alert.id) ? { ...alert, resolved: true } : alert
+    ),
+  }));
 };
 
-export const getTriageStats = () => {
+export const getPatientById = (
+  id: string,
+  patients: Patient[] = mockPatients
+): Patient | undefined => {
+  return patients.find((patient) => patient.id === id);
+};
+
+export const getTriageStats = (patients: Patient[] = mockPatients) => {
   return {
-    red: mockPatients.filter(p => p.triageLevel === 'red').length,
-    amber: mockPatients.filter(p => p.triageLevel === 'amber').length,
-    green: mockPatients.filter(p => p.triageLevel === 'green').length,
-    total: mockPatients.length,
+    red: patients.filter((p) => p.triageLevel === 'red').length,
+    amber: patients.filter((p) => p.triageLevel === 'amber').length,
+    green: patients.filter((p) => p.triageLevel === 'green').length,
+    total: patients.length,
   };
 };
