@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Activity,
   Bell,
@@ -188,6 +189,56 @@ export default function Landing() {
                 </Card>
               );
             })}
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 pb-16">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-4">
+              <h2 className="text-3xl font-semibold text-foreground">Why this project, why now</h2>
+              <p className="text-sm text-muted-foreground">
+                CardioWatch exists to close the gap between discharge and the first critical
+                weeks at home. The rise of wearable data, remote patient monitoring, and
+                clinician capacity constraints makes proactive triage essential.
+              </p>
+              <Card className="border bg-card/90 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Created by
+                </p>
+                <p className="mt-2 text-lg font-semibold text-foreground">Recep Adiyaman, PhD</p>
+                <p className="text-sm text-muted-foreground">
+                  Research scientist focused on applied clinical AI and health signal intelligence.
+                </p>
+              </Card>
+            </div>
+            <Card className="border bg-card/90 p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Interactive rationale
+              </p>
+              <Accordion type="single" collapsible className="mt-3">
+                <AccordionItem value="care-gap">
+                  <AccordionTrigger>Care gaps are expensive</AccordionTrigger>
+                  <AccordionContent>
+                    Post-discharge complications are common and costly. CardioWatch surfaces early
+                    signals so teams can intervene before avoidable readmissions occur.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="wearables">
+                  <AccordionTrigger>Wearables are finally signal-rich</AccordionTrigger>
+                  <AccordionContent>
+                    Consumer devices now capture reliable heart rate, HRV, sleep, and activity data.
+                    We translate those signals into clear clinical decisions.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="capacity">
+                  <AccordionTrigger>Clinician capacity is stretched</AccordionTrigger>
+                  <AccordionContent>
+                    Automated triage prioritizes the most urgent patients while keeping the rest
+                    safely monitored, reducing noise without losing oversight.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </Card>
           </div>
         </section>
 
