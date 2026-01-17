@@ -1,0 +1,544 @@
+openapi: 3.1.0
+info:
+  title: CardioWatch API
+  description: |
+    Healthcare monitoring API for post-discharge cardiac patients.
+
+    ## Authentication
+    All endpoints (except `/auth/login`, `/auth/register`, `/health`) require a Bearer token.
+
+    ## Rate Limiting
+    - Global: 100 requests per 15 minutes
+    - Auth endpoints: 10 requests per 15 minutes
+  version: 1.0.0
+  contact:
+    name: CardioWatch Support
+    email: support@cardiowatch.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development
+  - url: https://api.cardiowatch.com/v1
+    description: Production
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Patients
+    description: Patient management
+  - name: Alerts
+    description: Clinical alert management
+  - name: Wearables
+    description: Wearable device integration
+  - name: Appointments
+    description: Appointment scheduling
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      tags: [System]
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: "1.0.0"
+
+  /auth/login:
+    post:
+      summary: User login
+      operationId: login
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth/logout:
+    post:
+      summary: User logout
+      operationId: logout
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      operationId: refreshToken
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+
+  /patients:
+    get:
+      summary: List patients
+      operationId: listPatients
+      tags: [Patients]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: triageLevel
+          in: query
+          schema:
+            type: string
+            enum: [red, amber, green, all]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [name, triageLevel, lastCheckIn, wellbeingScore]
+      responses:
+        '200':
+          description: Patient list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      summary: Create patient
+      operationId: createPatient
+      tags: [Patients]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePatientRequest'
+      responses:
+        '201':
+          description: Patient created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientResponse'
+
+  /patients/{id}:
+    get:
+      summary: Get patient details
+      operationId: getPatient
+      tags: [Patients]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      responses:
+        '200':
+          description: Patient details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /patients/{id}/triage:
+    patch:
+      summary: Update patient triage level
+      operationId: updateTriage
+      tags: [Patients]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTriageRequest'
+      responses:
+        '200':
+          description: Triage updated
+
+  /patients/{id}/alerts:
+    get:
+      summary: Get patient alerts
+      operationId: getPatientAlerts
+      tags: [Patients, Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PatientId'
+        - name: includeResolved
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertListResponse'
+
+  /alerts:
+    get:
+      summary: List all alerts
+      operationId: listAlerts
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - name: resolved
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertListResponse'
+
+  /alerts/{id}/resolve:
+    post:
+      summary: Resolve an alert
+      operationId: resolveAlert
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveAlertRequest'
+      responses:
+        '200':
+          description: Alert resolved
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PatientId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        code:
+          type: string
+          example: UNAUTHORIZED
+        message:
+          type: string
+          example: Authentication required
+        requestId:
+          type: string
+          format: uuid
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        mfaCode:
+          type: string
+          minLength: 6
+          maxLength: 6
+
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+            expiresIn:
+              type: integer
+              example: 900
+            user:
+              $ref: '#/components/schemas/User'
+
+    TokenResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+            expiresIn:
+              type: integer
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [patient, doctor, nurse, admin, super_admin]
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        nhsNumber:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        triageLevel:
+          type: string
+          enum: [red, amber, green]
+        wellbeingScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        lastCheckIn:
+          type: string
+          format: date-time
+        primaryDiagnosis:
+          type: string
+
+    PatientListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            patients:
+              type: array
+              items:
+                $ref: '#/components/schemas/Patient'
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+
+    PatientResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            patient:
+              $ref: '#/components/schemas/Patient'
+
+    CreatePatientRequest:
+      type: object
+      required: [email, firstName, lastName, dateOfBirth]
+      properties:
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        nhsNumber:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        phone:
+          type: string
+        primaryDiagnosis:
+          type: string
+        assignedDoctorId:
+          type: string
+          format: uuid
+
+    UpdateTriageRequest:
+      type: object
+      required: [triageLevel]
+      properties:
+        triageLevel:
+          type: string
+          enum: [red, amber, green]
+        notes:
+          type: string
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [vital_signs, missed_checkin, symptom_reported, medication_missed, wearable_disconnected, critical_trend, manual]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        title:
+          type: string
+        message:
+          type: string
+        resolved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    AlertListResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        data:
+          type: object
+          properties:
+            alerts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Alert'
+
+    ResolveAlertRequest:
+      type: object
+      required: [resolutionNotes]
+      properties:
+        resolutionNotes:
+          type: string
+          minLength: 1
+
+security:
+  - bearerAuth: []

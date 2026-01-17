@@ -1,0 +1,162 @@
+# CardioWatch Development Environment
+# docker-compose up -d
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # API Server
+  # ==========================================================================
+  api:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: cardiowatch-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - DATABASE_URL=postgresql://cardiowatch:cardiowatch_dev@postgres:5432/cardiowatch
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret_change_in_production_32chars}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET:-dev_refresh_secret_change_in_prod_32}
+      - COOKIE_SECRET=${COOKIE_SECRET:-dev_cookie_secret_change_in_prod_32ch}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-dev_encryption_key_32_characters!!}
+      - FRONTEND_URL=http://localhost:5173
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cardiowatch-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ==========================================================================
+  # Frontend
+  # ==========================================================================
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile.frontend
+    container_name: cardiowatch-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080/api/v1
+      - VITE_ENABLE_MOCK_DATA=false
+    depends_on:
+      - api
+    networks:
+      - cardiowatch-network
+
+  # ==========================================================================
+  # PostgreSQL Database
+  # ==========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: cardiowatch-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=cardiowatch
+      - POSTGRES_PASSWORD=cardiowatch_dev
+      - POSTGRES_DB=cardiowatch
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../../database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    networks:
+      - cardiowatch-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cardiowatch -d cardiowatch"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # Redis (Caching & Message Queue)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: cardiowatch-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - cardiowatch-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================================================
+  # Nginx Reverse Proxy (Optional - for production-like setup)
+  # ==========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: cardiowatch-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - cardiowatch-network
+    profiles:
+      - production
+
+  # ==========================================================================
+  # PgAdmin (Database Management UI)
+  # ==========================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cardiowatch-pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@cardiowatch.local
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - cardiowatch-network
+    profiles:
+      - tools
+
+# ==========================================================================
+# Networks
+# ==========================================================================
+networks:
+  cardiowatch-network:
+    driver: bridge
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin_data:
