@@ -16,6 +16,13 @@ interface Message {
 
 type FlowStep = { content: string; options?: string[] };
 
+interface TimelineEvent {
+  id: string;
+  label: string;
+  time: string;
+  status?: 'info' | 'success' | 'warning' | 'danger';
+}
+
 const CLINICIAN_NAME = "Dr. X";
 const WATCH_SNAPSHOT = {
   restingHR: 71,
@@ -25,8 +32,25 @@ const WATCH_SNAPSHOT = {
   lastSync: "2 min ago",
 };
 
+const HR_TREND = [62, 64, 63, 66, 68, 65, 63];
+const HR_TREND_MIN = Math.min(...HR_TREND);
+const HR_TREND_RANGE = Math.max(...HR_TREND) - HR_TREND_MIN || 1;
+
 const WATCH_SUMMARY =
   "Real-time trends look stable. Resting HR is within baseline and sleep recovery is adequate.";
+
+const NON_URGENT_SYMPTOMS = [
+  "Fatigue or low energy",
+  "Dizziness when standing",
+  "Palpitations (skipped beats)",
+  "Swelling in legs or ankles",
+  "None of these",
+];
+
+const NON_URGENT_SYMPTOM_STEP_INDEX = 3;
+const WEARABLE_STEP_INDEX = 4;
+const ACTIVITY_STEP_INDEX = 5;
+const MEDICATION_STEP_INDEX = 6;
 
 const FINAL_SUMMARY: FlowStep = {
   content:
@@ -65,6 +89,10 @@ const DEMO_FLOW: FlowStep[] = [
     options: ["Chest pain or pressure", "Shortness of breath at rest", "Fainting or near-fainting", "None of these"],
   },
   {
+    content: "Thanks. Any non-urgent symptoms today that you want us to track?",
+    options: NON_URGENT_SYMPTOMS,
+  },
+  {
     content:
       `Apple Watch/Fitbit notification received (${WATCH_SNAPSHOT.lastSync}).` +
       `\n• Resting HR: ${WATCH_SNAPSHOT.restingHR} bpm` +
@@ -91,6 +119,7 @@ const DEMO_FLOW: FlowStep[] = [
       "Request medicine",
       "Side effects",
       "Call clinician",
+      "Notify family",
       "File a complaint",
       "Nothing else",
     ],
@@ -113,6 +142,30 @@ const CONCERN_FLOW: FlowStep[] = [
     options: ["No, that's all", "Yes, I have more to add"],
   },
 ];
+
+const buildSymptomFlow = (symptomLabel: string): FlowStep[] => [
+  {
+    content: `Thanks for letting me know about ${symptomLabel.toLowerCase()}. How severe is it right now?`,
+    options: ["Mild", "Moderate", "Severe"],
+  },
+  {
+    content: "When did it start?",
+    options: ["Today", "Past few days", "Over a week"],
+  },
+  {
+    content: `Got it. I'll share this with ${CLINICIAN_NAME} and keep monitoring. Ready to continue the check-in?`,
+    options: ["Continue check-in"],
+  },
+];
+
+const SYMPTOM_FLOWS: Record<string, FlowStep[]> = {
+  "Fatigue or low energy": buildSymptomFlow("fatigue or low energy"),
+  "Dizziness when standing": buildSymptomFlow("dizziness when standing"),
+  "Palpitations (skipped beats)": buildSymptomFlow("palpitations or skipped beats"),
+  "Swelling in legs or ankles": buildSymptomFlow("swelling in legs or ankles"),
+};
+
+const DEFAULT_SYMPTOM_FLOW = buildSymptomFlow("that symptom");
 
 // Urgent flow
 const URGENT_FLOW: FlowStep[] = [
@@ -236,6 +289,7 @@ export default function PatientDemo() {
     | 'normal'
     | 'concern'
     | 'urgent'
+    | 'symptom'
     | 'refill'
     | 'call'
     | 'complaint'
@@ -246,6 +300,8 @@ export default function PatientDemo() {
     | 'family'
     | 'clinicianResponse'
   >('normal');
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+  const [selectedSymptom, setSelectedSymptom] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [demoStarted, setDemoStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -258,12 +314,31 @@ export default function PatientDemo() {
     scrollToBottom();
   }, [messages]);
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const addTimelineEvent = (label: string, status: TimelineEvent['status'] = 'info') => {
+    const now = new Date();
+    setTimelineEvents(prev => [
+      ...prev,
+      {
+        id: `timeline-${now.getTime()}-${Math.random().toString(36).slice(2, 7)}`,
+        label,
+        time: formatTime(now),
+        status,
+      },
+    ]);
+  };
+
   const getCurrentFlow = () => {
     switch (flowType) {
       case 'concern':
         return CONCERN_FLOW;
       case 'urgent':
         return URGENT_FLOW;
+      case 'symptom':
+        return SYMPTOM_FLOWS[selectedSymptom] ?? DEFAULT_SYMPTOM_FLOW;
       case 'refill':
         return REFILL_FLOW;
       case 'call':
@@ -308,8 +383,11 @@ export default function PatientDemo() {
     setDemoStarted(true);
     setFlowType('normal');
     setCurrentStep(0);
+    setTimelineEvents([]);
+    setSelectedSymptom('');
     const firstMessage = DEMO_FLOW[0];
     addAgentMessage(firstMessage.content, firstMessage.options);
+    addTimelineEvent("Check-in started", "info");
   };
 
   const handleOptionSelect = (option: string) => {
@@ -329,6 +407,7 @@ export default function PatientDemo() {
       if (option === "Request ambulance") {
         setFlowType('ambulance');
         setCurrentStep(0);
+        addTimelineEvent("Ambulance requested", "danger");
         setTimeout(() => {
           addAgentMessage(AMBULANCE_FLOW[0].content, AMBULANCE_FLOW[0].options);
         }, 500);
@@ -337,6 +416,7 @@ export default function PatientDemo() {
       if (option === "Request appointment") {
         setFlowType('appointment');
         setCurrentStep(0);
+        addTimelineEvent("Appointment requested", "info");
         setTimeout(() => {
           addAgentMessage(APPOINTMENT_FLOW[0].content, APPOINTMENT_FLOW[0].options);
         }, 500);
@@ -345,6 +425,7 @@ export default function PatientDemo() {
       if (option === "Request medicine") {
         setFlowType('refill');
         setCurrentStep(0);
+        addTimelineEvent("Prescription refill requested", "info");
         setTimeout(() => {
           addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
         }, 500);
@@ -353,6 +434,7 @@ export default function PatientDemo() {
       if (option === "Side effects") {
         setFlowType('sideEffect');
         setCurrentStep(0);
+        addTimelineEvent("Side effects reported", "warning");
         setTimeout(() => {
           addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
         }, 500);
@@ -361,6 +443,7 @@ export default function PatientDemo() {
       if (option === "Call clinician") {
         setFlowType('call');
         setCurrentStep(0);
+        addTimelineEvent("Clinician call requested", "info");
         setTimeout(() => {
           addAgentMessage(CALL_FLOW[0].content, CALL_FLOW[0].options);
         }, 500);
@@ -369,6 +452,7 @@ export default function PatientDemo() {
       if (option === "Notify family") {
         setFlowType('family');
         setCurrentStep(0);
+        addTimelineEvent("Family notified", "info");
         setTimeout(() => {
           addAgentMessage(FAMILY_FLOW[0].content, FAMILY_FLOW[0].options);
         }, 500);
@@ -377,11 +461,52 @@ export default function PatientDemo() {
       if (option === "File a complaint") {
         setFlowType('complaint');
         setCurrentStep(0);
+        addTimelineEvent("Complaint filed", "warning");
         setTimeout(() => {
           addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
         }, 500);
         return;
       }
+    }
+
+    if (option === "Track delivery") {
+      setFlowType('delivery');
+      setCurrentStep(0);
+      addTimelineEvent("Medication delivery tracking opened", "info");
+      setTimeout(() => {
+        addAgentMessage(DELIVERY_FLOW[0].content, DELIVERY_FLOW[0].options);
+      }, 500);
+      return;
+    }
+
+    if (option === "Clinician response") {
+      setFlowType('clinicianResponse');
+      setCurrentStep(0);
+      addTimelineEvent("Clinician response received", "success");
+      setTimeout(() => {
+        addAgentMessage(CLINICIAN_RESPONSE_FLOW[0].content, CLINICIAN_RESPONSE_FLOW[0].options);
+      }, 500);
+      return;
+    }
+
+    if (flowType === 'symptom') {
+      const flow = getCurrentFlow();
+      const nextStep = currentStep + 1;
+      if (option === "Continue check-in" || nextStep >= flow.length) {
+        setFlowType('normal');
+        setCurrentStep(WEARABLE_STEP_INDEX);
+        addTimelineEvent("Wearable sync received", "info");
+        setTimeout(() => {
+          addAgentMessage(DEMO_FLOW[WEARABLE_STEP_INDEX].content, DEMO_FLOW[WEARABLE_STEP_INDEX].options);
+        }, 500);
+        return;
+      }
+      setCurrentStep(nextStep);
+      setTimeout(() => {
+        const nextMessage = flow[nextStep];
+        addAgentMessage(nextMessage.content, nextMessage.options);
+      }, 500);
+      return;
     }
 
     if (flowType === 'normal' && currentStep === 0) {
@@ -395,15 +520,26 @@ export default function PatientDemo() {
       }
     }
 
+    if (option === "Continue check-in") {
+      setFlowType('normal');
+      setCurrentStep(1);
+      setTimeout(() => {
+        addAgentMessage(DEMO_FLOW[1].content, DEMO_FLOW[1].options);
+      }, 500);
+      return;
+    }
+
     if (flowType === 'normal' && currentStep === 2) {
       if (option === "Chest pain or pressure") {
         setFlowType('urgent');
+        addTimelineEvent(`Urgent symptom reported: ${option}`, "danger");
         setTimeout(() => {
           addAgentMessage(URGENT_FLOW[0].content);
         }, 500);
         return;
       } else if (option !== "None of these") {
         setFlowType('concern');
+        addTimelineEvent(`Symptom requires review: ${option}`, "warning");
         setTimeout(() => {
           addAgentMessage(CONCERN_FLOW[0].content, CONCERN_FLOW[0].options);
         }, 500);
@@ -412,95 +548,41 @@ export default function PatientDemo() {
       }
     }
 
-    if (flowType === 'normal' && currentStep === 3 && option === "Report sync issue") {
+    if (
+      flowType === 'normal' &&
+      currentStep === NON_URGENT_SYMPTOM_STEP_INDEX &&
+      option !== "None of these"
+    ) {
+      const symptomFlow = SYMPTOM_FLOWS[option] ?? DEFAULT_SYMPTOM_FLOW;
+      setSelectedSymptom(option);
+      setFlowType('symptom');
+      setCurrentStep(0);
+      addTimelineEvent(`Symptom logged: ${option}`, "warning");
+      setTimeout(() => {
+        addAgentMessage(symptomFlow[0].content, symptomFlow[0].options);
+      }, 500);
+      return;
+    }
+
+    if (flowType === 'normal' && currentStep === WEARABLE_STEP_INDEX && option === "Report sync issue") {
+      addTimelineEvent("Wearable sync issue flagged", "warning");
       setTimeout(() => {
         addAgentMessage(
           "Thanks for flagging that. I've logged a device sync issue and notified support. We'll still continue your check-in."
         );
       }, 400);
       setTimeout(() => {
-        addAgentMessage(DEMO_FLOW[4].content, DEMO_FLOW[4].options);
+        addAgentMessage(DEMO_FLOW[ACTIVITY_STEP_INDEX].content, DEMO_FLOW[ACTIVITY_STEP_INDEX].options);
       }, 1200);
-      setCurrentStep(4);
+      setCurrentStep(ACTIVITY_STEP_INDEX);
       return;
     }
 
-    if (flowType === 'normal' && currentStep === 5) {
-      if (option === "Request ambulance") {
-        setFlowType('ambulance');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(AMBULANCE_FLOW[0].content, AMBULANCE_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Request appointment") {
-        setFlowType('appointment');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(APPOINTMENT_FLOW[0].content, APPOINTMENT_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Request medicine") {
-        setFlowType('refill');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Side effects") {
-        setFlowType('sideEffect');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Call clinician") {
-        setFlowType('call');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(CALL_FLOW[0].content, CALL_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Notify family") {
-        setFlowType('family');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(FAMILY_FLOW[0].content, FAMILY_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "File a complaint") {
-        setFlowType('complaint');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Track delivery") {
-        setFlowType('delivery');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(DELIVERY_FLOW[0].content, DELIVERY_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Clinician response") {
-        setFlowType('clinicianResponse');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(CLINICIAN_RESPONSE_FLOW[0].content, CLINICIAN_RESPONSE_FLOW[0].options);
-        }, 500);
-        return;
-      }
+    if (flowType === 'normal' && currentStep === MEDICATION_STEP_INDEX) {
       if (option === "Need a refill soon") {
         setFlowType('refill');
         setCurrentStep(0);
+        addTimelineEvent("Prescription refill requested", "info");
         setTimeout(() => {
           addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
         }, 500);
@@ -509,6 +591,7 @@ export default function PatientDemo() {
       if (option === "Having side effects") {
         setFlowType('sideEffect');
         setCurrentStep(0);
+        addTimelineEvent("Side effects reported", "warning");
         setTimeout(() => {
           addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
         }, 500);
@@ -519,9 +602,12 @@ export default function PatientDemo() {
     // Progress normal flow
     const flow = getCurrentFlow();
     const nextStep = currentStep + 1;
-    
+
     if (nextStep < flow.length) {
       setCurrentStep(nextStep);
+      if (flowType === 'normal' && nextStep === WEARABLE_STEP_INDEX) {
+        addTimelineEvent("Wearable sync received", "info");
+      }
       setTimeout(() => {
         const nextMessage = flow[nextStep];
         addAgentMessage(nextMessage.content, nextMessage.options);
@@ -552,15 +638,13 @@ export default function PatientDemo() {
     }, 500);
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  };
-
   const resetDemo = () => {
     setMessages([]);
     setCurrentStep(0);
     setFlowType('normal');
     setDemoStarted(false);
+    setTimelineEvents([]);
+    setSelectedSymptom('');
   };
 
   return (
@@ -630,40 +714,102 @@ export default function PatientDemo() {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
-              <Card className="border bg-card/95 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <Watch size={16} className="text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Apple Watch update
-                    </p>
-                    <p className="text-sm font-semibold text-foreground">
-                      Live sync received {WATCH_SNAPSHOT.lastSync}
-                    </p>
-                    <div className="mt-2 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                      <div>
-                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.restingHR} bpm</span>
-                        <span className="ml-1">Resting HR</span>
-                      </div>
-                      <div>
-                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.hrv} ms</span>
-                        <span className="ml-1">HRV</span>
-                      </div>
-                      <div>
-                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.sleepHours} hrs</span>
-                        <span className="ml-1">Sleep</span>
-                      </div>
-                      <div>
-                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.steps.toLocaleString()}</span>
-                        <span className="ml-1">Steps</span>
+              <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+                <Card className="border bg-card/95 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-secondary/70 p-2">
+                      <MessageCircle size={16} className="text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Care timeline
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        Live updates for today's check-in
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        {timelineEvents.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">
+                            Timeline updates will appear as you respond.
+                          </p>
+                        ) : (
+                          timelineEvents.map((event) => (
+                            <div key={event.id} className="flex items-start justify-between gap-3 text-xs">
+                              <div className="flex items-start gap-2">
+                                <span
+                                  className={cn(
+                                    "mt-1 h-2 w-2 rounded-full",
+                                    event.status === 'danger' && "bg-triage-red",
+                                    event.status === 'warning' && "bg-amber-400",
+                                    event.status === 'success' && "bg-emerald-400",
+                                    (!event.status || event.status === 'info') && "bg-primary"
+                                  )}
+                                />
+                                <span className="text-foreground">{event.label}</span>
+                              </div>
+                              <span className="text-muted-foreground">{event.time}</span>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">{WATCH_SUMMARY}</p>
                   </div>
-                </div>
-              </Card>
+                </Card>
+                <Card className="border bg-card/95 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-lg bg-primary/10 p-2">
+                      <Watch size={16} className="text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Apple Watch update
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        Live sync received {WATCH_SNAPSHOT.lastSync}
+                      </p>
+                      <div className="mt-2 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                        <div>
+                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.restingHR} bpm</span>
+                          <span className="ml-1">Resting HR</span>
+                        </div>
+                        <div>
+                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.hrv} ms</span>
+                          <span className="ml-1">HRV</span>
+                        </div>
+                        <div>
+                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.sleepHours} hrs</span>
+                          <span className="ml-1">Sleep</span>
+                        </div>
+                        <div>
+                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.steps.toLocaleString()}</span>
+                          <span className="ml-1">Steps</span>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">{WATCH_SUMMARY}</p>
+                      <div className="mt-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          7-day resting HR trend
+                        </p>
+                        <div className="mt-2 flex h-10 items-end gap-1">
+                          {HR_TREND.map((value, index) => {
+                            const height = 20 + ((value - HR_TREND_MIN) / HR_TREND_RANGE) * 70;
+                            return (
+                              <span
+                                key={`${value}-${index}`}
+                                className={cn(
+                                  "w-2 rounded-full",
+                                  index === HR_TREND.length - 1 ? "bg-primary" : "bg-primary/30"
+                                )}
+                                style={{ height: `${height}%` }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
               {messages.map((message) => (
                 <div
                   key={message.id}
