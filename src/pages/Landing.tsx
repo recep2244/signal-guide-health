@@ -20,7 +20,6 @@ import {
   Zap,
 } from "lucide-react";
 
-const demoVideoSrc = `${import.meta.env.BASE_URL}demo-reel.mp4`;
 
 const SectionHeading = ({
   eyebrow,
@@ -493,25 +492,6 @@ export default function Landing() {
 
         <section className="container mx-auto px-4 pb-16">
           <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-            <Card className="border bg-card/90 p-6">
-              <SectionHeading
-                eyebrow="Product walkthrough"
-                title="60-second demo video"
-                subtitle="Now embedded for the investor presentation."
-              />
-              <div className="mt-4 overflow-hidden rounded-2xl border bg-secondary/40">
-                <video
-                  className="h-52 w-full object-cover"
-                  controls
-                  poster={`${import.meta.env.BASE_URL}placeholder.svg`}
-                >
-                  <source src={demoVideoSrc} type="video/mp4" />
-                </video>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Replace `public/demo-reel.mp4` with your real demo footage.
-              </p>
-            </Card>
             <Card className="border bg-card/90 p-6">
               <SectionHeading
                 eyebrow="Compliance roadmap"
