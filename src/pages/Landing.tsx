@@ -264,6 +264,29 @@ export default function Landing() {
           </div>
         </section>
 
+        <section className="container mx-auto px-4 pb-16">
+          <Card className="border bg-card/90 p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold text-foreground">
+                  Copyright and attribution
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  This CardioWatch demo is curated and developed by Recep Adiyaman.
+                  The content, flows, and visuals are original work prepared for
+                  investor presentations and product discussions.
+                </p>
+              </div>
+              <div className="space-y-3 text-sm text-foreground">
+                <p>• Copyright (c) 2026 Recep Adiyaman. All rights reserved.</p>
+                <p>• Demo data, patient records, and metrics are synthetic.</p>
+                <p>• Distribution or reuse requires permission from the author.</p>
+                <p>• Use this demo for evaluation and discussion only.</p>
+              </div>
+            </div>
+          </Card>
+        </section>
+
         <section className="container mx-auto px-4 pb-20">
           <Card className="flex flex-col items-start gap-4 border bg-card/90 p-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -289,7 +312,7 @@ export default function Landing() {
       <footer className="border-t bg-card/60">
         <div className="container mx-auto flex flex-col gap-2 px-4 py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
           <span>Copyright (c) 2026 Recep Adiyaman. All rights reserved.</span>
-          <span>CardioWatch demo landing page (home) with patient and clinician demos.</span>
+          <span>Curated CardioWatch demo for investor presentations.</span>
         </div>
       </footer>
     </div>

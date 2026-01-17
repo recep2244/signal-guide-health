@@ -37,3 +37,9 @@ npm run test
 ## Notes
 
 - Demo data is synthetic and for product exploration only.
+
+## Copyright and attribution
+
+This demo and its assets are curated and developed by Recep Adiyaman.
+All visuals, narrative flows, and interface compositions are original work
+prepared for investor presentations. Distribution or reuse requires permission.
