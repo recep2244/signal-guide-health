@@ -295,14 +295,14 @@ export default function Landing() {
                   Traction & pilots
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Placeholder logos until pilot partners are announced.
+                  Illustrative partners for demo purposes (replace with real pilots).
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-secondary text-secondary-foreground">Pilot Hospital A</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">Clinical Partner B</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">RPM Network C</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">Insurer D</Badge>
+                <Badge className="bg-secondary text-secondary-foreground">Pilot: Midlands Heart Centre</Badge>
+                <Badge className="bg-secondary text-secondary-foreground">Clinical: Southbank Cardiology</Badge>
+                <Badge className="bg-secondary text-secondary-foreground">RPM: CityCare Network</Badge>
+                <Badge className="bg-secondary text-secondary-foreground">Payer: Horizon Health</Badge>
               </div>
             </div>
           </Card>
@@ -384,19 +384,19 @@ export default function Landing() {
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Readmissions</p>
-                  <p className="text-2xl font-semibold text-foreground">-22%</p>
+                  <p className="text-2xl font-semibold text-foreground">-24%</p>
                 </Card>
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Response time</p>
-                  <p className="text-2xl font-semibold text-foreground">12m</p>
+                  <p className="text-2xl font-semibold text-foreground">9m</p>
                 </Card>
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Adherence</p>
-                  <p className="text-2xl font-semibold text-foreground">+31%</p>
+                  <p className="text-2xl font-semibold text-foreground">+27%</p>
                 </Card>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                Illustrative metrics for pitch use; replace with pilot results when available.
+                Demo-only outcomes to illustrate value; replace with validated pilot results.
               </p>
             </Card>
             <Card className="border bg-card/90 p-6">
@@ -406,21 +406,24 @@ export default function Landing() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Per-patient revenue</p>
-                  <p className="text-sm font-semibold text-foreground">£28 / month</p>
+                  <p className="text-sm font-semibold text-foreground">£35 / month</p>
                 </Card>
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Cost to serve</p>
-                  <p className="text-sm font-semibold text-foreground">£8 / month</p>
+                  <p className="text-sm font-semibold text-foreground">£9 / month</p>
                 </Card>
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Gross margin</p>
-                  <p className="text-sm font-semibold text-foreground">71%</p>
+                  <p className="text-sm font-semibold text-foreground">74%</p>
                 </Card>
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Payback</p>
                   <p className="text-sm font-semibold text-foreground">{"<"}2 months</p>
                 </Card>
               </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Illustrative unit economics for investor narrative; adjust to your pricing model.
+              </p>
             </Card>
           </div>
         </section>
@@ -491,10 +494,12 @@ export default function Landing() {
               </p>
               <div className="mt-4 flex h-48 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/30 bg-secondary/40">
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-foreground">Insert 60-second demo video</p>
-                  <p className="text-xs text-muted-foreground">Replace with an embed or hosted video URL.</p>
+                  <p className="text-sm font-semibold text-foreground">60-second demo video</p>
+                  <p className="text-xs text-muted-foreground">
+                    Replace this placeholder with an embedded pitch video.
+                  </p>
                   <Button className="mt-3" variant="outline" size="sm">
-                    Upload video
+                    Add video link
                   </Button>
                 </div>
               </div>
