@@ -13,6 +13,19 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
   const latestWearable = patient.wearableData[patient.wearableData.length - 1];
   const baselineHR = patient.wearableData.slice(0, 7).reduce((acc, d) => acc + d.restingHR, 0) / 7;
   const hrDelta = Math.round(latestWearable.restingHR - baselineHR);
+  const hrSeries = patient.wearableData.slice(-8).map((d) => d.restingHR);
+  const minHr = Math.min(...hrSeries);
+  const maxHr = Math.max(...hrSeries);
+  const sparklineWidth = 90;
+  const sparklineHeight = 26;
+  const sparklinePoints = hrSeries
+    .map((value, index) => {
+      const x = (sparklineWidth / Math.max(1, hrSeries.length - 1)) * index;
+      const normalized = maxHr === minHr ? 0.5 : (value - minHr) / (maxHr - minHr);
+      const y = sparklineHeight - normalized * sparklineHeight;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -71,6 +84,22 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
             <span>HRV: {Math.round(latestWearable.hrv)} ms</span>
             <span>Sleep: {latestWearable.sleepHours.toFixed(1)} hrs</span>
             <span>Sync: {formatTime(patient.lastCheckIn)}</span>
+            <span className="flex items-center gap-2">
+              HR trend
+              <svg
+                width={sparklineWidth}
+                height={sparklineHeight}
+                viewBox={`0 0 ${sparklineWidth} ${sparklineHeight}`}
+                className="block"
+              >
+                <polyline
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  points={sparklinePoints}
+                />
+              </svg>
+            </span>
           </div>
         </div>
 
