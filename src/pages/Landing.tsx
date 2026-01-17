@@ -287,6 +287,27 @@ export default function Landing() {
           </div>
         </section>
 
+        <section className="container mx-auto px-4 pb-12">
+          <Card className="border bg-card/90 p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Traction & pilots
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Placeholder logos until pilot partners are announced.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-secondary text-secondary-foreground">Pilot Hospital A</Badge>
+                <Badge className="bg-secondary text-secondary-foreground">Clinical Partner B</Badge>
+                <Badge className="bg-secondary text-secondary-foreground">RPM Network C</Badge>
+                <Badge className="bg-secondary text-secondary-foreground">Insurer D</Badge>
+              </div>
+            </div>
+          </Card>
+        </section>
+
         <section id="impact" className="container mx-auto px-4 py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <div className="space-y-4">
@@ -354,6 +375,56 @@ export default function Landing() {
           </div>
         </section>
 
+        <section className="container mx-auto px-4 pb-16">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <Card className="border bg-card/90 p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Clinical outcomes
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Readmissions</p>
+                  <p className="text-2xl font-semibold text-foreground">-22%</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Response time</p>
+                  <p className="text-2xl font-semibold text-foreground">12m</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Adherence</p>
+                  <p className="text-2xl font-semibold text-foreground">+31%</p>
+                </Card>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Illustrative metrics for pitch use; replace with pilot results when available.
+              </p>
+            </Card>
+            <Card className="border bg-card/90 p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Unit economics
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Per-patient revenue</p>
+                  <p className="text-sm font-semibold text-foreground">£28 / month</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Cost to serve</p>
+                  <p className="text-sm font-semibold text-foreground">£8 / month</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Gross margin</p>
+                  <p className="text-sm font-semibold text-foreground">71%</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Payback</p>
+                  <p className="text-sm font-semibold text-foreground">{"<"}2 months</p>
+                </Card>
+              </div>
+            </Card>
+          </div>
+        </section>
+
         <section id="features" className="container mx-auto px-4 py-16">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -408,6 +479,48 @@ export default function Landing() {
               <p className="text-xs text-muted-foreground">
                 Structured summaries match clinical handoff workflows.
               </p>
+            </Card>
+          </div>
+        </section>
+
+        <section className="container mx-auto px-4 pb-16">
+          <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+            <Card className="border bg-card/90 p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Product walkthrough
+              </p>
+              <div className="mt-4 flex h-48 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/30 bg-secondary/40">
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-foreground">Insert 60-second demo video</p>
+                  <p className="text-xs text-muted-foreground">Replace with an embed or hosted video URL.</p>
+                  <Button className="mt-3" variant="outline" size="sm">
+                    Upload video
+                  </Button>
+                </div>
+              </div>
+            </Card>
+            <Card className="border bg-card/90 p-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Compliance roadmap
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">GDPR / UK GDPR</p>
+                  <p className="text-sm font-semibold text-foreground">Data governance ready</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">NHS DSPT</p>
+                  <p className="text-sm font-semibold text-foreground">Targeting DSPT compliance</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">ISO 27001</p>
+                  <p className="text-sm font-semibold text-foreground">Roadmap in progress</p>
+                </Card>
+                <Card className="card-interactive p-4">
+                  <p className="text-xs text-muted-foreground">Clinical safety</p>
+                  <p className="text-sm font-semibold text-foreground">DCB0129 planned</p>
+                </Card>
+              </div>
             </Card>
           </div>
         </section>
