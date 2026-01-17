@@ -35,6 +35,7 @@ const FINAL_SUMMARY: FlowStep = {
     "• No red flag symptoms reported\n" +
     "• Next check-in scheduled for tomorrow\n\n" +
     "If you develop chest pain, shortness of breath at rest, or fainting, seek urgent care.",
+  options: ["Clinician response", "Continue check-in"],
 };
 
 const QUICK_ACTIONS_OPTIONS = [
@@ -43,6 +44,7 @@ const QUICK_ACTIONS_OPTIONS = [
   "Request medicine",
   "Side effects",
   "Call clinician",
+  "Notify family",
   "File a complaint",
   "Continue check-in",
 ];
@@ -126,7 +128,7 @@ const REFILL_FLOW: FlowStep[] = [
   },
   {
     content: `Refill request created and sent to ${CLINICIAN_NAME}. We'll notify you when the prescription is issued and medication is ready.`,
-    options: ["Continue check-in"],
+    options: ["Track delivery", "Continue check-in"],
   },
   FINAL_SUMMARY,
 ];
@@ -161,7 +163,41 @@ const SIDE_EFFECT_FLOW: FlowStep[] = [
     options: ["Mild", "Moderate", "Severe"],
   },
   {
-    content: "I've logged this and alerted your care team. If symptoms worsen, seek urgent care or call 999.",
+    content:
+      "I've logged this and alerted your care team. If symptoms worsen, seek urgent care or call 999.",
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
+const DELIVERY_FLOW: FlowStep[] = [
+  {
+    content: "Medication delivery options:",
+    options: ["Home delivery (2 hours)", "Pickup from pharmacy"],
+  },
+  {
+    content: "Delivery scheduled. ETA 2 hours. We'll send a confirmation when it's dispatched.",
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
+const FAMILY_FLOW: FlowStep[] = [
+  {
+    content: "Who should we notify?",
+    options: ["Primary caregiver", "Family contact", "Emergency contact"],
+  },
+  {
+    content: "Notification sent. We'll keep them updated on your status.",
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
+const CLINICIAN_RESPONSE_FLOW: FlowStep[] = [
+  {
+    content:
+      `${CLINICIAN_NAME} responded: "Reviewed the latest Apple Watch trends. No urgent concerns. Continue current meds and hydrate. We'll check in tomorrow."`,
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -206,6 +242,9 @@ export default function PatientDemo() {
     | 'sideEffect'
     | 'appointment'
     | 'ambulance'
+    | 'delivery'
+    | 'family'
+    | 'clinicianResponse'
   >('normal');
   const [isTyping, setIsTyping] = useState(false);
   const [demoStarted, setDemoStarted] = useState(false);
@@ -237,6 +276,12 @@ export default function PatientDemo() {
         return APPOINTMENT_FLOW;
       case 'ambulance':
         return AMBULANCE_FLOW;
+      case 'delivery':
+        return DELIVERY_FLOW;
+      case 'family':
+        return FAMILY_FLOW;
+      case 'clinicianResponse':
+        return CLINICIAN_RESPONSE_FLOW;
       default:
         return DEMO_FLOW;
     }
@@ -318,6 +363,14 @@ export default function PatientDemo() {
         setCurrentStep(0);
         setTimeout(() => {
           addAgentMessage(CALL_FLOW[0].content, CALL_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Notify family") {
+        setFlowType('family');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(FAMILY_FLOW[0].content, FAMILY_FLOW[0].options);
         }, 500);
         return;
       }
@@ -413,11 +466,35 @@ export default function PatientDemo() {
         }, 500);
         return;
       }
+      if (option === "Notify family") {
+        setFlowType('family');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(FAMILY_FLOW[0].content, FAMILY_FLOW[0].options);
+        }, 500);
+        return;
+      }
       if (option === "File a complaint") {
         setFlowType('complaint');
         setCurrentStep(0);
         setTimeout(() => {
           addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Track delivery") {
+        setFlowType('delivery');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(DELIVERY_FLOW[0].content, DELIVERY_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Clinician response") {
+        setFlowType('clinicianResponse');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(CLINICIAN_RESPONSE_FLOW[0].content, CLINICIAN_RESPONSE_FLOW[0].options);
         }, 500);
         return;
       }
