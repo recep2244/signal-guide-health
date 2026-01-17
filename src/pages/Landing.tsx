@@ -10,7 +10,10 @@ import {
   Activity,
   Bell,
   LineChart,
+  MessageCircle,
+  Phone,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   Stethoscope,
   Users,
@@ -152,6 +155,20 @@ export default function Landing() {
                   Explore clinician view
                 </Button>
               </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge className="bg-secondary text-secondary-foreground">
+                  <MessageCircle size={12} className="mr-1" />
+                  WhatsApp outreach
+                </Badge>
+                <Badge className="bg-secondary text-secondary-foreground">
+                  <Smartphone size={12} className="mr-1" />
+                  SMS check-ins
+                </Badge>
+                <Badge className="bg-secondary text-secondary-foreground">
+                  <Phone size={12} className="mr-1" />
+                  Clinician calls
+                </Badge>
+              </div>
               <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                 <Card className="border bg-card/80 px-4 py-2">
                   <span className="flex items-center gap-2">
@@ -207,6 +224,19 @@ export default function Landing() {
                     <p className="text-sm font-semibold text-foreground">Signal integrity</p>
                     <p className="text-xs text-muted-foreground">
                       Trend baselines keep clinicians confident in the next action.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="card-interactive border bg-card/90 p-5">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2">
+                    <MessageCircle className="text-primary" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Multi-channel engagement</p>
+                    <p className="text-xs text-muted-foreground">
+                      WhatsApp, SMS, and voice calls keep patients connected between visits.
                     </p>
                   </div>
                 </div>
@@ -504,6 +534,39 @@ export default function Landing() {
               </Button>
             </Card>
           </div>
+        </section>
+
+        <section className="container mx-auto px-4 pb-16">
+          <Card className="border bg-card/90 p-6">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h3 className="text-2xl font-semibold text-foreground font-display">
+                  Wearable data coverage
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  CardioWatch converts wearable signals into actionable clinical context.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Card className="border bg-secondary/60 p-4">
+                  <p className="text-xs text-muted-foreground">Vitals</p>
+                  <p className="text-sm font-semibold text-foreground">Resting HR, HRV</p>
+                </Card>
+                <Card className="border bg-secondary/60 p-4">
+                  <p className="text-xs text-muted-foreground">Recovery</p>
+                  <p className="text-sm font-semibold text-foreground">Sleep hours, quality</p>
+                </Card>
+                <Card className="border bg-secondary/60 p-4">
+                  <p className="text-xs text-muted-foreground">Activity</p>
+                  <p className="text-sm font-semibold text-foreground">Steps, exertion trends</p>
+                </Card>
+                <Card className="border bg-secondary/60 p-4">
+                  <p className="text-xs text-muted-foreground">Trends</p>
+                  <p className="text-sm font-semibold text-foreground">14-day baselines</p>
+                </Card>
+              </div>
+            </div>
+          </Card>
         </section>
 
         <section className="container mx-auto px-4 pb-16">
