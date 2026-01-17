@@ -8,8 +8,11 @@ import PatientDetail from "./pages/PatientDetail";
 import PatientDemo from "./pages/PatientDemo";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
+import Login from "./pages/Login";
 import { AlertsProvider } from "./context/AlertsContext";
+import { AuthProvider } from "./context/AuthContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { QUERY_STALE_TIME_MS, API_RETRY_COUNT } from "./config/constants";
 
 const queryClient = new QueryClient({
@@ -25,21 +28,45 @@ const queryClient = new QueryClient({
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <AlertsProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner position="top-right" />
-          <BrowserRouter basename={import.meta.env.BASE_URL}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/patient/:patientId" element={<PatientDetail />} />
-              <Route path="/demo" element={<PatientDemo />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AlertsProvider>
+      <AuthProvider>
+        <AlertsProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner position="top-right" />
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Landing />} />
+                <Route path="/login" element={<Login />} />
+
+                {/* Protected clinician routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute requiredRole="clinician">
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/patient/:patientId"
+                  element={
+                    <ProtectedRoute>
+                      <PatientDetail />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Patient demo (public for investor demos) */}
+                <Route path="/demo" element={<PatientDemo />} />
+
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AlertsProvider>
+      </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );
