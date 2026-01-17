@@ -34,9 +34,25 @@ const FINAL_SUMMARY: FlowStep = {
     "If you develop chest pain, shortness of breath at rest, or fainting, seek urgent care.",
 };
 
+const QUICK_ACTIONS_OPTIONS = [
+  "Request ambulance",
+  "Request appointment",
+  "Request medicine",
+  "Side effects",
+  "Call clinician",
+  "File a complaint",
+  "Continue check-in",
+];
+
 const DEMO_FLOW: FlowStep[] = [
   {
-    content: "Good morning! 👋 I'm your CardioWatch assistant on WhatsApp. I'll be checking in with you daily to help monitor your recovery.\n\nHow are you feeling today on a scale of 0-10?",
+    content:
+      "Good morning! 👋 I'm your CardioWatch assistant on WhatsApp. I'll be checking in with you daily to help monitor your recovery.\n\n" +
+      "If you need urgent or practical help now, pick one of the quick actions below, or continue the check-in.",
+    options: QUICK_ACTIONS_OPTIONS,
+  },
+  {
+    content: "Thanks. How are you feeling today on a scale of 0-10?",
     options: ["8 - Feeling good", "6 - Okay", "4 - Not great", "2 - Struggling"],
   },
   {
@@ -260,7 +276,66 @@ export default function PatientDemo() {
     ]);
 
     // Determine flow based on selection
-    if (flowType === 'normal' && currentStep === 1) {
+    if (flowType === 'normal' && currentStep === 0) {
+      if (option === "Continue check-in") {
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(DEMO_FLOW[1].content, DEMO_FLOW[1].options);
+        }, 500);
+        setCurrentStep(1);
+        return;
+      }
+      if (option === "Request ambulance") {
+        setFlowType('ambulance');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(AMBULANCE_FLOW[0].content, AMBULANCE_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Request appointment") {
+        setFlowType('appointment');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(APPOINTMENT_FLOW[0].content, APPOINTMENT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Request medicine") {
+        setFlowType('refill');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Side effects") {
+        setFlowType('sideEffect');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Call clinician") {
+        setFlowType('call');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(CALL_FLOW[0].content, CALL_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "File a complaint") {
+        setFlowType('complaint');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+    }
+
+    if (flowType === 'normal' && currentStep === 2) {
       if (option === "Chest pain or pressure") {
         setFlowType('urgent');
         setTimeout(() => {
@@ -277,36 +352,17 @@ export default function PatientDemo() {
       }
     }
 
-    if (flowType === 'normal' && currentStep === 2 && option === "Report sync issue") {
+    if (flowType === 'normal' && currentStep === 3 && option === "Report sync issue") {
       setTimeout(() => {
         addAgentMessage(
           "Thanks for flagging that. I've logged a device sync issue and notified support. We'll still continue your check-in."
         );
       }, 400);
       setTimeout(() => {
-        addAgentMessage(DEMO_FLOW[3].content, DEMO_FLOW[3].options);
+        addAgentMessage(DEMO_FLOW[4].content, DEMO_FLOW[4].options);
       }, 1200);
-      setCurrentStep(3);
+      setCurrentStep(4);
       return;
-    }
-
-    if (flowType === 'normal' && currentStep === 4) {
-      if (option === "Need a refill soon") {
-        setFlowType('refill');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
-        }, 500);
-        return;
-      }
-      if (option === "Having side effects") {
-        setFlowType('sideEffect');
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
-        }, 500);
-        return;
-      }
     }
 
     if (flowType === 'normal' && currentStep === 5) {
@@ -355,6 +411,22 @@ export default function PatientDemo() {
         setCurrentStep(0);
         setTimeout(() => {
           addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Need a refill soon") {
+        setFlowType('refill');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Having side effects") {
+        setFlowType('sideEffect');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
         }, 500);
         return;
       }
