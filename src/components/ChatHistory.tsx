@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@/data/mockPatients';
 import { User, Bot } from 'lucide-react';
@@ -7,17 +8,26 @@ interface ChatHistoryProps {
   className?: string;
 }
 
-export function ChatHistory({ messages, className }: ChatHistoryProps) {
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+const formatTime = (timestamp: string) => {
+  return new Date(timestamp).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+export const ChatHistory = memo(function ChatHistory({ messages, className }: ChatHistoryProps) {
+  // Pre-format all timestamps to avoid creating Date objects on every render
+  const formattedMessages = useMemo(() =>
+    messages.map(msg => ({
+      ...msg,
+      formattedTime: formatTime(msg.timestamp)
+    })),
+    [messages]
+  );
 
   return (
     <div className={cn('space-y-4 p-4', className)}>
-      {messages.map((message, index) => (
+      {formattedMessages.map((message, index) => (
         <div
           key={message.id}
           className={cn(
@@ -58,11 +68,11 @@ export function ChatHistory({ messages, className }: ChatHistoryProps) {
               {message.content}
             </div>
             <span className="text-[10px] text-muted-foreground px-1">
-              {formatTime(message.timestamp)}
+              {message.formattedTime}
             </span>
           </div>
         </div>
       ))}
     </div>
   );
-}
+});

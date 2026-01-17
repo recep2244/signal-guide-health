@@ -121,7 +121,7 @@ export function AlertsProvider({ children }: { children: React.ReactNode }) {
       isAlertResolved,
       unresolveAlert,
       clearResolvedAlerts,
-      resolvedCount,
+      // resolvedCount is derived from resolvedAlertIds, no need to include it
     ]
   );
 

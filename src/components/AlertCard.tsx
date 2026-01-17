@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertOctagon, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
@@ -10,17 +11,17 @@ interface AlertCardProps {
   className?: string;
 }
 
-export function AlertCard({ alert, onResolve, className }: AlertCardProps) {
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
+export const AlertCard = memo(function AlertCard({ alert, onResolve, className }: AlertCardProps) {
   const isRed = alert.type === 'red';
 
   return (
@@ -89,4 +90,4 @@ export function AlertCard({ alert, onResolve, className }: AlertCardProps) {
       </div>
     </Card>
   );
-}
+});

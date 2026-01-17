@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, ReferenceLine } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Heart, Activity, Moon, Waves } from 'lucide-react';
@@ -9,41 +10,63 @@ interface VitalTrendsProps {
   className?: string;
 }
 
-export function VitalTrends({ data, className }: VitalTrendsProps) {
-  // Calculate baselines (first 7 days)
-  const baselineData = data.slice(0, 7);
-  const baselines = {
-    restingHR: Math.round(baselineData.reduce((acc, d) => acc + d.restingHR, 0) / baselineData.length),
-    hrv: Math.round(baselineData.reduce((acc, d) => acc + d.hrv, 0) / baselineData.length),
-    sleepHours: +(baselineData.reduce((acc, d) => acc + d.sleepHours, 0) / baselineData.length).toFixed(1),
-    steps: Math.round(baselineData.reduce((acc, d) => acc + d.steps, 0) / baselineData.length),
-  };
+const THRESHOLDS = {
+  inverse: { warn: 10, danger: 15 },
+  normal: { warn: -20, danger: -30 },
+} as const;
 
-  // Get latest values
-  const latest = data[data.length - 1];
-  const latestValues = {
-    restingHR: Math.round(latest.restingHR),
-    hrv: Math.round(latest.hrv),
-    sleepHours: +latest.sleepHours.toFixed(1),
-    steps: Math.round(latest.steps),
-  };
+export const VitalTrends = memo(function VitalTrends({ data, className }: VitalTrendsProps) {
+  // Memoize all calculations to prevent recalculation on every render
+  const calculations = useMemo(() => {
+    // Calculate baselines (first 7 days) in a single pass
+    const baselineData = data.slice(0, 7);
+    const baselineSums = baselineData.reduce(
+      (acc, d) => ({
+        restingHR: acc.restingHR + d.restingHR,
+        hrv: acc.hrv + d.hrv,
+        sleepHours: acc.sleepHours + d.sleepHours,
+        steps: acc.steps + d.steps,
+      }),
+      { restingHR: 0, hrv: 0, sleepHours: 0, steps: 0 }
+    );
 
-  // Calculate deltas
-  const deltas = {
-    restingHR: latestValues.restingHR - baselines.restingHR,
-    hrv: latestValues.hrv - baselines.hrv,
-    sleepHours: +(latestValues.sleepHours - baselines.sleepHours).toFixed(1),
-    steps: latestValues.steps - baselines.steps,
-  };
+    const baselines = {
+      restingHR: Math.round(baselineSums.restingHR / baselineData.length),
+      hrv: Math.round(baselineSums.hrv / baselineData.length),
+      sleepHours: +(baselineSums.sleepHours / baselineData.length).toFixed(1),
+      steps: Math.round(baselineSums.steps / baselineData.length),
+    };
 
-  const chartData = data.map((d, i) => ({
-    day: i + 1,
-    date: new Date(d.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-    restingHR: Math.round(d.restingHR),
-    hrv: Math.round(d.hrv),
-    sleepHours: +d.sleepHours.toFixed(1),
-    steps: Math.round(d.steps),
-  }));
+    // Get latest values
+    const latest = data[data.length - 1];
+    const latestValues = {
+      restingHR: Math.round(latest.restingHR),
+      hrv: Math.round(latest.hrv),
+      sleepHours: +latest.sleepHours.toFixed(1),
+      steps: Math.round(latest.steps),
+    };
+
+    // Calculate deltas
+    const deltas = {
+      restingHR: latestValues.restingHR - baselines.restingHR,
+      hrv: latestValues.hrv - baselines.hrv,
+      sleepHours: +(latestValues.sleepHours - baselines.sleepHours).toFixed(1),
+      steps: latestValues.steps - baselines.steps,
+    };
+
+    const chartData = data.map((d, i) => ({
+      day: i + 1,
+      date: new Date(d.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      restingHR: Math.round(d.restingHR),
+      hrv: Math.round(d.hrv),
+      sleepHours: +d.sleepHours.toFixed(1),
+      steps: Math.round(d.steps),
+    }));
+
+    return { baselines, latestValues, deltas, chartData };
+  }, [data]);
+
+  const { baselines, latestValues, deltas, chartData } = calculations;
 
   const metrics = [
     {
@@ -93,7 +116,7 @@ export function VitalTrends({ data, className }: VitalTrendsProps) {
   ];
 
   const getDeltaColor = (delta: number, isInverse: boolean) => {
-    const threshold = isInverse ? { warn: 10, danger: 15 } : { warn: -20, danger: -30 };
+    const threshold = isInverse ? THRESHOLDS.inverse : THRESHOLDS.normal;
     if (isInverse) {
       if (delta >= threshold.danger) return 'text-triage-red';
       if (delta >= threshold.warn) return 'text-triage-amber';
@@ -214,4 +237,4 @@ export function VitalTrends({ data, className }: VitalTrendsProps) {
       </Card>
     </div>
   );
-}
+});

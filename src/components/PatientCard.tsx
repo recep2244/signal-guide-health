@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { TriageBadge } from './TriageBadge';
 import { Clock, Activity, Heart, Watch } from 'lucide-react';
@@ -9,28 +10,43 @@ interface PatientCardProps {
   onClick: () => void;
 }
 
-export function PatientCard({ patient, onClick }: PatientCardProps) {
-  const latestWearable = patient.wearableData[patient.wearableData.length - 1];
-  const baselineHR = patient.wearableData.slice(0, 7).reduce((acc, d) => acc + d.restingHR, 0) / 7;
-  const hrDelta = Math.round(latestWearable.restingHR - baselineHR);
-  const hrSeries = patient.wearableData.slice(-8).map((d) => d.restingHR);
-  const minHr = Math.min(...hrSeries);
-  const maxHr = Math.max(...hrSeries);
-  const sparklineWidth = 90;
-  const sparklineHeight = 26;
-  const sparklinePoints = hrSeries
-    .map((value, index) => {
-      const x = (sparklineWidth / Math.max(1, hrSeries.length - 1)) * index;
-      const normalized = maxHr === minHr ? 0.5 : (value - minHr) / (maxHr - minHr);
-      const y = sparklineHeight - normalized * sparklineHeight;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
+const SPARKLINE_WIDTH = 90;
+const SPARKLINE_HEIGHT = 26;
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  };
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+};
+
+export const PatientCard = memo(function PatientCard({ patient, onClick }: PatientCardProps) {
+  // Memoize all calculations to prevent recalculation on every render
+  const calculations = useMemo(() => {
+    const latestWearable = patient.wearableData[patient.wearableData.length - 1];
+    const baselineHR = patient.wearableData.slice(0, 7).reduce((acc, d) => acc + d.restingHR, 0) / 7;
+    const hrDelta = Math.round(latestWearable.restingHR - baselineHR);
+    const hrSeries = patient.wearableData.slice(-8).map((d) => d.restingHR);
+    const minHr = Math.min(...hrSeries);
+    const maxHr = Math.max(...hrSeries);
+    const sparklinePoints = hrSeries
+      .map((value, index) => {
+        const x = (SPARKLINE_WIDTH / Math.max(1, hrSeries.length - 1)) * index;
+        const normalized = maxHr === minHr ? 0.5 : (value - minHr) / (maxHr - minHr);
+        const y = SPARKLINE_HEIGHT - normalized * SPARKLINE_HEIGHT;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+
+    const unresolvedCount = patient.alerts.filter(a => !a.resolved).length;
+
+    return {
+      latestWearable,
+      hrDelta,
+      sparklinePoints,
+      unresolvedCount,
+    };
+  }, [patient.wearableData, patient.alerts]);
+
+  const { latestWearable, hrDelta, sparklinePoints, unresolvedCount } = calculations;
 
   return (
     <Card
@@ -87,9 +103,9 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
             <span className="hidden md:flex items-center gap-2">
               HR trend
               <svg
-                width={sparklineWidth}
-                height={sparklineHeight}
-                viewBox={`0 0 ${sparklineWidth} ${sparklineHeight}`}
+                width={SPARKLINE_WIDTH}
+                height={SPARKLINE_HEIGHT}
+                viewBox={`0 0 ${SPARKLINE_WIDTH} ${SPARKLINE_HEIGHT}`}
                 className="block"
               >
                 <polyline
@@ -111,13 +127,13 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
         </div>
       </div>
 
-      {patient.alerts.filter(a => !a.resolved).length > 0 && (
+      {unresolvedCount > 0 && (
         <div className="mt-3 pt-3 border-t">
           <p className="text-xs font-medium text-triage-red">
-            {patient.alerts.filter(a => !a.resolved).length} unresolved alert{patient.alerts.filter(a => !a.resolved).length > 1 ? 's' : ''}
+            {unresolvedCount} unresolved alert{unresolvedCount > 1 ? 's' : ''}
           </p>
         </div>
       )}
     </Card>
   );
-}
+});

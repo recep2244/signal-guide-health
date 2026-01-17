@@ -66,6 +66,8 @@ CREATE TABLE organizations (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE INDEX idx_organizations_settings ON organizations USING gin(settings);
+
 -- Base users table (shared by all user types)
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -160,6 +162,8 @@ CREATE TABLE doctors (
 CREATE INDEX idx_doctors_user_id ON doctors(user_id);
 CREATE INDEX idx_doctors_gmc ON doctors(gmc_number);
 CREATE INDEX idx_doctors_specialty ON doctors(specialty);
+CREATE INDEX idx_doctors_working_hours ON doctors USING gin(working_hours);
+CREATE INDEX idx_doctors_notifications ON doctors USING gin(notification_settings);
 
 -- Doctor-Patient assignments (many-to-many with metadata)
 CREATE TABLE doctor_patient_assignments (
@@ -176,6 +180,12 @@ CREATE TABLE doctor_patient_assignments (
 
 CREATE INDEX idx_assignments_doctor ON doctor_patient_assignments(doctor_id);
 CREATE INDEX idx_assignments_patient ON doctor_patient_assignments(patient_id);
+CREATE INDEX idx_assignments_status ON doctor_patient_assignments(status) WHERE status = 'active';
+
+-- PERFORMANCE NOTE: When fetching patients with their doctors, use JOINs to avoid N+1 queries:
+-- Example: SELECT p.*, d.* FROM patients p
+--          LEFT JOIN doctor_patient_assignments dpa ON dpa.patient_id = p.id AND dpa.status = 'active'
+--          LEFT JOIN doctors d ON d.id = dpa.doctor_id;
 
 -- ============================================================================
 -- PATIENT TABLES
@@ -253,6 +263,7 @@ CREATE INDEX idx_patients_user_id ON patients(user_id);
 CREATE INDEX idx_patients_nhs ON patients(nhs_number);
 CREATE INDEX idx_patients_triage ON patients(triage_level);
 CREATE INDEX idx_patients_discharge ON patients(discharge_date);
+CREATE INDEX idx_patients_medications ON patients USING gin(current_medications);
 
 -- Patient medical history
 CREATE TABLE patient_medical_history (
@@ -349,7 +360,11 @@ CREATE TABLE wearable_readings (
 
 CREATE INDEX idx_readings_patient ON wearable_readings(patient_id);
 CREATE INDEX idx_readings_date ON wearable_readings(reading_date);
-CREATE INDEX idx_readings_patient_date ON wearable_readings(patient_id, reading_date);
+CREATE INDEX idx_readings_patient_date ON wearable_readings(patient_id, reading_date DESC);
+CREATE INDEX idx_readings_raw_data ON wearable_readings USING gin(raw_data) WHERE raw_data IS NOT NULL;
+
+-- PERFORMANCE NOTE: Always filter wearable readings by date range to avoid large result sets
+-- Example: WHERE patient_id = ? AND reading_date >= NOW() - INTERVAL '14 days'
 
 -- ============================================================================
 -- ALERTS AND NOTIFICATIONS

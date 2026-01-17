@@ -28,12 +28,11 @@ export const patientDataKeys = {
  * Hook to fetch patient list with filters
  */
 export function usePatientList(params: PatientListParams = {}) {
-  const mockService = getMockPatientService();
-
   return useQuery<PatientListResponse>({
     queryKey: patientDataKeys.list(params),
     queryFn: async () => {
       if (USE_MOCK) {
+        const mockService = getMockPatientService();
         return mockService.getPatientList(params);
       }
       // In production, use real API
@@ -47,12 +46,11 @@ export function usePatientList(params: PatientListParams = {}) {
  * Hook to fetch single patient
  */
 export function usePatientDetail(patientId: string) {
-  const mockService = getMockPatientService();
-
   return useQuery<Patient | null>({
     queryKey: patientDataKeys.detail(patientId),
     queryFn: async () => {
       if (USE_MOCK) {
+        const mockService = getMockPatientService();
         return mockService.getPatient(patientId);
       }
       const { getPatientService } = await import("@/services/patients/patientService");
@@ -66,12 +64,11 @@ export function usePatientDetail(patientId: string) {
  * Hook to fetch triage statistics
  */
 export function useTriageStatistics() {
-  const mockService = getMockPatientService();
-
   return useQuery<TriageStats>({
     queryKey: patientDataKeys.stats(),
     queryFn: async () => {
       if (USE_MOCK) {
+        const mockService = getMockPatientService();
         return mockService.getTriageStats();
       }
       const { getPatientService } = await import("@/services/patients/patientService");
@@ -84,12 +81,11 @@ export function useTriageStatistics() {
  * Hook to fetch patient alerts
  */
 export function usePatientAlertList(patientId: string, includeResolved = false) {
-  const mockService = getMockPatientService();
-
   return useQuery<Alert[]>({
     queryKey: patientDataKeys.alerts(patientId),
     queryFn: async () => {
       if (USE_MOCK) {
+        const mockService = getMockPatientService();
         return mockService.getPatientAlerts(patientId, includeResolved);
       }
       const { getPatientService } = await import("@/services/patients/patientService");
@@ -103,12 +99,11 @@ export function usePatientAlertList(patientId: string, includeResolved = false) 
  * Hook to fetch patient health trends
  */
 export function usePatientHealthTrends(patientId: string) {
-  const mockService = getMockPatientService();
-
   return useQuery<HealthTrend[]>({
     queryKey: patientDataKeys.trends(patientId),
     queryFn: async () => {
       if (USE_MOCK) {
+        const mockService = getMockPatientService();
         return mockService.getHealthTrends(patientId);
       }
       const { getPatientService } = await import("@/services/patients/patientService");
@@ -122,12 +117,11 @@ export function usePatientHealthTrends(patientId: string) {
  * Hook to search patients
  */
 export function usePatientSearchQuery(query: string) {
-  const mockService = getMockPatientService();
-
   return useQuery<Patient[]>({
     queryKey: patientDataKeys.search(query),
     queryFn: async () => {
       if (USE_MOCK) {
+        const mockService = getMockPatientService();
         return mockService.searchPatients(query);
       }
       const { getPatientService } = await import("@/services/patients/patientService");
@@ -157,6 +151,7 @@ export function useAlertResolution() {
       resolution: string;
     }) => {
       if (USE_MOCK) {
+        const mockService = getMockPatientService();
         return mockService.resolveAlert(patientId, alertId, resolvedBy, resolution);
       }
       const { getPatientService } = await import("@/services/patients/patientService");

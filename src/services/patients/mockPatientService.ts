@@ -70,6 +70,7 @@ export class MockPatientService {
 
     // Sort
     if (params.sortBy) {
+      const triageLevelOrder = { red: 0, amber: 1, green: 2 } as const;
       patients = [...patients].sort((a, b) => {
         let comparison = 0;
         switch (params.sortBy) {
@@ -77,8 +78,7 @@ export class MockPatientService {
             comparison = a.name.localeCompare(b.name);
             break;
           case "triageLevel":
-            const order = { red: 0, amber: 1, green: 2 };
-            comparison = order[a.triageLevel] - order[b.triageLevel];
+            comparison = triageLevelOrder[a.triageLevel] - triageLevelOrder[b.triageLevel];
             break;
           case "lastCheckIn":
             comparison = new Date(b.lastCheckIn).getTime() - new Date(a.lastCheckIn).getTime();

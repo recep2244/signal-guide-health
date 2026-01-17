@@ -90,6 +90,7 @@ export default function PatientDetail() {
   };
 
   const unresolvedAlerts = patient.alerts.filter((a) => !a.resolved);
+  const resolvedAlerts = patient.alerts.filter((a) => a.resolved);
 
   return (
     <div className="min-h-screen bg-background">
@@ -311,13 +312,13 @@ export default function PatientDetail() {
         </Tabs>
 
         {/* Resolved alerts section */}
-        {patient.alerts.filter((a) => a.resolved).length > 0 && (
+        {resolvedAlerts.length > 0 && (
           <div className="mt-8 pt-6 border-t">
             <h3 className="text-sm font-medium text-muted-foreground mb-3">
-              Resolved Alerts ({patient.alerts.filter((a) => a.resolved).length})
+              Resolved Alerts ({resolvedAlerts.length})
             </h3>
             <div className="space-y-3">
-              {patient.alerts.filter((a) => a.resolved).map((alert) => (
+              {resolvedAlerts.map((alert) => (
                 <AlertCard key={alert.id} alert={alert} />
               ))}
             </div>
