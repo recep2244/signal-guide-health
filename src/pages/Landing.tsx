@@ -20,6 +20,26 @@ import {
   Zap,
 } from "lucide-react";
 
+const demoVideoSrc = `${import.meta.env.BASE_URL}demo-reel.mp4`;
+
+const SectionHeading = ({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+}) => (
+  <div className="space-y-2">
+    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      {eyebrow}
+    </p>
+    <h2 className="text-3xl font-semibold text-foreground font-display">{title}</h2>
+    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+  </div>
+);
+
 const journeyTabs = [
   {
     value: "patient",
@@ -250,16 +270,11 @@ export default function Landing() {
         <section className="container mx-auto px-4 py-12">
           <div className="grid gap-6 rounded-3xl border bg-card/90 p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Investor snapshot
-              </p>
-              <h2 className="text-3xl font-semibold text-foreground font-display">
-                A clinically credible wedge with clear ROI.
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                CardioWatch pairs a high-frequency data stream with actionable triage,
-                enabling hospitals to reduce penalties and scale follow-up without adding staff.
-              </p>
+              <SectionHeading
+                eyebrow="Investor snapshot"
+                title="A clinically credible wedge with clear ROI."
+                subtitle="CardioWatch pairs a high-frequency data stream with actionable triage, enabling hospitals to reduce penalties and scale follow-up without adding staff."
+              />
               <div className="flex flex-wrap gap-3">
                 <Badge className="bg-secondary text-secondary-foreground">Triage automation</Badge>
                 <Badge className="bg-secondary text-secondary-foreground">Wearable signals</Badge>
@@ -291,12 +306,11 @@ export default function Landing() {
           <Card className="border bg-card/90 p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Traction & pilots
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Illustrative partners for demo purposes (replace with real pilots).
-                </p>
+                <SectionHeading
+                  eyebrow="Traction & pilots"
+                  title="Pilot-ready with aligned stakeholders."
+                  subtitle="Illustrative partners for demo purposes (replace with real pilots)."
+                />
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-secondary text-secondary-foreground">Pilot: Midlands Heart Centre</Badge>
@@ -310,17 +324,11 @@ export default function Landing() {
 
         <section id="impact" className="container mx-auto px-4 py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-            <div className="space-y-4">
-              <Badge className="w-fit bg-secondary text-secondary-foreground">Impact simulator</Badge>
-              <h2 className="text-3xl font-semibold text-foreground font-display">
-                See how small signal gains compound into real savings.
-              </h2>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Adjust the patient volume and baseline readmission rate to visualize
-                how earlier escalation changes outcomes. These figures are illustrative
-                and meant for investor discussions.
-              </p>
-            </div>
+            <SectionHeading
+              eyebrow="Impact simulator"
+              title="See how small signal gains compound into real savings."
+              subtitle="Adjust the patient volume and baseline readmission rate to visualize how earlier escalation changes outcomes. These figures are illustrative and meant for investor discussions."
+            />
             <Card className="border bg-card/90 p-6">
               <div className="space-y-5">
                 <div>
@@ -378,9 +386,11 @@ export default function Landing() {
         <section className="container mx-auto px-4 pb-16">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <Card className="border bg-card/90 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Clinical outcomes
-              </p>
+              <SectionHeading
+                eyebrow="Clinical outcomes"
+                title="Measured impact on care delivery."
+                subtitle="Demo-only outcomes to illustrate value; replace with validated pilot results."
+              />
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Readmissions</p>
@@ -395,14 +405,13 @@ export default function Landing() {
                   <p className="text-2xl font-semibold text-foreground">+27%</p>
                 </Card>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Demo-only outcomes to illustrate value; replace with validated pilot results.
-              </p>
             </Card>
             <Card className="border bg-card/90 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Unit economics
-              </p>
+              <SectionHeading
+                eyebrow="Unit economics"
+                title="Designed for scalable margins."
+                subtitle="Illustrative unit economics for investor narrative; adjust to your pricing model."
+              />
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">Per-patient revenue</p>
@@ -421,21 +430,17 @@ export default function Landing() {
                   <p className="text-sm font-semibold text-foreground">{"<"}2 months</p>
                 </Card>
               </div>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Illustrative unit economics for investor narrative; adjust to your pricing model.
-              </p>
             </Card>
           </div>
         </section>
 
         <section id="features" className="container mx-auto px-4 py-16">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="text-3xl font-semibold text-foreground font-display">Platform features</h2>
-              <p className="text-sm text-muted-foreground">
-                Built for clinical clarity, operational scale, and investor-ready storytelling.
-              </p>
-            </div>
+            <SectionHeading
+              eyebrow="Platform features"
+              title="Built for clinical clarity and operational scale."
+              subtitle="Highlights of the core product modules."
+            />
             <Button variant="outline" onClick={() => navigate("/demo")}>
               See the flow
             </Button>
@@ -489,25 +494,29 @@ export default function Landing() {
         <section className="container mx-auto px-4 pb-16">
           <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <Card className="border bg-card/90 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Product walkthrough
-              </p>
-              <div className="mt-4 flex h-48 items-center justify-center rounded-2xl border border-dashed border-muted-foreground/30 bg-secondary/40">
-                <div className="text-center">
-                  <p className="text-sm font-semibold text-foreground">60-second demo video</p>
-                  <p className="text-xs text-muted-foreground">
-                    Replace this placeholder with an embedded pitch video.
-                  </p>
-                  <Button className="mt-3" variant="outline" size="sm">
-                    Add video link
-                  </Button>
-                </div>
+              <SectionHeading
+                eyebrow="Product walkthrough"
+                title="60-second demo video"
+                subtitle="Now embedded for the investor presentation."
+              />
+              <div className="mt-4 overflow-hidden rounded-2xl border bg-secondary/40">
+                <video
+                  className="h-52 w-full object-cover"
+                  controls
+                  poster={`${import.meta.env.BASE_URL}placeholder.svg`}
+                >
+                  <source src={demoVideoSrc} type="video/mp4" />
+                </video>
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Replace `public/demo-reel.mp4` with your real demo footage.
+              </p>
             </Card>
             <Card className="border bg-card/90 p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Compliance roadmap
-              </p>
+              <SectionHeading
+                eyebrow="Compliance roadmap"
+                title="Aligned with NHS and enterprise requirements."
+              />
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <Card className="card-interactive p-4">
                   <p className="text-xs text-muted-foreground">GDPR / UK GDPR</p>
@@ -534,12 +543,11 @@ export default function Landing() {
           <Card className="border bg-card/90 p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <h2 className="text-3xl font-semibold text-foreground font-display">
-                  Choose the story you want to tell
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Switch between the patient, clinician, and operations narratives.
-                </p>
+                <SectionHeading
+                  eyebrow="Narratives"
+                  title="Choose the story you want to tell."
+                  subtitle="Switch between patient, clinician, and operations narratives."
+                />
               </div>
               <Badge className="w-fit bg-primary/10 text-primary">Interactive overview</Badge>
             </div>
@@ -586,12 +594,11 @@ export default function Landing() {
         <section id="why-now" className="container mx-auto px-4 pb-16">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-4">
-              <h2 className="text-3xl font-semibold text-foreground font-display">Why this project, why now</h2>
-              <p className="text-sm text-muted-foreground">
-                CardioWatch exists to close the gap between discharge and the first critical
-                weeks at home. The rise of wearable data, remote patient monitoring, and
-                clinician capacity constraints makes proactive triage essential.
-              </p>
+              <SectionHeading
+                eyebrow="Why now"
+                title="The data and the demand have finally converged."
+                subtitle="CardioWatch closes the gap between discharge and the first critical weeks at home."
+              />
               <div className="grid gap-3 sm:grid-cols-3">
                 <Card className="border bg-card/80 p-4">
                   <p className="text-xs text-muted-foreground">Critical window</p>
@@ -652,10 +659,11 @@ export default function Landing() {
         <section className="container mx-auto px-4 pb-16">
           <div className="grid gap-6 rounded-3xl bg-secondary/60 p-8 lg:grid-cols-2">
             <div className="space-y-3">
-              <h3 className="text-2xl font-semibold text-foreground font-display">Why investors care</h3>
-              <p className="text-sm text-muted-foreground">
-                CardioWatch targets a high-cost, high-volume segment with clear ROI.
-              </p>
+              <SectionHeading
+                eyebrow="Investor lens"
+                title="Why investors care"
+                subtitle="CardioWatch targets a high-cost, high-volume segment with clear ROI."
+              />
               <div className="space-y-2 text-sm text-foreground">
                 <p>• Readmission prevention lowers penalties and improves margins.</p>
                 <p>• Nurse workload scales with smart triage, not headcount.</p>
@@ -663,10 +671,11 @@ export default function Landing() {
               </div>
             </div>
             <div className="space-y-3">
-              <h3 className="text-2xl font-semibold text-foreground font-display">Go-to-market ready</h3>
-              <p className="text-sm text-muted-foreground">
-                Demo-ready workflows let stakeholders experience the patient and clinician journey.
-              </p>
+              <SectionHeading
+                eyebrow="Go-to-market"
+                title="Ready to scale"
+                subtitle="Demo-ready workflows let stakeholders experience the patient and clinician journey."
+              />
               <div className="grid gap-3 sm:grid-cols-2">
                 <Card className="p-4">
                   <p className="text-xs text-muted-foreground">Target customers</p>
@@ -691,7 +700,10 @@ export default function Landing() {
 
         <section className="container mx-auto px-4 pb-16">
           <Card className="border bg-card/90 p-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Roadmap</p>
+            <SectionHeading
+              eyebrow="Roadmap"
+              title="Execution plan with clear milestones."
+            />
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               <Card className="card-interactive p-4">
                 <p className="text-xs text-muted-foreground">Phase 1</p>
