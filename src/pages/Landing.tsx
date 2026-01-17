@@ -545,20 +545,21 @@ export default function Landing() {
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   CardioWatch converts wearable signals into actionable clinical context.
+                  Works with Apple Watch today and is extensible to Fitbit, Garmin, and clinical RPM devices.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Card className="border bg-secondary/60 p-4">
                   <p className="text-xs text-muted-foreground">Vitals</p>
-                  <p className="text-sm font-semibold text-foreground">Resting HR, HRV</p>
+                  <p className="text-sm font-semibold text-foreground">Resting HR, HRV, pulse trends</p>
                 </Card>
                 <Card className="border bg-secondary/60 p-4">
                   <p className="text-xs text-muted-foreground">Recovery</p>
-                  <p className="text-sm font-semibold text-foreground">Sleep hours, quality</p>
+                  <p className="text-sm font-semibold text-foreground">Sleep hours, quality, variability</p>
                 </Card>
                 <Card className="border bg-secondary/60 p-4">
                   <p className="text-xs text-muted-foreground">Activity</p>
-                  <p className="text-sm font-semibold text-foreground">Steps, exertion trends</p>
+                  <p className="text-sm font-semibold text-foreground">Steps, exertion, mobility</p>
                 </Card>
                 <Card className="border bg-secondary/60 p-4">
                   <p className="text-xs text-muted-foreground">Trends</p>
