@@ -32,11 +32,11 @@ const SectionHeading = ({
   subtitle?: string;
 }) => (
   <div className="space-y-2">
-    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
       {eyebrow}
     </p>
-    <h2 className="text-3xl font-semibold text-foreground font-display">{title}</h2>
-    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+    <h2 className="text-2xl font-semibold text-foreground font-display sm:text-3xl">{title}</h2>
+    {subtitle && <p className="text-sm text-muted-foreground sm:text-base">{subtitle}</p>}
   </div>
 );
 
@@ -140,10 +140,21 @@ export default function Landing() {
             <a href="#why-now" className="hover:text-foreground">Why now</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex"
+              onClick={() => navigate("/dashboard")}
+            >
               Open Dashboard
             </Button>
-            <Button onClick={() => navigate("/demo")}>View Demo</Button>
+            <Button
+              size="sm"
+              className="h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
+              onClick={() => navigate("/demo")}
+            >
+              View Demo
+            </Button>
           </div>
         </div>
       </header>
@@ -154,13 +165,13 @@ export default function Landing() {
           <div className="absolute -top-24 right-0 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
           <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-triage-green/10 blur-3xl" />
 
-          <div className="container relative mx-auto grid gap-10 px-4 py-16 lg:grid-cols-[1.2fr_0.8fr] lg:py-24">
+          <div className="container relative mx-auto grid gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:py-24">
             <div className="space-y-6">
               <Badge className="w-fit bg-primary/10 text-primary">Investor presentation</Badge>
-              <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl font-display">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl font-display">
                 CardioWatch turns post-discharge cardiac care into a proactive signal business.
               </h1>
-              <p className="max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
                 A clinician-first platform that fuses wearable signals, patient check-ins,
                 and triage automation to reduce readmissions and scale cardiac follow-up.
               </p>
@@ -169,11 +180,16 @@ export default function Landing() {
                 <span>Now: wearables and RPM finally deliver continuous signals.</span>
                 <span>Solution: CardioWatch transforms signals into clinical action.</span>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Button size="lg" onClick={() => navigate("/demo")}>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate("/demo")}>
                   Launch patient demo
                 </Button>
-                <Button size="lg" variant="outline" onClick={() => navigate("/dashboard")}>
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto"
+                  variant="outline"
+                  onClick={() => navigate("/dashboard")}
+                >
                   Explore clinician view
                 </Button>
               </div>
@@ -191,20 +207,20 @@ export default function Landing() {
                   Clinician calls
                 </Badge>
               </div>
-              <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                <Card className="border bg-card/80 px-4 py-2">
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground sm:text-sm">
+                <Card className="border bg-card/80 px-3 py-2 sm:px-4">
                   <span className="flex items-center gap-2">
                     <Zap size={14} className="text-primary" />
                     Faster escalations
                   </span>
                 </Card>
-                <Card className="border bg-card/80 px-4 py-2">
+                <Card className="border bg-card/80 px-3 py-2 sm:px-4">
                   <span className="flex items-center gap-2">
                     <Sparkles size={14} className="text-primary" />
                     Automated summaries
                   </span>
                 </Card>
-                <Card className="border bg-card/80 px-4 py-2">
+                <Card className="border bg-card/80 px-3 py-2 sm:px-4">
                   <span className="flex items-center gap-2">
                     <ShieldCheck size={14} className="text-primary" />
                     Clinical-grade UX
@@ -214,11 +230,11 @@ export default function Landing() {
             </div>
 
             <div className="space-y-4">
-              <Card className="card-interactive border bg-card/90 p-6 shadow-lg">
+              <Card className="card-interactive border bg-card/90 p-5 shadow-lg sm:p-6">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Snapshot
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Card className="card-interactive p-4">
                     <p className="text-xs text-muted-foreground">Active alerts</p>
                     <p className="text-2xl font-semibold text-triage-red">2</p>
@@ -267,8 +283,8 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 py-12">
-          <div className="grid gap-6 rounded-3xl border bg-card/90 p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <section className="container mx-auto px-4 py-10 sm:py-12">
+          <div className="grid gap-5 rounded-3xl border bg-card/90 p-6 sm:gap-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="space-y-4">
               <SectionHeading
                 eyebrow="Investor snapshot"
@@ -302,8 +318,8 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-12">
-          <Card className="border bg-card/90 p-6">
+        <section className="container mx-auto px-4 pb-10 sm:pb-12">
+          <Card className="border bg-card/90 p-5 sm:p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <SectionHeading
@@ -322,14 +338,14 @@ export default function Landing() {
           </Card>
         </section>
 
-        <section id="impact" className="container mx-auto px-4 py-16">
-          <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+        <section id="impact" className="container mx-auto px-4 py-12 sm:py-16">
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
             <SectionHeading
               eyebrow="Impact simulator"
               title="See how small signal gains compound into real savings."
               subtitle="Adjust the patient volume and baseline readmission rate to visualize how earlier escalation changes outcomes. These figures are illustrative and meant for investor discussions."
             />
-            <Card className="border bg-card/90 p-6">
+            <Card className="border bg-card/90 p-5 sm:p-6">
               <div className="space-y-5">
                 <div>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -383,9 +399,9 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <Card className="border bg-card/90 p-6">
+            <Card className="border bg-card/90 p-5 sm:p-6">
               <SectionHeading
                 eyebrow="Clinical outcomes"
                 title="Measured impact on care delivery."
@@ -406,7 +422,7 @@ export default function Landing() {
                 </Card>
               </div>
             </Card>
-            <Card className="border bg-card/90 p-6">
+            <Card className="border bg-card/90 p-5 sm:p-6">
               <SectionHeading
                 eyebrow="Unit economics"
                 title="Designed for scalable margins."
@@ -434,14 +450,14 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="features" className="container mx-auto px-4 py-16">
+        <section id="features" className="container mx-auto px-4 py-12 sm:py-16">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <SectionHeading
               eyebrow="Platform features"
               title="Built for clinical clarity and operational scale."
               subtitle="Highlights of the core product modules."
             />
-            <Button variant="outline" onClick={() => navigate("/demo")}>
+            <Button variant="outline" className="w-full md:w-auto" onClick={() => navigate("/demo")}>
               See the flow
             </Button>
           </div>
@@ -465,7 +481,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
           <div className="grid gap-6 md:grid-cols-3">
             <Card className="card-interactive p-5">
               <p className="text-xs text-muted-foreground">Investment highlights</p>
@@ -491,7 +507,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
           <div className="grid gap-5 sm:gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
             <Card className="border bg-card/90 p-5 sm:p-6">
               <SectionHeading
@@ -501,7 +517,7 @@ export default function Landing() {
               />
               <div className="mt-4 overflow-hidden rounded-2xl border bg-secondary/40">
                 <video
-                  className="h-72 w-full object-cover sm:h-80 lg:h-[22rem]"
+                  className="w-full aspect-video object-cover lg:h-[22rem] lg:aspect-auto"
                   controls
                   preload="metadata"
                   poster={`${import.meta.env.BASE_URL}placeholder.svg`}
@@ -537,8 +553,8 @@ export default function Landing() {
           </div>
         </section>
 
-        <section id="journey" className="container mx-auto px-4 pb-16">
-          <Card className="border bg-card/90 p-6">
+        <section id="journey" className="container mx-auto px-4 pb-12 sm:pb-16">
+          <Card className="border bg-card/90 p-5 sm:p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <SectionHeading
@@ -550,18 +566,18 @@ export default function Landing() {
               <Badge className="w-fit bg-primary/10 text-primary">Interactive overview</Badge>
             </div>
             <Tabs defaultValue="patient" className="mt-6">
-              <TabsList className="bg-secondary/70">
+              <TabsList className="bg-secondary/70 flex w-full flex-col sm:flex-row">
                 {journeyTabs.map((tab) => (
-                  <TabsTrigger key={tab.value} value={tab.value}>
+                  <TabsTrigger key={tab.value} value={tab.value} className="w-full sm:w-auto">
                     {tab.label}
                   </TabsTrigger>
                 ))}
               </TabsList>
               {journeyTabs.map((tab) => (
                 <TabsContent key={tab.value} value={tab.value} className="mt-6">
-                  <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                     <div className="space-y-3">
-                      <h3 className="text-2xl font-semibold text-foreground">{tab.title}</h3>
+                      <h3 className="text-xl font-semibold text-foreground sm:text-2xl">{tab.title}</h3>
                       <p className="text-sm text-muted-foreground">{tab.description}</p>
                       <div className="flex flex-wrap gap-2">
                         {tab.bullets.map((bullet) => (
@@ -589,8 +605,8 @@ export default function Landing() {
           </Card>
         </section>
 
-        <section id="why-now" className="container mx-auto px-4 pb-16">
-          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <section id="why-now" className="container mx-auto px-4 pb-12 sm:pb-16">
+          <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-4">
               <SectionHeading
                 eyebrow="Why now"
@@ -611,11 +627,11 @@ export default function Landing() {
                   <p className="text-sm font-semibold text-foreground">Lean teams</p>
                 </Card>
               </div>
-                <Card className="border bg-card/90 p-5">
+                <Card className="border bg-card/90 p-5 sm:p-6">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Created by
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-foreground">Recep Adiyaman, PhD</p>
+                  <p className="mt-2 text-lg font-semibold text-foreground sm:text-xl">Recep Adiyaman, PhD</p>
                   <p className="text-sm text-muted-foreground">
                     Research scientist focused on applied clinical AI and health signal intelligence.
                     CardioWatch reflects deep research in biomedical signals, human-centered design,
@@ -623,7 +639,7 @@ export default function Landing() {
                   </p>
                 </Card>
             </div>
-            <Card className="border bg-card/90 p-6">
+            <Card className="border bg-card/90 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Interactive rationale
               </p>
@@ -654,8 +670,8 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
-          <div className="grid gap-6 rounded-3xl bg-secondary/60 p-8 lg:grid-cols-2">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
+          <div className="grid gap-5 rounded-3xl bg-secondary/60 p-6 sm:gap-6 sm:p-8 lg:grid-cols-2">
             <div className="space-y-3">
               <SectionHeading
                 eyebrow="Investor lens"
@@ -696,8 +712,8 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
-          <Card className="border bg-card/90 p-6">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
+          <Card className="border bg-card/90 p-5 sm:p-6">
             <SectionHeading
               eyebrow="Roadmap"
               title="Execution plan with clear milestones."
@@ -722,9 +738,9 @@ export default function Landing() {
           </Card>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Customer demo
               </p>
@@ -734,11 +750,11 @@ export default function Landing() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Walk through the daily check-in and escalation flow.
               </p>
-              <Button asChild className="mt-4">
+              <Button asChild className="mt-4 w-full sm:w-auto">
                 <Link to="/demo">Open patient demo</Link>
               </Button>
             </Card>
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Doctor demo
               </p>
@@ -748,18 +764,18 @@ export default function Landing() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Review triage, alerts, SBAR summaries, and vitals.
               </p>
-              <Button asChild variant="outline" className="mt-4">
+              <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
                 <Link to="/dashboard">Open clinician view</Link>
               </Button>
             </Card>
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
-          <Card className="border bg-card/90 p-6">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
+          <Card className="border bg-card/90 p-5 sm:p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
-                <h3 className="text-2xl font-semibold text-foreground font-display">
+                <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
                   Wearable data coverage
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -789,11 +805,11 @@ export default function Landing() {
           </Card>
         </section>
 
-        <section className="container mx-auto px-4 pb-16">
-          <Card className="border bg-card/90 p-8">
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
+          <Card className="border bg-card/90 p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-2">
-                <h3 className="text-2xl font-semibold text-foreground font-display">
+                <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
                   Copyright and attribution
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -812,21 +828,21 @@ export default function Landing() {
           </Card>
         </section>
 
-        <section className="container mx-auto px-4 pb-20">
-          <Card className="flex flex-col items-start gap-4 border bg-card/90 p-8 lg:flex-row lg:items-center lg:justify-between">
+        <section className="container mx-auto px-4 pb-16 sm:pb-20">
+          <Card className="flex flex-col items-start gap-4 border bg-card/90 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h3 className="text-2xl font-semibold text-foreground font-display">
+              <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
                 Ready for an investor walkthrough?
               </h3>
               <p className="text-sm text-muted-foreground">
                 Run the patient demo and clinician dashboard in under 3 minutes.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" onClick={() => navigate("/demo")}>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate("/demo")}>
                 Launch demo
               </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate("/dashboard")}>
+              <Button size="lg" className="w-full sm:w-auto" variant="outline" onClick={() => navigate("/dashboard")}>
                 Open dashboard
               </Button>
             </div>
