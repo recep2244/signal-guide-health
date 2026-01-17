@@ -492,8 +492,8 @@ export default function Landing() {
         </section>
 
         <section className="container mx-auto px-4 pb-16">
-          <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-            <Card className="border bg-card/90 p-6">
+          <div className="grid gap-5 sm:gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+            <Card className="border bg-card/90 p-5 sm:p-6">
               <SectionHeading
                 eyebrow="Product walkthrough"
                 title="CardioWatch demo reel"
@@ -501,7 +501,7 @@ export default function Landing() {
               />
               <div className="mt-4 overflow-hidden rounded-2xl border bg-secondary/40">
                 <video
-                  className="h-64 w-full object-cover"
+                  className="h-72 w-full object-cover sm:h-80 lg:h-[22rem]"
                   controls
                   preload="metadata"
                   poster={`${import.meta.env.BASE_URL}placeholder.svg`}
@@ -510,7 +510,7 @@ export default function Landing() {
                 </video>
               </div>
             </Card>
-            <Card className="border bg-card/90 p-6">
+            <Card className="border bg-card/90 p-5 sm:p-6">
               <SectionHeading
                 eyebrow="Compliance roadmap"
                 title="Aligned with NHS and enterprise requirements."
