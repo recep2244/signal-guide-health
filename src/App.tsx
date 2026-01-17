@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import PatientDetail from "./pages/PatientDetail";
 import PatientDemo from "./pages/PatientDemo";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 import { AlertsProvider } from "./context/AlertsContext";
 
 const queryClient = new QueryClient();
@@ -17,9 +18,10 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner position="top-right" />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/patient/:patientId" element={<PatientDetail />} />
             <Route path="/demo" element={<PatientDemo />} />
             <Route path="*" element={<NotFound />} />

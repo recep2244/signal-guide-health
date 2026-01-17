@@ -38,7 +38,7 @@ export default function PatientDetail() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-xl font-semibold mb-2">Patient not found</h1>
-          <Button onClick={() => navigate('/')}>Return to Dashboard</Button>
+          <Button onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
         </div>
       </div>
     );
@@ -77,7 +77,7 @@ export default function PatientDetail() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft size={16} className="mr-1" />
