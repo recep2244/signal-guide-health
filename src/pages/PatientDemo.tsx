@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Send, ArrowLeft, Watch, Phone, AlertTriangle } from 'lucide-react';
+import { Heart, Send, ArrowLeft, Watch, Phone, AlertTriangle, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -36,7 +36,7 @@ const FINAL_SUMMARY: FlowStep = {
 
 const DEMO_FLOW: FlowStep[] = [
   {
-    content: "Good morning! 👋 I'm your CardioWatch assistant. I'll be checking in with you daily to help monitor your recovery.\n\nHow are you feeling today on a scale of 0-10?",
+    content: "Good morning! 👋 I'm your CardioWatch assistant on WhatsApp. I'll be checking in with you daily to help monitor your recovery.\n\nHow are you feeling today on a scale of 0-10?",
     options: ["8 - Feeling good", "6 - Okay", "4 - Not great", "2 - Struggling"],
   },
   {
@@ -45,12 +45,12 @@ const DEMO_FLOW: FlowStep[] = [
   },
   {
     content:
-      `Apple Watch sync received (${WATCH_SNAPSHOT.lastSync}).` +
+      `Apple Watch/Fitbit sync received (${WATCH_SNAPSHOT.lastSync}).` +
       `\n• Resting HR: ${WATCH_SNAPSHOT.restingHR} bpm` +
       `\n• HRV: ${WATCH_SNAPSHOT.hrv} ms` +
       `\n• Sleep: ${WATCH_SNAPSHOT.sleepHours} hrs` +
       `\n• Steps: ${WATCH_SNAPSHOT.steps.toLocaleString()}` +
-      `\n\nI've sent this update to ${CLINICIAN_NAME}'s team. Does this look right?`,
+      `\n\nI've sent this update to ${CLINICIAN_NAME}'s team. Please keep your wearable on so we can monitor trends. Does this look right?`,
     options: ["Looks correct", "Report sync issue"],
   },
   {
@@ -63,7 +63,15 @@ const DEMO_FLOW: FlowStep[] = [
   },
   {
     content: "Do you need any additional help today?",
-    options: ["Medication refill", "Side effects", "Call clinician", "File a complaint", "Nothing else"],
+    options: [
+      "Request ambulance",
+      "Request appointment",
+      "Request medicine",
+      "Side effects",
+      "Call clinician",
+      "File a complaint",
+      "Nothing else",
+    ],
   },
   FINAL_SUMMARY,
 ];
@@ -139,6 +147,28 @@ const SIDE_EFFECT_FLOW: FlowStep[] = [
   FINAL_SUMMARY,
 ];
 
+const APPOINTMENT_FLOW: FlowStep[] = [
+  {
+    content: "I can arrange an appointment. When would you like to be seen?",
+    options: ["Today", "This week", "Next week"],
+  },
+  {
+    content: `Appointment request sent to ${CLINICIAN_NAME}'s scheduling team. We'll confirm your slot soon.`,
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
+const AMBULANCE_FLOW: FlowStep[] = [
+  {
+    content:
+      "If you are experiencing severe chest pain, shortness of breath at rest, or fainting, please call 999 now.\n\n" +
+      `I have alerted ${CLINICIAN_NAME}'s team and flagged this as urgent.`,
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
 const AGENT_TYPING_DELAY_MS = 1100;
 
 export default function PatientDemo() {
@@ -147,7 +177,15 @@ export default function PatientDemo() {
   const [inputValue, setInputValue] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
   const [flowType, setFlowType] = useState<
-    'normal' | 'concern' | 'urgent' | 'refill' | 'call' | 'complaint' | 'sideEffect'
+    | 'normal'
+    | 'concern'
+    | 'urgent'
+    | 'refill'
+    | 'call'
+    | 'complaint'
+    | 'sideEffect'
+    | 'appointment'
+    | 'ambulance'
   >('normal');
   const [isTyping, setIsTyping] = useState(false);
   const [demoStarted, setDemoStarted] = useState(false);
@@ -175,6 +213,10 @@ export default function PatientDemo() {
         return COMPLAINT_FLOW;
       case 'sideEffect':
         return SIDE_EFFECT_FLOW;
+      case 'appointment':
+        return APPOINTMENT_FLOW;
+      case 'ambulance':
+        return AMBULANCE_FLOW;
       default:
         return DEMO_FLOW;
     }
@@ -268,7 +310,23 @@ export default function PatientDemo() {
     }
 
     if (flowType === 'normal' && currentStep === 5) {
-      if (option === "Medication refill") {
+      if (option === "Request ambulance") {
+        setFlowType('ambulance');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(AMBULANCE_FLOW[0].content, AMBULANCE_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Request appointment") {
+        setFlowType('appointment');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(APPOINTMENT_FLOW[0].content, APPOINTMENT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Request medicine") {
         setFlowType('refill');
         setCurrentStep(0);
         setTimeout(() => {
@@ -374,6 +432,10 @@ export default function PatientDemo() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+              <MessageCircle size={14} />
+              <span>WhatsApp-style check-in</span>
+            </div>
             <div className="flex items-center gap-1 text-xs text-triage-green">
               <Watch size={14} />
               <span className="hidden sm:inline">Connected</span>
@@ -401,7 +463,7 @@ export default function PatientDemo() {
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Demo scenario</p>
                 <p className="text-sm">
                   You are <strong>Sarah Okonkwo</strong>, 58, recently discharged after a cardiac ablation procedure. 
-                  Your Apple Watch is connected and sharing health data.
+                  Your Apple Watch/Fitbit is connected and sharing health data. Please keep your wearable on for accurate monitoring.
                 </p>
               </div>
               <Button onClick={startDemo} className="w-full" size="lg">
