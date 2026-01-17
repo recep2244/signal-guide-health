@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { TriageBadge } from './TriageBadge';
-import { Clock, Activity, Heart } from 'lucide-react';
+import { Clock, Activity, Heart, Watch } from 'lucide-react';
 import type { Patient } from '@/data/mockPatients';
 import { cn } from '@/lib/utils';
 
@@ -61,6 +61,16 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
               <Activity size={12} />
               {Math.round(latestWearable.steps).toLocaleString()} steps
             </span>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Watch size={12} />
+              Apple Watch live
+            </span>
+            <span>HRV: {Math.round(latestWearable.hrv)} ms</span>
+            <span>Sleep: {latestWearable.sleepHours.toFixed(1)} hrs</span>
+            <span>Sync: {formatTime(patient.lastCheckIn)}</span>
           </div>
         </div>
 
