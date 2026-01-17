@@ -14,7 +14,27 @@ interface Message {
   options?: string[];
 }
 
-const DEMO_FLOW: { content: string; options?: string[]; nextOnOption?: Record<string, number> }[] = [
+type FlowStep = { content: string; options?: string[] };
+
+const CLINICIAN_NAME = "Dr. X";
+const WATCH_SNAPSHOT = {
+  restingHR: 71,
+  hrv: 44,
+  sleepHours: 6.8,
+  steps: 3450,
+  lastSync: "2 min ago",
+};
+
+const FINAL_SUMMARY: FlowStep = {
+  content:
+    "Thanks for checking in. ✅ **Triage: GREEN (Stable)**\n" +
+    "• Wearable update sent to your care team\n" +
+    "• No red flag symptoms reported\n" +
+    "• Next check-in scheduled for tomorrow\n\n" +
+    "If you develop chest pain, shortness of breath at rest, or fainting, seek urgent care.",
+};
+
+const DEMO_FLOW: FlowStep[] = [
   {
     content: "Good morning! 👋 I'm your CardioWatch assistant. I'll be checking in with you daily to help monitor your recovery.\n\nHow are you feeling today on a scale of 0-10?",
     options: ["8 - Feeling good", "6 - Okay", "4 - Not great", "2 - Struggling"],
@@ -24,7 +44,17 @@ const DEMO_FLOW: { content: string; options?: string[]; nextOnOption?: Record<st
     options: ["Chest pain or pressure", "Shortness of breath at rest", "Fainting or near-fainting", "None of these"],
   },
   {
-    content: "Great, thank you for confirming. I notice from your Apple Watch that your resting heart rate has been stable at around 68 bpm, and you got 7.2 hours of sleep last night. 💪\n\nHave you noticed any changes in how you feel during physical activity?",
+    content:
+      `Apple Watch sync received (${WATCH_SNAPSHOT.lastSync}).` +
+      `\n• Resting HR: ${WATCH_SNAPSHOT.restingHR} bpm` +
+      `\n• HRV: ${WATCH_SNAPSHOT.hrv} ms` +
+      `\n• Sleep: ${WATCH_SNAPSHOT.sleepHours} hrs` +
+      `\n• Steps: ${WATCH_SNAPSHOT.steps.toLocaleString()}` +
+      `\n\nI've sent this update to ${CLINICIAN_NAME}'s team. Does this look right?`,
+    options: ["Looks correct", "Report sync issue"],
+  },
+  {
+    content: "Thanks. Have you noticed any changes in how you feel during physical activity?",
     options: ["Feeling stronger", "About the same", "More tired than usual", "Getting breathless easier"],
   },
   {
@@ -32,12 +62,14 @@ const DEMO_FLOW: { content: string; options?: string[]; nextOnOption?: Record<st
     options: ["Yes, all of them", "Missed one dose", "Having side effects", "Need a refill soon"],
   },
   {
-    content: "Excellent! You're doing really well with your recovery. Here's your daily summary:\n\n✅ **Triage: GREEN (Stable)**\n• Wellbeing: Good\n• No red flag symptoms\n• Wearables within normal range\n• Medication adherence: Good\n\nI'll check in again tomorrow. Take care! 💚",
+    content: "Do you need any additional help today?",
+    options: ["Medication refill", "Side effects", "Call clinician", "File a complaint", "Nothing else"],
   },
+  FINAL_SUMMARY,
 ];
 
 // Alternative flow for concerning symptoms
-const CONCERN_FLOW: { content: string; options?: string[] }[] = [
+const CONCERN_FLOW: FlowStep[] = [
   {
     content: "I'm sorry to hear that. Can you tell me more about what you're experiencing?\n\nWhen did this start?",
     options: ["Just now", "A few hours ago", "Since yesterday", "Getting worse over days"],
@@ -53,10 +85,58 @@ const CONCERN_FLOW: { content: string; options?: string[] }[] = [
 ];
 
 // Urgent flow
-const URGENT_FLOW: { content: string; options?: string[] }[] = [
+const URGENT_FLOW: FlowStep[] = [
   {
     content: "⚠️ **This could be serious.**\n\nChest pain or pressure after your procedure needs immediate medical attention.\n\n**Please seek urgent care NOW or call 999 if:**\n• Pain is severe or worsening\n• You feel short of breath\n• You feel sweaty, nauseous, or dizzy\n\n🚨 I'm alerting your care team immediately.\n\nDo you have someone with you who can help?",
   },
+];
+
+const REFILL_FLOW: FlowStep[] = [
+  {
+    content: `I can request a refill and draft a prescription for ${CLINICIAN_NAME} to sign. Which pharmacy should we use?`,
+    options: ["Same pharmacy on file", "Different pharmacy"],
+  },
+  {
+    content: `Refill request created and sent to ${CLINICIAN_NAME}. We'll notify you when the prescription is issued and medication is ready.`,
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
+const CALL_FLOW: FlowStep[] = [
+  {
+    content: `I can contact ${CLINICIAN_NAME}'s office. When should they call you?`,
+    options: ["Call now", "Later today", "Schedule tomorrow"],
+  },
+  {
+    content: `Request sent. ${CLINICIAN_NAME}'s team will reach you at your preferred time.`,
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
+const COMPLAINT_FLOW: FlowStep[] = [
+  {
+    content: "I'm sorry about that. What would you like to report?",
+    options: ["Care quality concern", "Communication issue", "Billing or admin issue"],
+  },
+  {
+    content: "Complaint logged and routed to patient experience. A coordinator will follow up within 1 business day.",
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
+];
+
+const SIDE_EFFECT_FLOW: FlowStep[] = [
+  {
+    content: "Thanks for telling me. How severe are the side effects?",
+    options: ["Mild", "Moderate", "Severe"],
+  },
+  {
+    content: "I've logged this and alerted your care team. If symptoms worsen, seek urgent care or call 999.",
+    options: ["Continue check-in"],
+  },
+  FINAL_SUMMARY,
 ];
 
 const AGENT_TYPING_DELAY_MS = 1100;
@@ -66,7 +146,9 @@ export default function PatientDemo() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
-  const [flowType, setFlowType] = useState<'normal' | 'concern' | 'urgent'>('normal');
+  const [flowType, setFlowType] = useState<
+    'normal' | 'concern' | 'urgent' | 'refill' | 'call' | 'complaint' | 'sideEffect'
+  >('normal');
   const [isTyping, setIsTyping] = useState(false);
   const [demoStarted, setDemoStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -85,6 +167,14 @@ export default function PatientDemo() {
         return CONCERN_FLOW;
       case 'urgent':
         return URGENT_FLOW;
+      case 'refill':
+        return REFILL_FLOW;
+      case 'call':
+        return CALL_FLOW;
+      case 'complaint':
+        return COMPLAINT_FLOW;
+      case 'sideEffect':
+        return SIDE_EFFECT_FLOW;
       default:
         return DEMO_FLOW;
     }
@@ -109,6 +199,8 @@ export default function PatientDemo() {
 
   const startDemo = () => {
     setDemoStarted(true);
+    setFlowType('normal');
+    setCurrentStep(0);
     const firstMessage = DEMO_FLOW[0];
     addAgentMessage(firstMessage.content, firstMessage.options);
   };
@@ -126,7 +218,7 @@ export default function PatientDemo() {
     ]);
 
     // Determine flow based on selection
-    if (currentStep === 1) {
+    if (flowType === 'normal' && currentStep === 1) {
       if (option === "Chest pain or pressure") {
         setFlowType('urgent');
         setTimeout(() => {
@@ -139,6 +231,73 @@ export default function PatientDemo() {
           addAgentMessage(CONCERN_FLOW[0].content, CONCERN_FLOW[0].options);
         }, 500);
         setCurrentStep(0);
+        return;
+      }
+    }
+
+    if (flowType === 'normal' && currentStep === 2 && option === "Report sync issue") {
+      setTimeout(() => {
+        addAgentMessage(
+          "Thanks for flagging that. I've logged a device sync issue and notified support. We'll still continue your check-in."
+        );
+      }, 400);
+      setTimeout(() => {
+        addAgentMessage(DEMO_FLOW[3].content, DEMO_FLOW[3].options);
+      }, 1200);
+      setCurrentStep(3);
+      return;
+    }
+
+    if (flowType === 'normal' && currentStep === 4) {
+      if (option === "Need a refill soon") {
+        setFlowType('refill');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Having side effects") {
+        setFlowType('sideEffect');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+    }
+
+    if (flowType === 'normal' && currentStep === 5) {
+      if (option === "Medication refill") {
+        setFlowType('refill');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Side effects") {
+        setFlowType('sideEffect');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(SIDE_EFFECT_FLOW[0].content, SIDE_EFFECT_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "Call clinician") {
+        setFlowType('call');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(CALL_FLOW[0].content, CALL_FLOW[0].options);
+        }, 500);
+        return;
+      }
+      if (option === "File a complaint") {
+        setFlowType('complaint');
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
+        }, 500);
         return;
       }
     }

@@ -57,6 +57,25 @@ export default function PatientDetail() {
     toast.info('Opening secure messaging...');
   };
 
+  const clinicianName = 'Dr. X';
+  const pharmacyName = 'CityCare Pharmacy';
+
+  const handleCallClinician = () => {
+    toast.info(`Calling ${clinicianName}...`);
+  };
+
+  const handleLogComplaint = () => {
+    toast.success('Complaint logged and routed to patient experience');
+  };
+
+  const handleDraftPrescription = () => {
+    toast.success('Prescription draft created for clinician review');
+  };
+
+  const handleSendMedication = () => {
+    toast.success(`Medication order sent to ${pharmacyName}`);
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-GB', {
       day: 'numeric',
@@ -165,6 +184,41 @@ export default function PatientDetail() {
               <span className="text-xs font-medium">Medications</span>
             </div>
             <p className="text-sm font-semibold">{patient.medications.length} active</p>
+          </Card>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 mb-6">
+          <Card className="p-4">
+            <h3 className="text-sm font-semibold">Care Actions</h3>
+            <p className="text-xs text-muted-foreground">
+              Use these actions to coordinate prescriptions, follow-ups, and support.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button variant="outline" size="sm" onClick={handleCallClinician}>
+                <Phone size={14} className="mr-1.5" />
+                Call {clinicianName}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDraftPrescription}>
+                <FileText size={14} className="mr-1.5" />
+                Draft Prescription
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSendMedication}>
+                <Pill size={14} className="mr-1.5" />
+                Send Medication
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleLogComplaint}>
+                <MessageSquare size={14} className="mr-1.5" />
+                Log Complaint
+              </Button>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <h3 className="text-sm font-semibold">Care Coordination</h3>
+            <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+              <p>Primary clinician: {clinicianName}</p>
+              <p>Preferred pharmacy: {pharmacyName}</p>
+              <p>Last wearable update: {formatDate(patient.lastCheckIn)} at {new Date(patient.lastCheckIn).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
           </Card>
         </div>
 
