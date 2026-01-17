@@ -59,6 +59,7 @@ export default function PatientDetail() {
 
   const clinicianName = 'Dr. X';
   const pharmacyName = 'CityCare Pharmacy';
+  const latestWearable = patient.wearableData[patient.wearableData.length - 1];
 
   const handleCallClinician = () => {
     toast.info(`Calling ${clinicianName}...`);
@@ -74,6 +75,10 @@ export default function PatientDetail() {
 
   const handleSendMedication = () => {
     toast.success(`Medication order sent to ${pharmacyName}`);
+  };
+
+  const handleRequestLiveSync = () => {
+    toast.success('Live wearable sync requested');
   };
 
   const formatDate = (dateStr: string) => {
@@ -232,6 +237,37 @@ export default function PatientDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
+            <Card className="p-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold">Live Apple Watch feed</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Last sync {formatDate(patient.lastCheckIn)} at {new Date(patient.lastCheckIn).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleRequestLiveSync}>
+                  Request live sync
+                </Button>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground">Resting HR</p>
+                  <p className="text-sm font-semibold">{Math.round(latestWearable.restingHR)} bpm</p>
+                </Card>
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground">HRV</p>
+                  <p className="text-sm font-semibold">{Math.round(latestWearable.hrv)} ms</p>
+                </Card>
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground">Sleep</p>
+                  <p className="text-sm font-semibold">{latestWearable.sleepHours.toFixed(1)} hrs</p>
+                </Card>
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground">Steps</p>
+                  <p className="text-sm font-semibold">{Math.round(latestWearable.steps).toLocaleString()}</p>
+                </Card>
+              </div>
+            </Card>
             <div className="grid lg:grid-cols-2 gap-4">
               <SBARCard sbar={patient.sbar} />
               <VitalTrends data={patient.wearableData} />
