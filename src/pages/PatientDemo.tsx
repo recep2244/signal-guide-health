@@ -616,21 +616,24 @@ export default function PatientDemo() {
                   </div>
                     {message.options && message.role === 'agent' && (
                       <div className="flex flex-wrap gap-2 mt-1 chat-options">
-                        {message.options.map((option) => (
-                          <Button
-                            key={option}
-                            variant="outline"
-                            size="sm"
-                            className={cn(
-                              "text-xs h-auto py-2 px-3",
-                              message.options?.includes("Continue check-in") &&
-                                "rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5]"
-                            )}
-                            onClick={() => handleOptionSelect(option)}
-                          >
-                            {option}
-                          </Button>
-                        ))}
+                        {message.options.map((option) => {
+                          const isQuickAction = QUICK_ACTIONS_OPTIONS.includes(option);
+                          return (
+                            <Button
+                              key={option}
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                "text-xs h-auto py-2 px-3",
+                                isQuickAction &&
+                                  "rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5]"
+                              )}
+                              onClick={() => handleOptionSelect(option)}
+                            >
+                              {option}
+                            </Button>
+                          );
+                        })}
                       </div>
                     )}
                     <span className="text-[10px] text-muted-foreground px-1">
@@ -658,13 +661,13 @@ export default function PatientDemo() {
 
             {/* Quick actions + input area */}
             <div className="border-t bg-card p-4">
-              <div className="flex flex-wrap gap-2 max-w-2xl mx-auto mb-3">
+              <div className="flex gap-2 max-w-2xl mx-auto mb-3 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                 {QUICK_ACTIONS_OPTIONS.filter(option => option !== "Continue check-in").map((option) => (
                   <Button
                     key={option}
                     variant="outline"
                     size="sm"
-                    className="text-[11px] h-8 px-3 rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5]"
+                    className="text-[11px] h-8 px-3 rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5] whitespace-nowrap"
                     onClick={() => handleOptionSelect(option)}
                   >
                     {option}

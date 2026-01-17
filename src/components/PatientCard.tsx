@@ -42,7 +42,7 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
       )}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
             <h3 className="font-semibold text-foreground truncate">{patient.name}</h3>
@@ -53,7 +53,7 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
             {patient.age}y {patient.gender.charAt(0)} • {patient.condition}
           </p>
 
-          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:flex sm:flex-wrap sm:gap-4">
             <span className="flex items-center gap-1.5">
               <Clock size={12} />
               Last check-in: {formatTime(patient.lastCheckIn)}
@@ -81,10 +81,10 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
               <Watch size={12} />
               Apple Watch live
             </span>
-            <span>HRV: {Math.round(latestWearable.hrv)} ms</span>
-            <span>Sleep: {latestWearable.sleepHours.toFixed(1)} hrs</span>
+            <span className="hidden sm:inline">HRV: {Math.round(latestWearable.hrv)} ms</span>
+            <span className="hidden sm:inline">Sleep: {latestWearable.sleepHours.toFixed(1)} hrs</span>
             <span>Sync: {formatTime(patient.lastCheckIn)}</span>
-            <span className="flex items-center gap-2">
+            <span className="hidden md:flex items-center gap-2">
               HR trend
               <svg
                 width={sparklineWidth}
@@ -103,7 +103,7 @@ export function PatientCard({ patient, onClick }: PatientCardProps) {
           </div>
         </div>
 
-        <div className="text-right shrink-0">
+        <div className="text-left shrink-0 sm:text-right">
           <div className="text-2xl font-semibold text-foreground">
             {patient.wellbeingScore}<span className="text-sm text-muted-foreground">/10</span>
           </div>
