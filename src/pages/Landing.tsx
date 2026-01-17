@@ -20,6 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 
+const demoVideoSrc = `${import.meta.env.BASE_URL}CardioWatch__A_Lifeline_.mp4`;
 
 const SectionHeading = ({
   eyebrow,
@@ -492,6 +493,23 @@ export default function Landing() {
 
         <section className="container mx-auto px-4 pb-16">
           <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+            <Card className="border bg-card/90 p-6">
+              <SectionHeading
+                eyebrow="Product walkthrough"
+                title="CardioWatch demo reel"
+                subtitle="A short overview of the patient and clinician experience."
+              />
+              <div className="mt-4 overflow-hidden rounded-2xl border bg-secondary/40">
+                <video
+                  className="h-64 w-full object-cover"
+                  controls
+                  preload="metadata"
+                  poster={`${import.meta.env.BASE_URL}placeholder.svg`}
+                >
+                  <source src={demoVideoSrc} type="video/mp4" />
+                </video>
+              </div>
+            </Card>
             <Card className="border bg-card/90 p-6">
               <SectionHeading
                 eyebrow="Compliance roadmap"
