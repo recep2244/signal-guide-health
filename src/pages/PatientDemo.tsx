@@ -276,15 +276,7 @@ export default function PatientDemo() {
     ]);
 
     // Determine flow based on selection
-    if (flowType === 'normal' && currentStep === 0) {
-      if (option === "Continue check-in") {
-        setCurrentStep(0);
-        setTimeout(() => {
-          addAgentMessage(DEMO_FLOW[1].content, DEMO_FLOW[1].options);
-        }, 500);
-        setCurrentStep(1);
-        return;
-      }
+    if (QUICK_ACTIONS_OPTIONS.includes(option) && option !== "Continue check-in") {
       if (option === "Request ambulance") {
         setFlowType('ambulance');
         setCurrentStep(0);
@@ -331,6 +323,17 @@ export default function PatientDemo() {
         setTimeout(() => {
           addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
         }, 500);
+        return;
+      }
+    }
+
+    if (flowType === 'normal' && currentStep === 0) {
+      if (option === "Continue check-in") {
+        setCurrentStep(0);
+        setTimeout(() => {
+          addAgentMessage(DEMO_FLOW[1].content, DEMO_FLOW[1].options);
+        }, 500);
+        setCurrentStep(1);
         return;
       }
     }
@@ -480,7 +483,7 @@ export default function PatientDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col whatsapp-theme">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
@@ -574,13 +577,17 @@ export default function PatientDemo() {
                     {message.content}
                   </div>
                     {message.options && message.role === 'agent' && (
-                      <div className="flex flex-wrap gap-2 mt-1">
+                      <div className="flex flex-wrap gap-2 mt-1 chat-options">
                         {message.options.map((option) => (
                           <Button
                             key={option}
                             variant="outline"
                             size="sm"
-                            className="text-xs h-auto py-2 px-3"
+                            className={cn(
+                              "text-xs h-auto py-2 px-3",
+                              message.options?.includes("Continue check-in") &&
+                                "rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5]"
+                            )}
                             onClick={() => handleOptionSelect(option)}
                           >
                             {option}
@@ -611,8 +618,21 @@ export default function PatientDemo() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input area */}
+            {/* Quick actions + input area */}
             <div className="border-t bg-card p-4">
+              <div className="flex flex-wrap gap-2 max-w-2xl mx-auto mb-3">
+                {QUICK_ACTIONS_OPTIONS.filter(option => option !== "Continue check-in").map((option) => (
+                  <Button
+                    key={option}
+                    variant="outline"
+                    size="sm"
+                    className="text-[11px] h-8 px-3 rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5]"
+                    onClick={() => handleOptionSelect(option)}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
               <div className="flex gap-2 max-w-2xl mx-auto">
                 <Input
                   value={inputValue}
