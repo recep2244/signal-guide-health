@@ -211,6 +211,23 @@
     @apply bg-primary text-primary-foreground rounded-br-md;
   }
 
+  .whatsapp-theme .chat-bubble-patient {
+    background-color: #dcf8c6;
+    color: #0f172a;
+    border-bottom-right-radius: 0.75rem;
+  }
+
+  .whatsapp-theme .chat-bubble-agent {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-bottom-left-radius: 0.75rem;
+  }
+
+  .whatsapp-theme {
+    background-image: radial-gradient(circle at top left, rgba(37, 211, 102, 0.08), transparent 55%),
+      radial-gradient(circle at bottom right, rgba(37, 211, 102, 0.05), transparent 55%);
+  }
+
   /* Gradient overlays */
   .gradient-fade-bottom {
     background: linear-gradient(to top, hsl(var(--background)), transparent);
