@@ -25,6 +25,9 @@ const WATCH_SNAPSHOT = {
   lastSync: "2 min ago",
 };
 
+const WATCH_SUMMARY =
+  "Real-time trends look stable. Resting HR is within baseline and sleep recovery is adequate.";
+
 const FINAL_SUMMARY: FlowStep = {
   content:
     "Thanks for checking in. ✅ **Triage: GREEN (Stable)**\n" +
@@ -61,11 +64,12 @@ const DEMO_FLOW: FlowStep[] = [
   },
   {
     content:
-      `Apple Watch/Fitbit sync received (${WATCH_SNAPSHOT.lastSync}).` +
+      `Apple Watch/Fitbit notification received (${WATCH_SNAPSHOT.lastSync}).` +
       `\n• Resting HR: ${WATCH_SNAPSHOT.restingHR} bpm` +
       `\n• HRV: ${WATCH_SNAPSHOT.hrv} ms` +
       `\n• Sleep: ${WATCH_SNAPSHOT.sleepHours} hrs` +
       `\n• Steps: ${WATCH_SNAPSHOT.steps.toLocaleString()}` +
+      `\n\nSummary: ${WATCH_SUMMARY}` +
       `\n\nI've sent this update to ${CLINICIAN_NAME}'s team. Please keep your wearable on so we can monitor trends. Does this look right?`,
     options: ["Looks correct", "Report sync issue"],
   },
@@ -549,6 +553,40 @@ export default function PatientDemo() {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+              <Card className="border bg-card/95 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-lg bg-primary/10 p-2">
+                    <Watch size={16} className="text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Apple Watch update
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">
+                      Live sync received {WATCH_SNAPSHOT.lastSync}
+                    </p>
+                    <div className="mt-2 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                      <div>
+                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.restingHR} bpm</span>
+                        <span className="ml-1">Resting HR</span>
+                      </div>
+                      <div>
+                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.hrv} ms</span>
+                        <span className="ml-1">HRV</span>
+                      </div>
+                      <div>
+                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.sleepHours} hrs</span>
+                        <span className="ml-1">Sleep</span>
+                      </div>
+                      <div>
+                        <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.steps.toLocaleString()}</span>
+                        <span className="ml-1">Steps</span>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">{WATCH_SUMMARY}</p>
+                  </div>
+                </div>
+              </Card>
               {messages.map((message) => (
                 <div
                   key={message.id}
