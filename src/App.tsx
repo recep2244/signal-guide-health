@@ -9,27 +9,39 @@ import PatientDemo from "./pages/PatientDemo";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import { AlertsProvider } from "./context/AlertsContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { QUERY_STALE_TIME_MS, API_RETRY_COUNT } from "./config/constants";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: QUERY_STALE_TIME_MS,
+      retry: API_RETRY_COUNT,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AlertsProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-right" />
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/patient/:patientId" element={<PatientDetail />} />
-            <Route path="/demo" element={<PatientDemo />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AlertsProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AlertsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-right" />
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/patient/:patientId" element={<PatientDetail />} />
+              <Route path="/demo" element={<PatientDemo />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AlertsProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
