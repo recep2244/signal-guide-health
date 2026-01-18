@@ -1,6 +1,6 @@
 /**
  * Wearable Device Integration Types
- * Supports Apple Watch (HealthKit), Fitbit, Google Fit, and Garmin
+ * Supports Apple Watch (HealthKit), Wear OS, Google Fit, Fitbit, Garmin, and more
  */
 
 // ============================================================================
@@ -8,9 +8,11 @@
 // ============================================================================
 
 export type WearableProvider =
-  | "apple_health"
-  | "fitbit"
+  | "apple_watch"
+  | "wear_os"
+  | "health_connect"
   | "google_fit"
+  | "fitbit"
   | "garmin"
   | "samsung_health"
   | "withings";

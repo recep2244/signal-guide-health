@@ -62,9 +62,13 @@ enum CommChannel {
 
 enum WearableType {
   apple_watch
+  wear_os
+  google_fit
+  health_connect
   fitbit
   garmin
   samsung
+  withings
   other
 }
 
