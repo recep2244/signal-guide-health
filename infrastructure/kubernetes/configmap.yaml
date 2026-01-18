@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cardiowatch-config
+  namespace: cardiowatch
+  labels:
+    app: cardiowatch
+data:
+  frontend-url: "https://cardiowatch.com"
+  allowed-origins: "https://cardiowatch.com,https://www.cardiowatch.com"
+  log-level: "info"
+  rate-limit-max: "100"
+  rate-limit-window-ms: "900000"
+  enable-mfa: "true"
+  enable-audit-logging: "true"
+  enable-field-encryption: "true"

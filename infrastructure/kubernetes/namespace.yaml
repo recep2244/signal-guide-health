@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cardiowatch
+  labels:
+    app: cardiowatch
+    environment: production
