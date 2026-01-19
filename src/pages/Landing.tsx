@@ -1128,15 +1128,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="bg-teal-600 py-16 lg:py-20">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold text-white sm:text-4xl">
-                Ready to see CardioWatch in action?
-              </h2>
-              <p className="mt-4 text-lg text-teal-100">
-                Run through the patient demo and clinician dashboard in under 3 minutes.
         <section className="container mx-auto px-4 pb-12 sm:pb-16">
           <Card className="border bg-card/90 p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -1188,7 +1179,7 @@ export default function Landing() {
                 </Button>
               </div>
             </div>
-          </div>
+          </Card>
         </section>
 
         {/* Footer */}

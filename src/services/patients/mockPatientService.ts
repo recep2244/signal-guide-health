@@ -77,9 +77,11 @@ export class MockPatientService {
             comparison = a.name.localeCompare(b.name);
             break;
           case "triageLevel":
-            const order = { red: 0, amber: 1, green: 2 };
-            comparison = order[a.triageLevel] - order[b.triageLevel];
-            break;
+            {
+              const order = { red: 0, amber: 1, green: 2 };
+              comparison = order[a.triageLevel] - order[b.triageLevel];
+              break;
+            }
           case "lastCheckIn":
             comparison = new Date(b.lastCheckIn).getTime() - new Date(a.lastCheckIn).getTime();
             break;
