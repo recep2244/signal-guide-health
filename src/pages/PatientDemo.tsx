@@ -3,7 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Heart, Send, ArrowLeft, Watch, Phone, AlertTriangle, MessageCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  Heart,
+  Send,
+  ArrowLeft,
+  Watch,
+  Phone,
+  AlertTriangle,
+  MessageCircle,
+  Activity,
+  Moon,
+  Footprints,
+  RefreshCw,
+  CheckCircle2,
+  Clock,
+  ChevronRight,
+  Sparkles,
+  User,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -23,7 +41,7 @@ interface TimelineEvent {
   status?: 'info' | 'success' | 'warning' | 'danger';
 }
 
-const CLINICIAN_NAME = "Dr. X";
+const CLINICIAN_NAME = "Dr. Sarah Mitchell";
 const WATCH_SNAPSHOT = {
   restingHR: 71,
   hrv: 44,
@@ -37,7 +55,7 @@ const HR_TREND_MIN = Math.min(...HR_TREND);
 const HR_TREND_RANGE = Math.max(...HR_TREND) - HR_TREND_MIN || 1;
 
 const WATCH_SUMMARY =
-  "Real-time trends look stable. Resting HR is within baseline and sleep recovery is adequate.";
+  "Your vital signs look stable. Resting heart rate is within your normal baseline, and sleep recovery is adequate.";
 
 const NON_URGENT_SYMPTOMS = [
   "Fatigue or low energy",
@@ -54,19 +72,20 @@ const MEDICATION_STEP_INDEX = 6;
 
 const FINAL_SUMMARY: FlowStep = {
   content:
-    "Thanks for checking in. ✅ **Triage: GREEN (Stable)**\n" +
-    "• Wearable update sent to your care team\n" +
-    "• No red flag symptoms reported\n" +
-    "• Next check-in scheduled for tomorrow\n\n" +
-    "If you develop chest pain, shortness of breath at rest, or fainting, seek urgent care.",
-  options: ["Clinician response", "Continue check-in"],
+    "Thank you for completing today's check-in!\n\n" +
+    "**Triage Status: GREEN (Stable)**\n\n" +
+    "• Your wearable data has been sent to your care team\n" +
+    "• No red flag symptoms reported today\n" +
+    "• Next check-in scheduled for tomorrow at 9:00 AM\n\n" +
+    "If you experience chest pain, shortness of breath at rest, or fainting, please seek urgent care immediately.",
+  options: ["View clinician response", "End check-in"],
 };
 
 const QUICK_ACTIONS_OPTIONS = [
   "Request ambulance",
   "Request appointment",
   "Request medicine",
-  "Side effects",
+  "Report side effects",
   "Call clinician",
   "Notify family",
   "File a complaint",
@@ -76,84 +95,84 @@ const QUICK_ACTIONS_OPTIONS = [
 const DEMO_FLOW: FlowStep[] = [
   {
     content:
-      "Good morning! 👋 I'm your CardioWatch assistant on WhatsApp. I'll be checking in with you daily to help monitor your recovery.\n\n" +
-      "If you need urgent or practical help now, pick one of the quick actions below, or continue the check-in.",
+      "Good morning! I'm your CardioWatch assistant. I'll be checking in with you daily to help monitor your recovery after your procedure.\n\n" +
+      "If you need urgent help right now, select one of the quick actions below. Otherwise, let's continue with your daily check-in.",
     options: QUICK_ACTIONS_OPTIONS,
   },
   {
-    content: "Thanks. How are you feeling today on a scale of 0-10?",
+    content: "How are you feeling today? Please rate your overall wellbeing on a scale of 0-10.",
     options: ["8 - Feeling good", "6 - Okay", "4 - Not great", "2 - Struggling"],
   },
   {
-    content: "Thank you for sharing. Before we continue, I need to ask about any urgent symptoms.\n\nAre you experiencing any of the following right now?",
+    content: "Thank you for sharing. Before we continue, I need to check for any urgent symptoms.\n\nAre you experiencing any of the following right now?",
     options: ["Chest pain or pressure", "Shortness of breath at rest", "Fainting or near-fainting", "None of these"],
   },
   {
-    content: "Thanks. Any non-urgent symptoms today that you want us to track?",
+    content: "Great. Are you experiencing any of these non-urgent symptoms today that you'd like us to track?",
     options: NON_URGENT_SYMPTOMS,
   },
   {
     content:
-      `Apple Watch/Fitbit notification received (${WATCH_SNAPSHOT.lastSync}).` +
-      `\n• Resting HR: ${WATCH_SNAPSHOT.restingHR} bpm` +
-      `\n• HRV: ${WATCH_SNAPSHOT.hrv} ms` +
-      `\n• Sleep: ${WATCH_SNAPSHOT.sleepHours} hrs` +
-      `\n• Steps: ${WATCH_SNAPSHOT.steps.toLocaleString()}` +
-      `\n\nSummary: ${WATCH_SUMMARY}` +
-      `\n\nI've sent this update to ${CLINICIAN_NAME}'s team. Please keep your wearable on so we can monitor trends. Does this look right?`,
+      `Your Apple Watch data has been received (synced ${WATCH_SNAPSHOT.lastSync}).\n\n` +
+      `**Today's Vitals:**\n` +
+      `• Resting HR: ${WATCH_SNAPSHOT.restingHR} bpm\n` +
+      `• HRV: ${WATCH_SNAPSHOT.hrv} ms\n` +
+      `• Sleep: ${WATCH_SNAPSHOT.sleepHours} hours\n` +
+      `• Steps: ${WATCH_SNAPSHOT.steps.toLocaleString()}\n\n` +
+      `**Summary:** ${WATCH_SUMMARY}\n\n` +
+      `This update has been sent to ${CLINICIAN_NAME}'s team. Does this look correct?`,
     options: ["Looks correct", "Report sync issue"],
   },
   {
-    content: "Thanks. Have you noticed any changes in how you feel during physical activity?",
+    content: "How have you been feeling during physical activity compared to last week?",
     options: ["Feeling stronger", "About the same", "More tired than usual", "Getting breathless easier"],
   },
   {
-    content: "That's wonderful progress! Your wearable data supports this - your activity levels have been increasing steadily. 📈\n\nAre you taking all your medications as prescribed?",
+    content: "That's encouraging! Your wearable data shows your activity levels have been increasing steadily over the past week.\n\nAre you taking all your medications as prescribed?",
     options: ["Yes, all of them", "Missed one dose", "Having side effects", "Need a refill soon"],
   },
   {
-    content: "Do you need any additional help today?",
+    content: "Is there anything else you need help with today?",
     options: [
       "Request ambulance",
       "Request appointment",
       "Request medicine",
-      "Side effects",
+      "Report side effects",
       "Call clinician",
       "Notify family",
       "File a complaint",
-      "Nothing else",
+      "Nothing else, thanks",
     ],
   },
   FINAL_SUMMARY,
 ];
 
-// Alternative flow for concerning symptoms
 const CONCERN_FLOW: FlowStep[] = [
   {
     content: "I'm sorry to hear that. Can you tell me more about what you're experiencing?\n\nWhen did this start?",
     options: ["Just now", "A few hours ago", "Since yesterday", "Getting worse over days"],
   },
   {
-    content: "I understand. On a scale of 0-10, how severe would you rate this symptom?",
+    content: "On a scale of 1-10, how severe would you rate this symptom?",
     options: ["Mild (1-3)", "Moderate (4-6)", "Severe (7-8)", "Very severe (9-10)"],
   },
   {
-    content: "⚠️ Based on what you've shared, I'm flagging this for your care team to review today.\n\n**Triage: AMBER (Review Today)**\n\nYour symptoms combined with your recent procedure warrant a same-day check. A member of your care team will contact you within the next few hours.\n\nIn the meantime:\n• Rest and don't overexert yourself\n• Keep your phone nearby\n• If symptoms suddenly worsen, seek urgent care\n\nIs there anything else you'd like me to note for your care team?",
+    content: "Based on what you've shared, I'm flagging this for your care team to review today.\n\n**Triage Status: AMBER (Review Today)**\n\nYour symptoms combined with your recent procedure warrant a same-day check. A member of your care team will contact you within the next few hours.\n\n**In the meantime:**\n• Rest and avoid overexertion\n• Keep your phone nearby\n• Seek urgent care if symptoms suddenly worsen\n\nIs there anything else you'd like me to note for your care team?",
     options: ["No, that's all", "Yes, I have more to add"],
   },
 ];
 
 const buildSymptomFlow = (symptomLabel: string): FlowStep[] => [
   {
-    content: `Thanks for letting me know about ${symptomLabel.toLowerCase()}. How severe is it right now?`,
+    content: `Thank you for letting me know about ${symptomLabel.toLowerCase()}. How severe is it right now?`,
     options: ["Mild", "Moderate", "Severe"],
   },
   {
-    content: "When did it start?",
+    content: "When did this symptom start?",
     options: ["Today", "Past few days", "Over a week"],
   },
   {
-    content: `Got it. I'll share this with ${CLINICIAN_NAME} and keep monitoring. Ready to continue the check-in?`,
+    content: `Got it. I'll share this with ${CLINICIAN_NAME} and continue monitoring. Ready to continue your check-in?`,
     options: ["Continue check-in"],
   },
 ];
@@ -167,20 +186,19 @@ const SYMPTOM_FLOWS: Record<string, FlowStep[]> = {
 
 const DEFAULT_SYMPTOM_FLOW = buildSymptomFlow("that symptom");
 
-// Urgent flow
 const URGENT_FLOW: FlowStep[] = [
   {
-    content: "⚠️ **This could be serious.**\n\nChest pain or pressure after your procedure needs immediate medical attention.\n\n**Please seek urgent care NOW or call 999 if:**\n• Pain is severe or worsening\n• You feel short of breath\n• You feel sweaty, nauseous, or dizzy\n\n🚨 I'm alerting your care team immediately.\n\nDo you have someone with you who can help?",
+    content: "**This could be serious.**\n\nChest pain or pressure after your procedure needs immediate medical attention.\n\n**Please seek urgent care NOW or call 999 if:**\n• Pain is severe or worsening\n• You feel short of breath\n• You feel sweaty, nauseous, or dizzy\n\nI'm alerting your care team immediately.\n\nDo you have someone with you who can help?",
   },
 ];
 
 const REFILL_FLOW: FlowStep[] = [
   {
-    content: `I can request a refill and draft a prescription for ${CLINICIAN_NAME} to sign. Which pharmacy should we use?`,
+    content: `I can request a prescription refill for ${CLINICIAN_NAME} to sign. Which pharmacy should we send it to?`,
     options: ["Same pharmacy on file", "Different pharmacy"],
   },
   {
-    content: `Refill request created and sent to ${CLINICIAN_NAME}. We'll notify you when the prescription is issued and medication is ready.`,
+    content: `Your refill request has been sent to ${CLINICIAN_NAME}. We'll notify you when the prescription is ready for pickup or delivery.`,
     options: ["Track delivery", "Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -188,11 +206,11 @@ const REFILL_FLOW: FlowStep[] = [
 
 const CALL_FLOW: FlowStep[] = [
   {
-    content: `I can contact ${CLINICIAN_NAME}'s office. When should they call you?`,
-    options: ["Call now", "Later today", "Schedule tomorrow"],
+    content: `I can arrange a call with ${CLINICIAN_NAME}'s office. When would you like them to call you?`,
+    options: ["Call me now", "Later today", "Schedule for tomorrow"],
   },
   {
-    content: `Request sent. ${CLINICIAN_NAME}'s team will reach you at your preferred time.`,
+    content: `Your call request has been sent. ${CLINICIAN_NAME}'s team will reach out at your preferred time.`,
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -200,11 +218,11 @@ const CALL_FLOW: FlowStep[] = [
 
 const COMPLAINT_FLOW: FlowStep[] = [
   {
-    content: "I'm sorry about that. What would you like to report?",
+    content: "I'm sorry to hear you have a concern. What would you like to report?",
     options: ["Care quality concern", "Communication issue", "Billing or admin issue"],
   },
   {
-    content: "Complaint logged and routed to patient experience. A coordinator will follow up within 1 business day.",
+    content: "Your feedback has been logged and sent to our patient experience team. A coordinator will follow up within 1 business day.",
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -212,12 +230,12 @@ const COMPLAINT_FLOW: FlowStep[] = [
 
 const SIDE_EFFECT_FLOW: FlowStep[] = [
   {
-    content: "Thanks for telling me. How severe are the side effects?",
-    options: ["Mild", "Moderate", "Severe"],
+    content: "Thank you for reporting this. How severe are the side effects you're experiencing?",
+    options: ["Mild - manageable", "Moderate - uncomfortable", "Severe - very concerning"],
   },
   {
     content:
-      "I've logged this and alerted your care team. If symptoms worsen, seek urgent care or call 999.",
+      "I've logged this and alerted your care team. They'll review your medications and may adjust your prescription.\n\nIf symptoms worsen significantly, please seek urgent care.",
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -225,11 +243,11 @@ const SIDE_EFFECT_FLOW: FlowStep[] = [
 
 const DELIVERY_FLOW: FlowStep[] = [
   {
-    content: "Medication delivery options:",
-    options: ["Home delivery (2 hours)", "Pickup from pharmacy"],
+    content: "How would you like to receive your medication?",
+    options: ["Home delivery (2-3 hours)", "Pickup from pharmacy"],
   },
   {
-    content: "Delivery scheduled. ETA 2 hours. We'll send a confirmation when it's dispatched.",
+    content: "Your delivery has been scheduled. You'll receive a notification when it's dispatched with an estimated arrival time.",
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -237,11 +255,11 @@ const DELIVERY_FLOW: FlowStep[] = [
 
 const FAMILY_FLOW: FlowStep[] = [
   {
-    content: "Who should we notify?",
+    content: "Who should we notify about your status?",
     options: ["Primary caregiver", "Family contact", "Emergency contact"],
   },
   {
-    content: "Notification sent. We'll keep them updated on your status.",
+    content: "We've sent a notification to your selected contact. They'll be kept updated on your recovery progress.",
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -250,19 +268,19 @@ const FAMILY_FLOW: FlowStep[] = [
 const CLINICIAN_RESPONSE_FLOW: FlowStep[] = [
   {
     content:
-      `${CLINICIAN_NAME} responded: "Reviewed the latest Apple Watch trends. No urgent concerns. Continue current meds and hydrate. We'll check in tomorrow."`,
-    options: ["Continue check-in"],
+      `**Message from ${CLINICIAN_NAME}:**\n\n"I've reviewed your latest Apple Watch data. Everything looks stable - your heart rate trends are within normal range and your sleep is improving.\n\nContinue taking your current medications and stay hydrated. We'll check in again tomorrow. Feel free to reach out if anything changes."`,
+    options: ["Thank you", "I have a question"],
   },
   FINAL_SUMMARY,
 ];
 
 const APPOINTMENT_FLOW: FlowStep[] = [
   {
-    content: "I can arrange an appointment. When would you like to be seen?",
-    options: ["Today", "This week", "Next week"],
+    content: "When would you like to schedule your appointment?",
+    options: ["Today if possible", "This week", "Next week"],
   },
   {
-    content: `Appointment request sent to ${CLINICIAN_NAME}'s scheduling team. We'll confirm your slot soon.`,
+    content: `Your appointment request has been sent to ${CLINICIAN_NAME}'s scheduling team. You'll receive a confirmation with available times shortly.`,
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
@@ -271,14 +289,14 @@ const APPOINTMENT_FLOW: FlowStep[] = [
 const AMBULANCE_FLOW: FlowStep[] = [
   {
     content:
-      "If you are experiencing severe chest pain, shortness of breath at rest, or fainting, please call 999 now.\n\n" +
-      `I have alerted ${CLINICIAN_NAME}'s team and flagged this as urgent.`,
+      "**If you are experiencing severe chest pain, shortness of breath at rest, or fainting, please call 999 immediately.**\n\n" +
+      `I have alerted ${CLINICIAN_NAME}'s team and marked this as urgent. Emergency services have been notified.`,
     options: ["Continue check-in"],
   },
   FINAL_SUMMARY,
 ];
 
-const AGENT_TYPING_DELAY_MS = 1100;
+const AGENT_TYPING_DELAY_MS = 800;
 
 export default function PatientDemo() {
   const navigate = useNavigate();
@@ -387,11 +405,10 @@ export default function PatientDemo() {
     setSelectedSymptom('');
     const firstMessage = DEMO_FLOW[0];
     addAgentMessage(firstMessage.content, firstMessage.options);
-    addTimelineEvent("Check-in started", "info");
+    addTimelineEvent("Daily check-in started", "info");
   };
 
   const handleOptionSelect = (option: string) => {
-    // Add patient message
     setMessages(prev => [
       ...prev,
       {
@@ -402,12 +419,11 @@ export default function PatientDemo() {
       },
     ]);
 
-    // Determine flow based on selection
     if (QUICK_ACTIONS_OPTIONS.includes(option) && option !== "Continue check-in") {
       if (option === "Request ambulance") {
         setFlowType('ambulance');
         setCurrentStep(0);
-        addTimelineEvent("Ambulance requested", "danger");
+        addTimelineEvent("Emergency ambulance requested", "danger");
         setTimeout(() => {
           addAgentMessage(AMBULANCE_FLOW[0].content, AMBULANCE_FLOW[0].options);
         }, 500);
@@ -425,13 +441,13 @@ export default function PatientDemo() {
       if (option === "Request medicine") {
         setFlowType('refill');
         setCurrentStep(0);
-        addTimelineEvent("Prescription refill requested", "info");
+        addTimelineEvent("Medication refill requested", "info");
         setTimeout(() => {
           addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
         }, 500);
         return;
       }
-      if (option === "Side effects") {
+      if (option === "Report side effects") {
         setFlowType('sideEffect');
         setCurrentStep(0);
         addTimelineEvent("Side effects reported", "warning");
@@ -443,7 +459,7 @@ export default function PatientDemo() {
       if (option === "Call clinician") {
         setFlowType('call');
         setCurrentStep(0);
-        addTimelineEvent("Clinician call requested", "info");
+        addTimelineEvent("Call with clinician requested", "info");
         setTimeout(() => {
           addAgentMessage(CALL_FLOW[0].content, CALL_FLOW[0].options);
         }, 500);
@@ -452,7 +468,7 @@ export default function PatientDemo() {
       if (option === "Notify family") {
         setFlowType('family');
         setCurrentStep(0);
-        addTimelineEvent("Family notified", "info");
+        addTimelineEvent("Family notification sent", "info");
         setTimeout(() => {
           addAgentMessage(FAMILY_FLOW[0].content, FAMILY_FLOW[0].options);
         }, 500);
@@ -461,7 +477,7 @@ export default function PatientDemo() {
       if (option === "File a complaint") {
         setFlowType('complaint');
         setCurrentStep(0);
-        addTimelineEvent("Complaint filed", "warning");
+        addTimelineEvent("Feedback submitted", "warning");
         setTimeout(() => {
           addAgentMessage(COMPLAINT_FLOW[0].content, COMPLAINT_FLOW[0].options);
         }, 500);
@@ -472,14 +488,14 @@ export default function PatientDemo() {
     if (option === "Track delivery") {
       setFlowType('delivery');
       setCurrentStep(0);
-      addTimelineEvent("Medication delivery tracking opened", "info");
+      addTimelineEvent("Tracking medication delivery", "info");
       setTimeout(() => {
         addAgentMessage(DELIVERY_FLOW[0].content, DELIVERY_FLOW[0].options);
       }, 500);
       return;
     }
 
-    if (option === "Clinician response") {
+    if (option === "View clinician response" || option === "Clinician response") {
       setFlowType('clinicianResponse');
       setCurrentStep(0);
       addTimelineEvent("Clinician response received", "success");
@@ -495,7 +511,7 @@ export default function PatientDemo() {
       if (option === "Continue check-in" || nextStep >= flow.length) {
         setFlowType('normal');
         setCurrentStep(WEARABLE_STEP_INDEX);
-        addTimelineEvent("Wearable sync received", "info");
+        addTimelineEvent("Wearable data synced", "info");
         setTimeout(() => {
           addAgentMessage(DEMO_FLOW[WEARABLE_STEP_INDEX].content, DEMO_FLOW[WEARABLE_STEP_INDEX].options);
         }, 500);
@@ -520,7 +536,7 @@ export default function PatientDemo() {
       }
     }
 
-    if (option === "Continue check-in") {
+    if (option === "Continue check-in" || option === "End check-in" || option === "Nothing else, thanks") {
       setFlowType('normal');
       setCurrentStep(1);
       setTimeout(() => {
@@ -532,14 +548,14 @@ export default function PatientDemo() {
     if (flowType === 'normal' && currentStep === 2) {
       if (option === "Chest pain or pressure") {
         setFlowType('urgent');
-        addTimelineEvent(`Urgent symptom reported: ${option}`, "danger");
+        addTimelineEvent(`URGENT: ${option}`, "danger");
         setTimeout(() => {
           addAgentMessage(URGENT_FLOW[0].content);
         }, 500);
         return;
       } else if (option !== "None of these") {
         setFlowType('concern');
-        addTimelineEvent(`Symptom requires review: ${option}`, "warning");
+        addTimelineEvent(`Symptom flagged: ${option}`, "warning");
         setTimeout(() => {
           addAgentMessage(CONCERN_FLOW[0].content, CONCERN_FLOW[0].options);
         }, 500);
@@ -557,7 +573,7 @@ export default function PatientDemo() {
       setSelectedSymptom(option);
       setFlowType('symptom');
       setCurrentStep(0);
-      addTimelineEvent(`Symptom logged: ${option}`, "warning");
+      addTimelineEvent(`Tracking: ${option}`, "warning");
       setTimeout(() => {
         addAgentMessage(symptomFlow[0].content, symptomFlow[0].options);
       }, 500);
@@ -565,10 +581,10 @@ export default function PatientDemo() {
     }
 
     if (flowType === 'normal' && currentStep === WEARABLE_STEP_INDEX && option === "Report sync issue") {
-      addTimelineEvent("Wearable sync issue flagged", "warning");
+      addTimelineEvent("Sync issue reported", "warning");
       setTimeout(() => {
         addAgentMessage(
-          "Thanks for flagging that. I've logged a device sync issue and notified support. We'll still continue your check-in."
+          "Thank you for letting me know. I've logged a device sync issue and notified our technical team. We'll continue with your check-in."
         );
       }, 400);
       setTimeout(() => {
@@ -582,7 +598,7 @@ export default function PatientDemo() {
       if (option === "Need a refill soon") {
         setFlowType('refill');
         setCurrentStep(0);
-        addTimelineEvent("Prescription refill requested", "info");
+        addTimelineEvent("Medication refill requested", "info");
         setTimeout(() => {
           addAgentMessage(REFILL_FLOW[0].content, REFILL_FLOW[0].options);
         }, 500);
@@ -599,14 +615,13 @@ export default function PatientDemo() {
       }
     }
 
-    // Progress normal flow
     const flow = getCurrentFlow();
     const nextStep = currentStep + 1;
 
     if (nextStep < flow.length) {
       setCurrentStep(nextStep);
       if (flowType === 'normal' && nextStep === WEARABLE_STEP_INDEX) {
-        addTimelineEvent("Wearable sync received", "info");
+        addTimelineEvent("Wearable data synced", "info");
       }
       setTimeout(() => {
         const nextMessage = flow[nextStep];
@@ -629,7 +644,6 @@ export default function PatientDemo() {
     ]);
     setInputValue('');
 
-    // Generic response for free-text input
     setTimeout(() => {
       addAgentMessage(
         "Thank you for sharing that. I've noted this for your care team. Is there anything else you'd like to tell me?",
@@ -648,271 +662,349 @@ export default function PatientDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col whatsapp-theme">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-lg border-b shadow-sm">
+        <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate('/')}
-              className="shrink-0"
+              className="shrink-0 hover:bg-slate-100"
             >
               <ArrowLeft size={20} />
             </Button>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <Heart size={16} className="text-primary-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+                <Heart size={20} className="text-white" />
               </div>
               <div>
-                <h1 className="text-sm font-semibold">CardioWatch</h1>
-                <p className="text-[10px] text-muted-foreground">Daily Check-in</p>
+                <h1 className="text-base font-bold text-slate-900">CardioWatch</h1>
+                <p className="text-xs text-slate-500">Daily Check-in</p>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
-              <MessageCircle size={14} />
-              <span>WhatsApp-style check-in</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-triage-green">
-              <Watch size={14} />
-              <span className="hidden sm:inline">Connected</span>
-            </div>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="hidden sm:flex items-center gap-1.5 bg-slate-50 border-slate-200 text-slate-600 px-3 py-1">
+              <MessageCircle size={12} />
+              WhatsApp-style Demo
+            </Badge>
+            <Badge className="flex items-center gap-1.5 bg-green-50 text-green-700 border-green-200 px-3 py-1">
+              <Watch size={12} />
+              <span className="hidden sm:inline">Watch</span> Connected
+            </Badge>
           </div>
         </div>
       </header>
 
-      {/* Main chat area */}
+      {/* Main content */}
       <main className="flex-1 overflow-hidden flex flex-col">
         {!demoStarted ? (
+          /* Welcome Screen */
           <div className="flex-1 flex items-center justify-center p-6">
-            <Card className="max-w-md w-full p-8 text-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                <Heart size={40} className="text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Patient Demo</h2>
-                <p className="text-muted-foreground text-sm">
-                  Experience the AI-powered daily check-in from a patient's perspective. 
-                  This demo simulates how the CardioWatch agent interacts with post-discharge cardiac patients.
+            <Card className="max-w-lg w-full border-2 border-slate-200 shadow-xl overflow-hidden">
+              <div className="bg-gradient-to-br from-teal-500 to-teal-600 p-8 text-center">
+                <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
+                  <Heart size={40} className="text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Patient Check-in Demo</h2>
+                <p className="text-teal-100 mt-2">
+                  Experience the AI-powered daily check-in from a patient's perspective
                 </p>
               </div>
-              <div className="space-y-3 text-left bg-secondary/50 rounded-lg p-4">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Demo scenario</p>
-                <p className="text-sm">
-                  You are <strong>Sarah Okonkwo</strong>, 58, recently discharged after a cardiac ablation procedure. 
-                  Your Apple Watch/Fitbit is connected and sharing health data. Please keep your wearable on for accurate monitoring.
-                </p>
+
+              <div className="p-6 space-y-6">
+                <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <User size={16} className="text-teal-600" />
+                    Demo Scenario
+                  </div>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    You are <strong className="text-slate-900">Sarah Okonkwo</strong>, 58 years old,
+                    recently discharged after a cardiac ablation procedure. Your Apple Watch is
+                    connected and sharing health data with your care team.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { icon: Activity, label: "Vital Signs", desc: "HR, HRV tracking" },
+                    { icon: Moon, label: "Sleep Data", desc: "Recovery analysis" },
+                    { icon: MessageCircle, label: "Daily Check-ins", desc: "WhatsApp-style" },
+                    { icon: Sparkles, label: "AI Triage", desc: "Smart prioritization" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg">
+                      <item.icon size={16} className="text-teal-600 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-medium text-slate-900">{item.label}</p>
+                        <p className="text-xs text-slate-500">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button onClick={startDemo} className="w-full h-12 bg-teal-600 hover:bg-teal-700 text-white text-base shadow-lg shadow-teal-600/20">
+                  <Sparkles size={18} className="mr-2" />
+                  Start Daily Check-in
+                </Button>
               </div>
-              <Button onClick={startDemo} className="w-full" size="lg">
-                Start Daily Check-in
-              </Button>
             </Card>
           </div>
         ) : (
+          /* Chat Interface */
           <>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
-              <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-                <Card className="border bg-card/95 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-secondary/70 p-2">
-                      <MessageCircle size={16} className="text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Care timeline
-                      </p>
-                      <p className="text-sm font-semibold text-foreground">
-                        Live updates for today's check-in
-                      </p>
-                      <div className="mt-3 space-y-2">
-                        {timelineEvents.length === 0 ? (
-                          <p className="text-xs text-muted-foreground">
-                            Timeline updates will appear as you respond.
-                          </p>
-                        ) : (
-                          timelineEvents.map((event) => (
-                            <div key={event.id} className="flex items-start justify-between gap-3 text-xs">
-                              <div className="flex items-start gap-2">
-                                <span
-                                  className={cn(
-                                    "mt-1 h-2 w-2 rounded-full",
-                                    event.status === 'danger' && "bg-triage-red",
-                                    event.status === 'warning' && "bg-amber-400",
-                                    event.status === 'success' && "bg-emerald-400",
-                                    (!event.status || event.status === 'info') && "bg-primary"
-                                  )}
-                                />
-                                <span className="text-foreground">{event.label}</span>
+            <div className="flex-1 overflow-y-auto">
+              <div className="container mx-auto px-4 lg:px-8 py-6 space-y-6">
+                {/* Info Cards */}
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {/* Timeline Card */}
+                  <Card className="border-2 border-slate-200 bg-white p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                        <Clock size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-900">Care Timeline</p>
+                        <p className="text-xs text-slate-500 mb-3">Live updates for today's check-in</p>
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                          {timelineEvents.length === 0 ? (
+                            <p className="text-xs text-slate-400 italic">
+                              Timeline updates will appear as you respond...
+                            </p>
+                          ) : (
+                            timelineEvents.map((event) => (
+                              <div key={event.id} className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-2 min-w-0">
+                                  <span
+                                    className={cn(
+                                      "mt-1.5 h-2 w-2 rounded-full shrink-0",
+                                      event.status === 'danger' && "bg-red-500",
+                                      event.status === 'warning' && "bg-amber-500",
+                                      event.status === 'success' && "bg-green-500",
+                                      (!event.status || event.status === 'info') && "bg-teal-500"
+                                    )}
+                                  />
+                                  <span className="text-xs text-slate-700 truncate">{event.label}</span>
+                                </div>
+                                <span className="text-xs text-slate-400 shrink-0">{event.time}</span>
                               </div>
-                              <span className="text-muted-foreground">{event.time}</span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-                <Card className="border bg-card/95 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-primary/10 p-2">
-                      <Watch size={16} className="text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Apple Watch update
-                      </p>
-                      <p className="text-sm font-semibold text-foreground">
-                        Live sync received {WATCH_SNAPSHOT.lastSync}
-                      </p>
-                      <div className="mt-2 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                        <div>
-                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.restingHR} bpm</span>
-                          <span className="ml-1">Resting HR</span>
-                        </div>
-                        <div>
-                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.hrv} ms</span>
-                          <span className="ml-1">HRV</span>
-                        </div>
-                        <div>
-                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.sleepHours} hrs</span>
-                          <span className="ml-1">Sleep</span>
-                        </div>
-                        <div>
-                          <span className="text-foreground font-semibold">{WATCH_SNAPSHOT.steps.toLocaleString()}</span>
-                          <span className="ml-1">Steps</span>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-xs text-muted-foreground">{WATCH_SUMMARY}</p>
-                      <div className="mt-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          7-day resting HR trend
-                        </p>
-                        <div className="mt-2 flex h-10 items-end gap-1">
-                          {HR_TREND.map((value, index) => {
-                            const height = 20 + ((value - HR_TREND_MIN) / HR_TREND_RANGE) * 70;
-                            return (
-                              <span
-                                key={`${value}-${index}`}
-                                className={cn(
-                                  "w-2 rounded-full",
-                                  index === HR_TREND.length - 1 ? "bg-primary" : "bg-primary/30"
-                                )}
-                                style={{ height: `${height}%` }}
-                              />
-                            );
-                          })}
+                            ))
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              </div>
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    'flex gap-3 animate-fade-in',
-                    message.role === 'patient' ? 'flex-row-reverse' : 'flex-row'
-                  )}
-                >
-                  {message.role === 'agent' && (
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                      <Heart size={14} className="text-primary-foreground" />
+                  </Card>
+
+                  {/* Wearable Card */}
+                  <Card className="border-2 border-slate-200 bg-white p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-600">
+                        <Watch size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">Apple Watch</p>
+                            <p className="text-xs text-slate-500">Synced {WATCH_SNAPSHOT.lastSync}</p>
+                          </div>
+                          <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">
+                            <CheckCircle2 size={10} className="mr-1" />
+                            Live
+                          </Badge>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2">
+                            <Heart size={14} className="text-red-500" />
+                            <span className="text-xs text-slate-600">
+                              <strong className="text-slate-900">{WATCH_SNAPSHOT.restingHR}</strong> bpm
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Activity size={14} className="text-purple-500" />
+                            <span className="text-xs text-slate-600">
+                              <strong className="text-slate-900">{WATCH_SNAPSHOT.hrv}</strong> ms HRV
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Moon size={14} className="text-blue-500" />
+                            <span className="text-xs text-slate-600">
+                              <strong className="text-slate-900">{WATCH_SNAPSHOT.sleepHours}</strong> hrs sleep
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Footprints size={14} className="text-green-500" />
+                            <span className="text-xs text-slate-600">
+                              <strong className="text-slate-900">{WATCH_SNAPSHOT.steps.toLocaleString()}</strong> steps
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Mini HR Trend */}
+                        <div className="mt-3 pt-3 border-t border-slate-100">
+                          <p className="text-xs text-slate-500 mb-2">7-day HR trend</p>
+                          <div className="flex items-end gap-1 h-8">
+                            {HR_TREND.map((value, index) => {
+                              const height = 30 + ((value - HR_TREND_MIN) / HR_TREND_RANGE) * 70;
+                              return (
+                                <span
+                                  key={`${value}-${index}`}
+                                  className={cn(
+                                    "flex-1 rounded-sm transition-all",
+                                    index === HR_TREND.length - 1 ? "bg-teal-500" : "bg-slate-200"
+                                  )}
+                                  style={{ height: `${height}%` }}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div
-                    className={cn(
-                      'flex flex-col gap-2',
-                      message.role === 'patient' ? 'items-end' : 'items-start'
-                    )}
-                  >
+                  </Card>
+                </div>
+
+                {/* Messages */}
+                <div className="space-y-4">
+                  {messages.map((message) => (
                     <div
-                    className={cn(
-                      'chat-bubble whitespace-pre-wrap',
-                      message.role === 'patient' ? 'chat-bubble-patient' : 'chat-bubble-agent'
-                    )}
-                  >
-                    {message.content}
-                  </div>
-                    {message.options && message.role === 'agent' && (
-                      <div className="flex flex-wrap gap-2 mt-1 chat-options">
-                        {message.options.map((option) => {
-                          const isQuickAction = QUICK_ACTIONS_OPTIONS.includes(option);
-                          return (
-                            <Button
-                              key={option}
-                              variant="outline"
-                              size="sm"
-                              className={cn(
-                                "text-xs h-auto py-2 px-3",
-                                isQuickAction &&
-                                  "rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5]"
-                              )}
-                              onClick={() => handleOptionSelect(option)}
-                            >
-                              {option}
-                            </Button>
-                          );
-                        })}
+                      key={message.id}
+                      className={cn(
+                        'flex gap-3 animate-fade-in',
+                        message.role === 'patient' ? 'flex-row-reverse' : 'flex-row'
+                      )}
+                    >
+                      {message.role === 'agent' && (
+                        <div className="shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-lg shadow-teal-500/20">
+                          <Heart size={16} className="text-white" />
+                        </div>
+                      )}
+                      <div
+                        className={cn(
+                          'flex flex-col gap-2 max-w-[85%] sm:max-w-[75%]',
+                          message.role === 'patient' ? 'items-end' : 'items-start'
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap',
+                            message.role === 'patient'
+                              ? 'bg-teal-600 text-white rounded-br-md'
+                              : 'bg-white border-2 border-slate-200 text-slate-700 rounded-bl-md shadow-sm'
+                          )}
+                        >
+                          {message.content}
+                        </div>
+                        {message.options && message.role === 'agent' && (
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {message.options.map((option) => {
+                              const isQuickAction = QUICK_ACTIONS_OPTIONS.includes(option) && option !== "Continue check-in";
+                              const isUrgent = option === "Request ambulance";
+                              return (
+                                <Button
+                                  key={option}
+                                  variant="outline"
+                                  size="sm"
+                                  className={cn(
+                                    "text-xs h-auto py-2 px-4 rounded-full transition-all",
+                                    isUrgent
+                                      ? "border-red-300 text-red-700 bg-red-50 hover:bg-red-100"
+                                      : isQuickAction
+                                        ? "border-teal-300 text-teal-700 bg-teal-50 hover:bg-teal-100"
+                                        : "border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400"
+                                  )}
+                                  onClick={() => handleOptionSelect(option)}
+                                >
+                                  {option}
+                                  <ChevronRight size={14} className="ml-1 opacity-50" />
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <span className="text-[10px] text-slate-400 px-1">
+                          {formatTime(message.timestamp)}
+                        </span>
                       </div>
-                    )}
-                    <span className="text-[10px] text-muted-foreground px-1">
-                      {formatTime(message.timestamp)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex gap-3 animate-fade-in">
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                    <Heart size={14} className="text-primary-foreground" />
-                  </div>
-                  <div className="chat-bubble chat-bubble-agent">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                  </div>
+                  ))}
+
+                  {/* Typing indicator */}
+                  {isTyping && (
+                    <div className="flex gap-3 animate-fade-in">
+                      <div className="shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+                        <Heart size={16} className="text-white" />
+                      </div>
+                      <div className="bg-white border-2 border-slate-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                        <div className="flex gap-1.5">
+                          <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
-              )}
-              <div ref={messagesEndRef} />
+              </div>
             </div>
 
-            {/* Quick actions + input area */}
-            <div className="border-t bg-card p-4">
-              <div className="flex gap-2 max-w-2xl mx-auto mb-3 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
-                {QUICK_ACTIONS_OPTIONS.filter(option => option !== "Continue check-in").map((option) => (
+            {/* Input area */}
+            <div className="border-t bg-white/95 backdrop-blur-lg p-4">
+              <div className="container mx-auto max-w-3xl">
+                {/* Quick Actions */}
+                <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-thin">
+                  {QUICK_ACTIONS_OPTIONS.filter(option => option !== "Continue check-in").map((option) => {
+                    const isUrgent = option === "Request ambulance";
+                    return (
+                      <Button
+                        key={option}
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "text-xs h-8 px-3 rounded-full whitespace-nowrap shrink-0",
+                          isUrgent
+                            ? "border-red-200 text-red-600 bg-red-50 hover:bg-red-100"
+                            : "border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100"
+                        )}
+                        onClick={() => handleOptionSelect(option)}
+                      >
+                        {option}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {/* Text Input */}
+                <div className="flex gap-3">
+                  <Input
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-1 h-11 rounded-full border-2 border-slate-200 px-4 focus:border-teal-500 focus:ring-teal-500"
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                  />
                   <Button
-                    key={option}
-                    variant="outline"
-                    size="sm"
-                    className="text-[11px] h-8 px-3 rounded-full border border-[#25D366] text-[#0b3d22] bg-[#eafff1] hover:bg-[#d7ffe5] whitespace-nowrap"
-                    onClick={() => handleOptionSelect(option)}
+                    onClick={handleSendMessage}
+                    size="icon"
+                    className="h-11 w-11 rounded-full bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/20"
                   >
-                    {option}
+                    <Send size={18} />
                   </Button>
-                ))}
-              </div>
-              <div className="flex gap-2 max-w-2xl mx-auto">
-                <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Type a message..."
-                  className="flex-1"
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                />
-                <Button onClick={handleSendMessage} size="icon">
-                  <Send size={18} />
-                </Button>
-              </div>
-              <div className="flex justify-center mt-3">
-                <Button variant="ghost" size="sm" onClick={resetDemo} className="text-xs text-muted-foreground">
-                  Restart Demo
-                </Button>
+                </div>
+
+                {/* Restart */}
+                <div className="flex justify-center mt-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetDemo}
+                    className="text-xs text-slate-500 hover:text-slate-700"
+                  >
+                    <RefreshCw size={12} className="mr-1.5" />
+                    Restart Demo
+                  </Button>
+                </div>
               </div>
             </div>
           </>
@@ -921,15 +1013,17 @@ export default function PatientDemo() {
 
       {/* Urgent alert overlay */}
       {flowType === 'urgent' && messages.length > 0 && (
-        <div className="fixed bottom-24 left-4 right-4 z-50 animate-fade-in">
-          <Card className="bg-triage-red-bg border-triage-red p-4 flex items-center gap-3">
-            <AlertTriangle className="text-triage-red shrink-0" size={24} />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-triage-red-foreground">Care team alerted</p>
-              <p className="text-xs text-triage-red-foreground/80">Emergency contact will call shortly</p>
+        <div className="fixed bottom-28 left-4 right-4 z-50 animate-fade-in">
+          <Card className="bg-red-50 border-2 border-red-300 p-4 flex items-center gap-4 shadow-xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 shrink-0">
+              <AlertTriangle className="text-red-600" size={24} />
             </div>
-            <Button variant="outline" size="sm" className="shrink-0 border-triage-red text-triage-red hover:bg-triage-red hover:text-white">
-              <Phone size={14} className="mr-1" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-red-800">Care team alerted</p>
+              <p className="text-xs text-red-600">Emergency contact will call shortly</p>
+            </div>
+            <Button className="shrink-0 bg-red-600 hover:bg-red-700 text-white">
+              <Phone size={16} className="mr-2" />
               Call 999
             </Button>
           </Card>

@@ -13,24 +13,24 @@ const triageConfig = {
   green: {
     label: 'Stable',
     icon: CheckCircle,
-    className: 'triage-badge-green',
+    bgClass: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   },
   amber: {
     label: 'Review',
     icon: AlertTriangle,
-    className: 'triage-badge-amber',
+    bgClass: 'bg-amber-50 border-amber-200 text-amber-700',
   },
   red: {
     label: 'Urgent',
     icon: AlertOctagon,
-    className: 'triage-badge-red',
+    bgClass: 'bg-red-50 border-red-200 text-red-700',
   },
 };
 
 const sizeClasses = {
-  sm: 'text-[10px] px-2 py-0.5',
-  md: 'text-xs px-2.5 py-1',
-  lg: 'text-sm px-3 py-1.5',
+  sm: 'text-[10px] px-2 py-0.5 gap-1',
+  md: 'text-xs px-2.5 py-1 gap-1.5',
+  lg: 'text-sm px-3 py-1.5 gap-1.5',
 };
 
 const iconSizes = {
@@ -46,10 +46,10 @@ export function TriageBadge({ level, showIcon = true, size = 'md', className }: 
   return (
     <span
       className={cn(
-        'triage-badge',
-        config.className,
+        'inline-flex items-center font-semibold rounded-full border',
+        config.bgClass,
         sizeClasses[size],
-        level === 'red' && 'animate-pulse-subtle',
+        level === 'red' && 'animate-pulse',
         className
       )}
     >

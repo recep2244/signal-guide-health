@@ -9,6 +9,7 @@ import PatientDemo from "./pages/PatientDemo";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
 import { AlertsProvider } from "./context/AlertsContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -53,6 +54,16 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <PatientDetail />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Admin routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <Admin />
                     </ProtectedRoute>
                   }
                 />

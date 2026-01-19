@@ -29,8 +29,20 @@ if (process.env.NODE_ENV !== 'production') {
   globalThis.prisma = prisma;
 }
 
+// Query event type
+interface QueryEvent {
+  query: string;
+  params: string;
+  duration: number;
+}
+
+// Error event type
+interface ErrorEvent {
+  message: string;
+}
+
 // Log queries in development
-prisma.$on('query' as never, (e: any) => {
+prisma.$on('query' as never, (e: QueryEvent) => {
   if (process.env.NODE_ENV === 'development') {
     logger.debug({
       message: 'Database query',
@@ -42,7 +54,7 @@ prisma.$on('query' as never, (e: any) => {
 });
 
 // Log errors
-prisma.$on('error' as never, (e: any) => {
+prisma.$on('error' as never, (e: ErrorEvent) => {
   logger.error({
     message: 'Database error',
     error: e.message,

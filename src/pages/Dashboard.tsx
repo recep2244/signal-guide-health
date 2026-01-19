@@ -104,15 +104,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <DashboardHeader unreadAlerts={unreadAlerts} />
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 lg:px-8 py-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold mb-1">Today's Overview</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-2xl font-bold text-slate-900">Today's Overview</h2>
+            <p className="text-sm text-slate-500 mt-1">
               {new Date().toLocaleDateString("en-GB", {
                 weekday: "long",
                 day: "numeric",
@@ -123,13 +123,13 @@ export default function Dashboard() {
           </div>
 
           {/* Search */}
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
-              placeholder="Search patients..."
+              placeholder="Search patients by name or condition..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-10 h-11 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-teal-500"
             />
           </div>
         </div>
@@ -145,32 +145,38 @@ export default function Dashboard() {
 
         {/* Patient List */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-muted-foreground">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-slate-600">
               {searchQuery.length >= 2
                 ? `Search Results`
                 : filter === "all"
                 ? "All Patients"
                 : `${filter.charAt(0).toUpperCase() + filter.slice(1)} Triage`}
-              <span className="ml-1">({displayPatients.length})</span>
+              <span className="ml-2 text-slate-400">({displayPatients.length})</span>
             </h3>
             {isFetching && (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <Loader2 className="h-4 w-4 animate-spin text-teal-500" />
             )}
           </div>
 
           {displayPatients.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground">
+            <Card className="border-2 border-slate-200">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                  <Search className="h-8 w-8 text-slate-400" />
+                </div>
+                <p className="text-slate-500 font-medium">
                   {searchQuery.length >= 2
                     ? "No patients match your search"
                     : "No patients in this category"}
                 </p>
+                <p className="text-sm text-slate-400 mt-1">
+                  Try adjusting your search or filter
+                </p>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {displayPatients.map((patient, index) => (
                 <div
                   key={patient.id}

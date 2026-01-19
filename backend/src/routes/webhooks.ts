@@ -114,7 +114,7 @@ router.post('/apple-health', async (req: Request, res: Response) => {
     let processedCount = 0;
 
     switch (dataType) {
-      case 'heart_rate':
+      case 'heart_rate': {
         const heartRateData = appleHealthKitProvider.processHeartRateSamples(samples);
         // Store in database
         for (const hr of heartRateData) {
@@ -138,8 +138,9 @@ router.post('/apple-health', async (req: Request, res: Response) => {
           processedCount++;
         }
         break;
+      }
 
-      case 'sleep':
+      case 'sleep': {
         const sleepData = appleHealthKitProvider.processSleepSamples(samples);
         for (const sleep of sleepData) {
           await prisma.wearableReading.upsert({
@@ -168,8 +169,9 @@ router.post('/apple-health', async (req: Request, res: Response) => {
           processedCount++;
         }
         break;
+      }
 
-      case 'blood_oxygen':
+      case 'blood_oxygen': {
         const oxygenData = appleHealthKitProvider.processBloodOxygenSamples(samples);
         for (const oxygen of oxygenData) {
           await prisma.wearableReading.upsert({
@@ -190,8 +192,9 @@ router.post('/apple-health', async (req: Request, res: Response) => {
           processedCount++;
         }
         break;
+      }
 
-      case 'hrv':
+      case 'hrv': {
         const hrvData = appleHealthKitProvider.processHRVSamples(samples);
         for (const hrv of hrvData) {
           await prisma.wearableReading.upsert({
@@ -212,6 +215,7 @@ router.post('/apple-health', async (req: Request, res: Response) => {
           processedCount++;
         }
         break;
+      }
 
       default:
         logger.info({ message: `Unhandled Apple HealthKit data type: ${dataType}` });

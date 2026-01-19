@@ -152,23 +152,46 @@ export function useDemoAuth() {
     return stored ? JSON.parse(stored) : null;
   });
 
-  const demoLogin = useCallback((role: "clinician" | "patient" = "clinician") => {
+  const demoLogin = useCallback((role: "clinician" | "patient" | "admin" = "clinician") => {
+    const roleNames: Record<string, string> = {
+      clinician: "Dr. Demo Clinician",
+      patient: "Demo Patient",
+      admin: "Admin User",
+    };
+
+    const rolePermissions: Record<string, Permission[]> = {
+      clinician: [
+        "patients:read",
+        "patients:write",
+        "alerts:read",
+        "alerts:resolve",
+        "wearables:read",
+        "messages:read",
+        "messages:send",
+      ],
+      patient: ["patients:read", "wearables:read", "messages:read"],
+      admin: [
+        "patients:read",
+        "patients:write",
+        "patients:delete",
+        "alerts:read",
+        "alerts:resolve",
+        "wearables:read",
+        "wearables:manage",
+        "messages:read",
+        "messages:send",
+        "reports:view",
+        "settings:manage",
+        "users:manage",
+      ],
+    };
+
     const demoUser: User = {
       id: `demo-${role}-001`,
       email: `demo.${role}@cardiowatch.com`,
-      name: role === "clinician" ? "Dr. Demo Clinician" : "Demo Patient",
+      name: roleNames[role],
       role,
-      permissions: role === "clinician"
-        ? [
-            "patients:read",
-            "patients:write",
-            "alerts:read",
-            "alerts:resolve",
-            "wearables:read",
-            "messages:read",
-            "messages:send",
-          ]
-        : ["patients:read", "wearables:read", "messages:read"],
+      permissions: rolePermissions[role],
       createdAt: new Date().toISOString(),
     };
 

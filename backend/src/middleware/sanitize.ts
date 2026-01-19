@@ -22,7 +22,7 @@ const XSS_PATTERNS = [
 
 // SQL injection patterns
 const SQL_PATTERNS = [
-  /(\%27)|(\')|(\-\-)|(\%23)|(#)/gi,
+  /(%27)|(')|(--)|(%23)|(#)/gi,
   /\b(union|select|insert|update|delete|drop|alter|create|truncate)\b/gi,
 ];
 

@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Heart, Loader2, Stethoscope, User } from "lucide-react";
+import { Heart, Loader2, Stethoscope, User, Shield, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,15 +25,21 @@ export default function Login() {
   // Get the page they were trying to visit
   const from = (location.state as { from?: Location })?.from?.pathname || "/dashboard";
 
-  const handleDemoLogin = (role: "clinician" | "patient") => {
+  const handleDemoLogin = (role: "clinician" | "patient" | "admin") => {
     setIsLoading(true);
     setError(null);
+
+    const redirectMap: Record<string, string> = {
+      clinician: "/dashboard",
+      patient: "/demo",
+      admin: "/admin",
+    };
 
     // Simulate login delay
     setTimeout(() => {
       demoLogin(role);
       setIsLoading(false);
-      navigate(role === "clinician" ? "/dashboard" : "/demo", { replace: true });
+      navigate(redirectMap[role], { replace: true });
     }, 500);
   };
 
@@ -59,39 +65,39 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50/30 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-              <Heart className="w-6 h-6 text-primary-foreground" />
+          <Link to="/" className="inline-flex flex-col items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-xl shadow-teal-500/20">
+              <Heart className="w-7 h-7 text-white" />
             </div>
-            <span className="text-2xl font-bold">CardioWatch</span>
+            <div>
+              <span className="text-2xl font-bold text-slate-900">CardioWatch</span>
+              <p className="text-sm text-slate-500">Post-discharge cardiac monitoring</p>
+            </div>
           </Link>
-          <p className="mt-2 text-muted-foreground">
-            Post-discharge cardiac monitoring
-          </p>
         </div>
 
         {/* Login Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign in</CardTitle>
-            <CardDescription>
-              Enter your credentials to access the dashboard
+        <Card className="border-2 border-slate-200 shadow-xl">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-xl font-bold text-slate-900">Welcome back</CardTitle>
+            <CardDescription className="text-slate-500">
+              Sign in to access your dashboard
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {error && (
-              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-slate-700 font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -99,11 +105,12 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
+                  className="h-11 rounded-lg border-2 border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-slate-700 font-medium">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -111,10 +118,15 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
+                  className="h-11 rounded-lg border-2 border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-teal-600 hover:bg-teal-700 text-white font-medium shadow-lg shadow-teal-600/20"
+                disabled={isLoading}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -128,11 +140,11 @@ export default function Login() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+                <span className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with demo
+                <span className="bg-white px-3 text-slate-400 font-medium">
+                  Quick demo access
                 </span>
               </div>
             </div>
@@ -141,7 +153,7 @@ export default function Login() {
             <div className="grid gap-3">
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full h-11 border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 font-medium"
                 onClick={() => handleDemoLogin("clinician")}
                 disabled={isLoading}
               >
@@ -151,30 +163,42 @@ export default function Login() {
 
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full h-11 border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium"
                 onClick={() => handleDemoLogin("patient")}
                 disabled={isLoading}
               >
                 <User className="mr-2 h-4 w-4" />
                 Demo as Patient
               </Button>
+
+              <Button
+                variant="outline"
+                className="w-full h-11 border-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 font-medium"
+                onClick={() => handleDemoLogin("admin")}
+                disabled={isLoading}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Demo as Admin
+              </Button>
             </div>
 
-            <p className="text-center text-xs text-muted-foreground">
-              Demo mode uses mock data for demonstration purposes.
-              No real patient data is accessed.
-            </p>
+            <div className="flex items-center justify-center gap-2 p-3 bg-slate-50 rounded-lg">
+              <Sparkles size={14} className="text-teal-500" />
+              <p className="text-xs text-slate-500">
+                Demo mode uses synthetic data for demonstration
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-slate-400">
           By signing in, you agree to our{" "}
-          <Link to="/terms" className="underline hover:text-foreground">
+          <Link to="/terms" className="text-teal-600 hover:text-teal-700 underline">
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link to="/privacy" className="underline hover:text-foreground">
+          <Link to="/privacy" className="text-teal-600 hover:text-teal-700 underline">
             Privacy Policy
           </Link>
         </p>

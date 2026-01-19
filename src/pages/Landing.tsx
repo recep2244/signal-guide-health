@@ -3,9 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
+import { useDemoAuth } from "@/context/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Activity,
   Bell,
@@ -18,100 +27,104 @@ import {
   Stethoscope,
   Users,
   Zap,
+  LogIn,
+  Shield,
+  LogOut,
+  Heart,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  TrendingDown,
+  Watch,
+  ChevronRight,
+  Play,
 } from "lucide-react";
-
-const demoVideoSrc = `${import.meta.env.BASE_URL}CardioWatch__A_Lifeline_.mp4`;
-
-const SectionHeading = ({
-  eyebrow,
-  title,
-  subtitle,
-}: {
-  eyebrow: string;
-  title: string;
-  subtitle?: string;
-}) => (
-  <div className="space-y-2">
-    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
-      {eyebrow}
-    </p>
-    <h2 className="text-2xl font-semibold text-foreground font-display sm:text-3xl">{title}</h2>
-    {subtitle && <p className="text-sm text-muted-foreground sm:text-base">{subtitle}</p>}
-  </div>
-);
 
 const journeyTabs = [
   {
     value: "patient",
-    label: "Patient flow",
+    label: "Patient Journey",
+    icon: Users,
     title: "Daily check-ins that feel human",
     description:
-      "Patients receive an empathetic, structured check-in with Apple Watch sync and instant reassurance.",
-    bullets: ["Symptom screening", "Medication adherence", "Wearable data sync"],
-    ctaLabel: "Open patient demo",
+      "Patients receive empathetic, structured check-ins via WhatsApp with Apple Watch sync and instant reassurance from their care team.",
+    bullets: ["Symptom screening", "Medication adherence", "Wearable data sync", "24/7 support access"],
+    ctaLabel: "Try Patient Demo",
     ctaTo: "/demo",
   },
   {
     value: "clinician",
-    label: "Clinician flow",
-    title: "Triage that reduces noise",
+    label: "Clinician View",
+    icon: Stethoscope,
+    title: "Smart triage that reduces noise",
     description:
-      "Clinicians get a ranked list of who needs attention, plus SBAR summaries and alert context.",
-    bullets: ["Red/amber/green queues", "SBAR summaries", "Actionable alerts"],
-    ctaLabel: "Open clinician dashboard",
+      "Clinicians get a prioritized list of patients who need attention, complete with SBAR summaries and actionable alert context.",
+    bullets: ["Red/amber/green queues", "SBAR summaries", "Actionable alerts", "Trend baselines"],
+    ctaLabel: "Open Dashboard",
     ctaTo: "/dashboard",
   },
   {
     value: "operations",
-    label: "Operations flow",
+    label: "Operations",
+    icon: LineChart,
     title: "Operational clarity for leadership",
     description:
-      "Leaders see trends, throughput, and response times to keep programs funded and effective.",
-    bullets: ["Response time tracking", "Escalation volumes", "Coverage confidence"],
-    ctaLabel: "View investor summary",
+      "Leaders see real-time trends, throughput metrics, and response times to keep programs funded and clinically effective.",
+    bullets: ["Response time tracking", "Escalation volumes", "Coverage confidence", "ROI dashboards"],
+    ctaLabel: "View Analytics",
     ctaTo: "/dashboard",
   },
 ];
 
 const features = [
   {
-    title: "Triage at a glance",
-    description: "Red, amber, green queues highlight who needs action now.",
-    icon: AlertIcon,
+    title: "Triage at a Glance",
+    description: "Red, amber, green queues highlight who needs immediate action versus routine follow-up.",
+    icon: Activity,
+    color: "bg-red-50 text-red-600",
   },
   {
-    title: "Wearable trend intelligence",
-    description: "14-day baselines and deltas expose subtle decline early.",
-    icon: LineChart,
+    title: "Wearable Intelligence",
+    description: "14-day baselines and trend deltas expose subtle decline before symptoms appear.",
+    icon: Watch,
+    color: "bg-blue-50 text-blue-600",
   },
   {
-    title: "Clinician-ready summaries",
-    description: "SBAR summaries and alerts keep handoffs consistent.",
+    title: "SBAR Summaries",
+    description: "Structured clinical summaries keep handoffs consistent and reduce cognitive load.",
     icon: Stethoscope,
+    color: "bg-purple-50 text-purple-600",
   },
   {
-    title: "Live alerting",
-    description: "Escalations notify teams fast with clear next steps.",
+    title: "Live Alerting",
+    description: "Escalations notify teams fast with clear next steps and patient context.",
     icon: Bell,
+    color: "bg-amber-50 text-amber-600",
   },
   {
-    title: "Patient engagement",
-    description: "Conversational check-ins boost adherence and trust.",
-    icon: Users,
+    title: "Patient Engagement",
+    description: "Conversational WhatsApp check-ins boost adherence and build patient trust.",
+    icon: MessageCircle,
+    color: "bg-green-50 text-green-600",
   },
   {
-    title: "Secure by design",
-    description: "Designed for clinical workflows and compliance.",
+    title: "Secure by Design",
+    description: "Built for NHS compliance with GDPR, DSPT, and clinical safety standards.",
     icon: ShieldCheck,
+    color: "bg-slate-50 text-slate-600",
   },
 ];
 
-function AlertIcon({ className }: { className?: string }) {
-  return <Activity className={className} />;
-}
+const stats = [
+  { label: "Readmission Reduction", value: "-24%", description: "vs. standard care" },
+  { label: "Response Time", value: "9 min", description: "average escalation" },
+  { label: "Patient Adherence", value: "+27%", description: "check-in completion" },
+  { label: "Clinician Time Saved", value: "3.2 hrs", description: "per day per nurse" },
+];
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, demoLogout } = useDemoAuth();
   const [patientsMonitored, setPatientsMonitored] = useState([140]);
   const [readmissionRate, setReadmissionRate] = useState([14]);
 
@@ -120,742 +133,599 @@ export default function Landing() {
   const avoidedReadmissions = Math.max(1, Math.round(patientCount * baselineRate * 0.22));
   const estimatedSavings = avoidedReadmissions * 4200;
 
+  const handleLogout = () => {
+    demoLogout();
+    navigate('/');
+  };
+
+  const getUserInitials = () => {
+    if (!user?.name) return 'U';
+    return user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Navigation */}
+      <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-lg">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Activity size={20} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg shadow-teal-500/20">
+              <Heart size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">CardioWatch</p>
-              <p className="text-xs text-muted-foreground">Signal Guide Health</p>
+              <p className="text-base font-bold text-slate-900">CardioWatch</p>
+              <p className="text-xs text-slate-500">Signal Guide Health</p>
             </div>
           </div>
-          <nav className="hidden items-center gap-6 text-xs text-muted-foreground md:flex">
-            <a href="#impact" className="hover:text-foreground">Impact</a>
-            <a href="#features" className="hover:text-foreground">Features</a>
-            <a href="#journey" className="hover:text-foreground">Journeys</a>
-            <a href="#why-now" className="hover:text-foreground">Why now</a>
+
+          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 lg:flex">
+            <a href="#features" className="hover:text-teal-600 transition-colors">Features</a>
+            <a href="#demo" className="hover:text-teal-600 transition-colors">Demo</a>
+            <a href="#video" className="hover:text-teal-600 transition-colors">Video</a>
+            <a href="#impact" className="hover:text-teal-600 transition-colors">Impact</a>
+            <a href="#journey" className="hover:text-teal-600 transition-colors">Journeys</a>
           </nav>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-3">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="hidden sm:inline-flex"
+              className="hidden text-slate-600 hover:text-teal-600 sm:inline-flex"
               onClick={() => navigate("/dashboard")}
             >
-              Open Dashboard
+              Dashboard
             </Button>
             <Button
               size="sm"
-              className="h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm"
+              className="bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/20"
               onClick={() => navigate("/demo")}
             >
-              View Demo
+              <Play size={14} className="mr-1.5" />
+              Try Demo
             </Button>
+
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative ml-1">
+                    <Avatar className="h-8 w-8 border-2 border-teal-100">
+                      <AvatarFallback className="bg-teal-50 text-teal-700 text-xs font-bold">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1.5">
+                      <p className="text-sm font-semibold text-slate-900">{user.name}</p>
+                      <p className="text-xs text-slate-500">{user.email}</p>
+                      <Badge variant="outline" className="w-fit text-[10px] bg-teal-50 text-teal-700 border-teal-200">
+                        {user.role}
+                      </Badge>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
+                    <Heart className="mr-2 h-4 w-4 text-slate-500" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  {user.role === 'admin' && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer">
+                      <Shield className="mr-2 h-4 w-4 text-slate-500" />
+                      Admin Console
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => navigate('/demo')} className="cursor-pointer">
+                    <Smartphone className="mr-2 h-4 w-4 text-slate-500" />
+                    Patient Demo
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden text-slate-600 sm:inline-flex"
+                onClick={() => navigate("/login")}
+              >
+                <LogIn size={16} className="mr-1.5" />
+                Sign in
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
       <main>
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(12,148,128,0.18),transparent_55%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.14),transparent_60%)]" />
-          <div className="absolute -top-24 right-0 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-72 w-72 rounded-full bg-triage-green/10 blur-3xl" />
+        {/* Hero Section */}
+        <section className="relative overflow-hidden py-16 lg:py-24">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(20,184,166,0.08),transparent_50%)]" />
+          <div className="absolute top-20 right-10 h-72 w-72 rounded-full bg-teal-500/5 blur-3xl" />
+          <div className="absolute bottom-10 left-10 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl" />
 
-          <div className="container relative mx-auto grid gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:py-24">
-            <div className="space-y-6">
-              <Badge className="w-fit bg-primary/10 text-primary">Investor presentation</Badge>
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl font-display">
-                CardioWatch turns post-discharge cardiac care into a proactive signal business.
+          <div className="container relative mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-4xl text-center">
+              <Badge className="mb-6 bg-teal-50 text-teal-700 border-teal-200 px-4 py-1.5 text-sm font-medium">
+                Post-Discharge Cardiac Care Platform
+              </Badge>
+
+              <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                Turn cardiac signals into
+                <span className="block text-teal-600">clinical action</span>
               </h1>
-              <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                A clinician-first platform that fuses wearable signals, patient check-ins,
-                and triage automation to reduce readmissions and scale cardiac follow-up.
+
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 sm:text-xl">
+                CardioWatch fuses wearable data, patient check-ins, and smart triage to reduce
+                readmissions and scale post-discharge follow-up for cardiac patients.
               </p>
-              <div className="grid gap-2 text-sm text-muted-foreground">
-                <span>Problem: high-cost readmissions in the first 30 days.</span>
-                <span>Now: wearables and RPM finally deliver continuous signals.</span>
-                <span>Solution: CardioWatch transforms signals into clinical action.</span>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate("/demo")}>
-                  Launch patient demo
+
+              <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white shadow-xl shadow-teal-600/20 px-8 h-12 text-base"
+                  onClick={() => navigate("/demo")}
+                >
+                  <Play size={18} className="mr-2" />
+                  Launch Patient Demo
                 </Button>
                 <Button
                   size="lg"
-                  className="w-full sm:w-auto"
                   variant="outline"
+                  className="w-full sm:w-auto border-slate-300 hover:bg-slate-50 px-8 h-12 text-base"
                   onClick={() => navigate("/dashboard")}
                 >
-                  Explore clinician view
+                  Explore Dashboard
+                  <ArrowRight size={18} className="ml-2" />
                 </Button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge className="bg-secondary text-secondary-foreground">
-                  <MessageCircle size={12} className="mr-1" />
-                  WhatsApp outreach
-                </Badge>
-                <Badge className="bg-secondary text-secondary-foreground">
-                  <Smartphone size={12} className="mr-1" />
-                  SMS check-ins
-                </Badge>
-                <Badge className="bg-secondary text-secondary-foreground">
-                  <Phone size={12} className="mr-1" />
-                  Clinician calls
-                </Badge>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground sm:text-sm">
-                <Card className="border bg-card/80 px-3 py-2 sm:px-4">
-                  <span className="flex items-center gap-2">
-                    <Zap size={14} className="text-primary" />
-                    Faster escalations
-                  </span>
-                </Card>
-                <Card className="border bg-card/80 px-3 py-2 sm:px-4">
-                  <span className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-primary" />
-                    Automated summaries
-                  </span>
-                </Card>
-                <Card className="border bg-card/80 px-3 py-2 sm:px-4">
-                  <span className="flex items-center gap-2">
-                    <ShieldCheck size={14} className="text-primary" />
-                    Clinical-grade UX
-                  </span>
-                </Card>
-              </div>
-            </div>
 
-            <div className="space-y-4">
-              <Card className="card-interactive border bg-card/90 p-5 shadow-lg sm:p-6">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Snapshot
-                </p>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Card className="card-interactive p-4">
-                    <p className="text-xs text-muted-foreground">Active alerts</p>
-                    <p className="text-2xl font-semibold text-triage-red">2</p>
-                  </Card>
-                  <Card className="card-interactive p-4">
-                    <p className="text-xs text-muted-foreground">Patients monitored</p>
-                    <p className="text-2xl font-semibold text-foreground">128</p>
-                  </Card>
-                  <Card className="card-interactive p-4">
-                    <p className="text-xs text-muted-foreground">Avg. response time</p>
-                    <p className="text-2xl font-semibold text-foreground">12m</p>
-                  </Card>
-                  <Card className="card-interactive p-4">
-                    <p className="text-xs text-muted-foreground">Readmission risk</p>
-                    <p className="text-2xl font-semibold text-triage-amber">-18%</p>
-                  </Card>
-                </div>
-              </Card>
-              <Card className="card-interactive border bg-card/90 p-5">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-triage-green-bg p-2">
-                    <Activity className="text-triage-green" size={18} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Signal integrity</p>
-                    <p className="text-xs text-muted-foreground">
-                      Trend baselines keep clinicians confident in the next action.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="card-interactive border bg-card/90 p-5">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <MessageCircle className="text-primary" size={18} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Multi-channel engagement</p>
-                    <p className="text-xs text-muted-foreground">
-                      WhatsApp, SMS, and voice calls keep patients connected between visits.
-                    </p>
-                  </div>
-                </div>
-              </Card>
+              <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-teal-500" />
+                  NHS Compliant
+                </span>
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-teal-500" />
+                  Apple Watch Integration
+                </span>
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-teal-500" />
+                  WhatsApp Check-ins
+                </span>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="container mx-auto px-4 py-10 sm:py-12">
-          <div className="grid gap-5 rounded-3xl border bg-card/90 p-6 sm:gap-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <div className="space-y-4">
-              <SectionHeading
-                eyebrow="Investor snapshot"
-                title="A clinically credible wedge with clear ROI."
-                subtitle="CardioWatch pairs a high-frequency data stream with actionable triage, enabling hospitals to reduce penalties and scale follow-up without adding staff."
-              />
-              <div className="flex flex-wrap gap-3">
-                <Badge className="bg-secondary text-secondary-foreground">Triage automation</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">Wearable signals</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">SaaS + per-patient</Badge>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Card className="card-interactive p-4">
-                <p className="text-xs text-muted-foreground">Target wedge</p>
-                <p className="text-sm font-semibold text-foreground">Post-discharge cardiac care</p>
-              </Card>
-              <Card className="card-interactive p-4">
-                <p className="text-xs text-muted-foreground">Primary buyer</p>
-                <p className="text-sm font-semibold text-foreground">Hospital systems</p>
-              </Card>
-              <Card className="card-interactive p-4">
-                <p className="text-xs text-muted-foreground">Value drivers</p>
-                <p className="text-sm font-semibold text-foreground">Readmission reduction</p>
-              </Card>
-              <Card className="card-interactive p-4">
-                <p className="text-xs text-muted-foreground">Differentiator</p>
-                <p className="text-sm font-semibold text-foreground">Clinician-ready signals</p>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 pb-10 sm:pb-12">
-          <Card className="border bg-card/90 p-5 sm:p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <SectionHeading
-                  eyebrow="Traction & pilots"
-                  title="Pilot-ready with aligned stakeholders."
-                  subtitle="Illustrative partners for demo purposes (replace with real pilots)."
-                />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge className="bg-secondary text-secondary-foreground">Pilot: Midlands Heart Centre</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">Clinical: Southbank Cardiology</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">RPM: CityCare Network</Badge>
-                <Badge className="bg-secondary text-secondary-foreground">Payer: Horizon Health</Badge>
-              </div>
-            </div>
-          </Card>
-        </section>
-
-        <section id="impact" className="container mx-auto px-4 py-12 sm:py-16">
-          <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-            <SectionHeading
-              eyebrow="Impact simulator"
-              title="See how small signal gains compound into real savings."
-              subtitle="Adjust the patient volume and baseline readmission rate to visualize how earlier escalation changes outcomes. These figures are illustrative and meant for investor discussions."
-            />
-            <Card className="border bg-card/90 p-5 sm:p-6">
-              <div className="space-y-5">
-                <div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Patients monitored</span>
-                    <span>{patientCount.toLocaleString()}</span>
-                  </div>
-                  <Slider
-                    value={patientsMonitored}
-                    onValueChange={setPatientsMonitored}
-                    min={50}
-                    max={400}
-                    step={10}
-                    className="mt-3"
-                  />
+        {/* Stats Section */}
+        <section className="border-y bg-white py-12">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-3xl font-bold text-teal-600 lg:text-4xl">{stat.value}</p>
+                  <p className="mt-1 text-base font-semibold text-slate-900">{stat.label}</p>
+                  <p className="text-sm text-slate-500">{stat.description}</p>
                 </div>
-                <div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Baseline readmission rate</span>
-                    <span>{readmissionRate[0]}%</span>
-                  </div>
-                  <Slider
-                    value={readmissionRate}
-                    onValueChange={setReadmissionRate}
-                    min={6}
-                    max={20}
-                    step={1}
-                    className="mt-3"
-                  />
-                </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Card className="border bg-secondary/70 p-4">
-                    <p className="text-xs text-muted-foreground">Avoided readmissions</p>
-                    <p className="text-2xl font-semibold text-foreground">{avoidedReadmissions}</p>
-                  </Card>
-                  <Card className="border bg-secondary/70 p-4">
-                    <p className="text-xs text-muted-foreground">Estimated savings</p>
-                    <p className="text-2xl font-semibold text-foreground">
-                      £{estimatedSavings.toLocaleString()}
-                    </p>
-                  </Card>
-                  <Card className="border bg-secondary/70 p-4">
-                    <p className="text-xs text-muted-foreground">Response SLA</p>
-                    <p className="text-2xl font-semibold text-foreground">{"<"}15m</p>
-                  </Card>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Model assumes a 22% reduction in avoidable readmissions based on proactive triage.
-                </p>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-            <Card className="border bg-card/90 p-5 sm:p-6">
-              <SectionHeading
-                eyebrow="Clinical outcomes"
-                title="Measured impact on care delivery."
-                subtitle="Demo-only outcomes to illustrate value; replace with validated pilot results."
-              />
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Readmissions</p>
-                  <p className="text-2xl font-semibold text-foreground">-24%</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Response time</p>
-                  <p className="text-2xl font-semibold text-foreground">9m</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Adherence</p>
-                  <p className="text-2xl font-semibold text-foreground">+27%</p>
-                </Card>
-              </div>
-            </Card>
-            <Card className="border bg-card/90 p-5 sm:p-6">
-              <SectionHeading
-                eyebrow="Unit economics"
-                title="Designed for scalable margins."
-                subtitle="Illustrative unit economics for investor narrative; adjust to your pricing model."
-              />
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Per-patient revenue</p>
-                  <p className="text-sm font-semibold text-foreground">£35 / month</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Cost to serve</p>
-                  <p className="text-sm font-semibold text-foreground">£9 / month</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Gross margin</p>
-                  <p className="text-sm font-semibold text-foreground">74%</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Payback</p>
-                  <p className="text-sm font-semibold text-foreground">{"<"}2 months</p>
-                </Card>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        <section id="features" className="container mx-auto px-4 py-12 sm:py-16">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <SectionHeading
-              eyebrow="Platform features"
-              title="Built for clinical clarity and operational scale."
-              subtitle="Highlights of the core product modules."
-            />
-            <Button variant="outline" className="w-full md:w-auto" onClick={() => navigate("/demo")}>
-              See the flow
-            </Button>
-          </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Card key={feature.title} className="card-interactive p-5">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-primary/10 p-2">
-                      <Icon className="text-primary" size={18} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{feature.title}</p>
-                      <p className="text-xs text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card className="card-interactive p-5">
-              <p className="text-xs text-muted-foreground">Investment highlights</p>
-              <p className="mt-2 text-sm font-semibold text-foreground">High-frequency data moat</p>
-              <p className="text-xs text-muted-foreground">
-                Continuous signal ingestion builds longitudinal patient profiles.
-              </p>
-            </Card>
-            <Card className="card-interactive p-5">
-              <p className="text-xs text-muted-foreground">Operational leverage</p>
-              <p className="mt-2 text-sm font-semibold text-foreground">Nurse time saved</p>
-              <p className="text-xs text-muted-foreground">
-                Triage automation reduces manual follow-up workload.
-              </p>
-            </Card>
-            <Card className="card-interactive p-5">
-              <p className="text-xs text-muted-foreground">Clinical credibility</p>
-              <p className="mt-2 text-sm font-semibold text-foreground">SBAR-first design</p>
-              <p className="text-xs text-muted-foreground">
-                Structured summaries match clinical handoff workflows.
-              </p>
-            </Card>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <div className="grid gap-5 sm:gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-            <Card className="border bg-card/90 p-5 sm:p-6">
-              <SectionHeading
-                eyebrow="Product walkthrough"
-                title="CardioWatch demo reel"
-                subtitle="A short overview of the patient and clinician experience."
-              />
-              <div className="mt-4 overflow-hidden rounded-2xl border bg-secondary/40">
-                <video
-                  className="w-full aspect-video object-cover lg:h-[22rem] lg:aspect-auto"
-                  controls
-                  preload="metadata"
-                  poster={`${import.meta.env.BASE_URL}placeholder.svg`}
-                >
-                  <source src={demoVideoSrc} type="video/mp4" />
-                </video>
-              </div>
-            </Card>
-            <Card className="border bg-card/90 p-5 sm:p-6">
-              <SectionHeading
-                eyebrow="Compliance roadmap"
-                title="Aligned with NHS and enterprise requirements."
-              />
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">GDPR / UK GDPR</p>
-                  <p className="text-sm font-semibold text-foreground">Data governance ready</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">NHS DSPT</p>
-                  <p className="text-sm font-semibold text-foreground">Targeting DSPT compliance</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">ISO 27001</p>
-                  <p className="text-sm font-semibold text-foreground">Roadmap in progress</p>
-                </Card>
-                <Card className="card-interactive p-4">
-                  <p className="text-xs text-muted-foreground">Clinical safety</p>
-                  <p className="text-sm font-semibold text-foreground">DCB0129 planned</p>
-                </Card>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        <section id="journey" className="container mx-auto px-4 pb-12 sm:pb-16">
-          <Card className="border bg-card/90 p-5 sm:p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <SectionHeading
-                  eyebrow="Narratives"
-                  title="Choose the story you want to tell."
-                  subtitle="Switch between patient, clinician, and operations narratives."
-                />
-              </div>
-              <Badge className="w-fit bg-primary/10 text-primary">Interactive overview</Badge>
-            </div>
-            <Tabs defaultValue="patient" className="mt-6">
-              <TabsList className="bg-secondary/70 flex w-full flex-col sm:flex-row">
-                {journeyTabs.map((tab) => (
-                  <TabsTrigger key={tab.value} value={tab.value} className="w-full sm:w-auto">
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {journeyTabs.map((tab) => (
-                <TabsContent key={tab.value} value={tab.value} className="mt-6">
-                  <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                    <div className="space-y-3">
-                      <h3 className="text-xl font-semibold text-foreground sm:text-2xl">{tab.title}</h3>
-                      <p className="text-sm text-muted-foreground">{tab.description}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {tab.bullets.map((bullet) => (
-                          <Badge key={bullet} className="bg-secondary text-secondary-foreground">
-                            {bullet}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <Card className="border bg-secondary/60 p-5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Demo entry
-                      </p>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Navigate directly to the live demo that supports this narrative.
-                      </p>
-                      <Button asChild className="mt-4 w-full" variant="outline">
-                        <Link to={tab.ctaTo}>{tab.ctaLabel}</Link>
-                      </Button>
-                    </Card>
-                  </div>
-                </TabsContent>
               ))}
-            </Tabs>
-          </Card>
+            </div>
+          </div>
         </section>
 
-        <section id="why-now" className="container mx-auto px-4 pb-12 sm:pb-16">
-          <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-4">
-              <SectionHeading
-                eyebrow="Why now"
-                title="The data and the demand have finally converged."
-                subtitle="CardioWatch closes the gap between discharge and the first critical weeks at home."
-              />
-              <div className="grid gap-3 sm:grid-cols-3">
-                <Card className="border bg-card/80 p-4">
-                  <p className="text-xs text-muted-foreground">Critical window</p>
-                  <p className="text-sm font-semibold text-foreground">First 30 days</p>
-                </Card>
-                <Card className="border bg-card/80 p-4">
-                  <p className="text-xs text-muted-foreground">Signal density</p>
-                  <p className="text-sm font-semibold text-foreground">24/7 wearables</p>
-                </Card>
-                <Card className="border bg-card/80 p-4">
-                  <p className="text-xs text-muted-foreground">Resource pressure</p>
-                  <p className="text-sm font-semibold text-foreground">Lean teams</p>
-                </Card>
-              </div>
-                <Card className="border bg-card/90 p-5 sm:p-6">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Created by
+        {/* Demo Cards Section */}
+        <section id="demo" className="py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <Badge className="mb-4 bg-slate-100 text-slate-700">Interactive Demos</Badge>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                Experience CardioWatch
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                Try our interactive demos to see how patients and clinicians interact with the platform.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-6 lg:grid-cols-2">
+              <Card className="group relative overflow-hidden border-2 border-slate-200 bg-gradient-to-br from-white to-teal-50/30 p-8 transition-all hover:border-teal-300 hover:shadow-xl hover:shadow-teal-500/10">
+                <div className="absolute top-0 right-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-teal-500/10 transition-transform group-hover:scale-150" />
+                <div className="relative">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-100 text-teal-600">
+                    <Smartphone size={28} />
+                  </div>
+                  <h3 className="mt-6 text-2xl font-bold text-slate-900">Patient Check-in Demo</h3>
+                  <p className="mt-3 text-base leading-relaxed text-slate-600">
+                    Experience the WhatsApp-style daily check-in from a patient's perspective.
+                    See how symptoms are screened, wearable data is synced, and care teams respond.
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-foreground sm:text-xl">Recep Adiyaman, PhD</p>
-                  <p className="text-sm text-muted-foreground">
-                    Research scientist focused on applied clinical AI and health signal intelligence.
-                    CardioWatch reflects deep research in biomedical signals, human-centered design,
-                    and evidence-driven triage workflows.
+                  <ul className="mt-6 space-y-2">
+                    {["Symptom screening flow", "Apple Watch data sync", "Medication adherence", "Urgent escalation paths"].map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm text-slate-600">
+                        <CheckCircle2 size={16} className="text-teal-500" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    className="mt-8 bg-teal-600 hover:bg-teal-700 text-white"
+                    onClick={() => navigate("/demo")}
+                  >
+                    <Play size={16} className="mr-2" />
+                    Start Patient Demo
+                    <ChevronRight size={16} className="ml-1" />
+                  </Button>
+                </div>
+              </Card>
+
+              <Card className="group relative overflow-hidden border-2 border-slate-200 bg-gradient-to-br from-white to-blue-50/30 p-8 transition-all hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/10">
+                <div className="absolute top-0 right-0 h-32 w-32 translate-x-8 -translate-y-8 rounded-full bg-blue-500/10 transition-transform group-hover:scale-150" />
+                <div className="relative">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+                    <Stethoscope size={28} />
+                  </div>
+                  <h3 className="mt-6 text-2xl font-bold text-slate-900">Clinician Dashboard</h3>
+                  <p className="mt-3 text-base leading-relaxed text-slate-600">
+                    Explore the clinical triage dashboard with patient queues, vital trends,
+                    SBAR summaries, and alert management designed for busy care teams.
                   </p>
-                </Card>
-            </div>
-            <Card className="border bg-card/90 p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Interactive rationale
-              </p>
-              <Accordion type="single" collapsible className="mt-3">
-                <AccordionItem value="care-gap">
-                  <AccordionTrigger>Care gaps are expensive</AccordionTrigger>
-                  <AccordionContent>
-                    Post-discharge complications are common and costly. CardioWatch surfaces early
-                    signals so teams can intervene before avoidable readmissions occur.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="wearables">
-                  <AccordionTrigger>Wearables are finally signal-rich</AccordionTrigger>
-                  <AccordionContent>
-                    Consumer devices now capture reliable heart rate, HRV, sleep, and activity data.
-                    We translate those signals into clear clinical decisions.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="capacity">
-                  <AccordionTrigger>Clinician capacity is stretched</AccordionTrigger>
-                  <AccordionContent>
-                    Automated triage prioritizes the most urgent patients while keeping the rest
-                    safely monitored, reducing noise without losing oversight.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </Card>
-          </div>
-        </section>
-
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <div className="grid gap-5 rounded-3xl bg-secondary/60 p-6 sm:gap-6 sm:p-8 lg:grid-cols-2">
-            <div className="space-y-3">
-              <SectionHeading
-                eyebrow="Investor lens"
-                title="Why investors care"
-                subtitle="CardioWatch targets a high-cost, high-volume segment with clear ROI."
-              />
-              <div className="space-y-2 text-sm text-foreground">
-                <p>• Readmission prevention lowers penalties and improves margins.</p>
-                <p>• Nurse workload scales with smart triage, not headcount.</p>
-                <p>• Wearable data unlocks continuous post-discharge engagement.</p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <SectionHeading
-                eyebrow="Go-to-market"
-                title="Ready to scale"
-                subtitle="Demo-ready workflows let stakeholders experience the patient and clinician journey."
-              />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Card className="p-4">
-                  <p className="text-xs text-muted-foreground">Target customers</p>
-                  <p className="text-sm font-semibold text-foreground">Hospital systems</p>
-                </Card>
-                <Card className="p-4">
-                  <p className="text-xs text-muted-foreground">Revenue model</p>
-                  <p className="text-sm font-semibold text-foreground">SaaS + per-patient</p>
-                </Card>
-                <Card className="p-4">
-                  <p className="text-xs text-muted-foreground">Data sources</p>
-                  <p className="text-sm font-semibold text-foreground">Wearables + RPM</p>
-                </Card>
-                <Card className="p-4">
-                  <p className="text-xs text-muted-foreground">Clinical impact</p>
-                  <p className="text-sm font-semibold text-foreground">Faster escalations</p>
-                </Card>
-              </div>
+                  <ul className="mt-6 space-y-2">
+                    {["Red/Amber/Green triage", "Patient vital trends", "SBAR clinical summaries", "Alert resolution workflow"].map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm text-slate-600">
+                        <CheckCircle2 size={16} className="text-blue-500" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    variant="outline"
+                    className="mt-8 border-blue-300 text-blue-700 hover:bg-blue-50"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    Open Dashboard
+                    <ChevronRight size={16} className="ml-1" />
+                  </Button>
+                </div>
+              </Card>
             </div>
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <Card className="border bg-card/90 p-5 sm:p-6">
-            <SectionHeading
-              eyebrow="Roadmap"
-              title="Execution plan with clear milestones."
-            />
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <Card className="card-interactive p-4">
-                <p className="text-xs text-muted-foreground">Phase 1</p>
-                <p className="text-sm font-semibold text-foreground">Pilot deployments</p>
-                <p className="text-xs text-muted-foreground">Clinical validation and feedback loops.</p>
-              </Card>
-              <Card className="card-interactive p-4">
-                <p className="text-xs text-muted-foreground">Phase 2</p>
-                <p className="text-sm font-semibold text-foreground">Scale to cohorts</p>
-                <p className="text-xs text-muted-foreground">Expand to new cardiac pathways.</p>
-              </Card>
-              <Card className="card-interactive p-4">
-                <p className="text-xs text-muted-foreground">Phase 3</p>
-                <p className="text-sm font-semibold text-foreground">Operational platform</p>
-                <p className="text-xs text-muted-foreground">Integrate with EHR and RPM networks.</p>
-              </Card>
+        {/* Features Section */}
+        <section id="features" className="bg-slate-50 py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <Badge className="mb-4 bg-white text-slate-700">Platform Features</Badge>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                Built for clinical clarity
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                Every feature is designed to reduce noise, surface what matters, and help clinicians act confidently.
+              </p>
             </div>
-          </Card>
-        </section>
 
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card className="p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Customer demo
-              </p>
-              <h3 className="mt-2 text-xl font-semibold text-foreground">
-                Patient experience
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Walk through the daily check-in and escalation flow.
-              </p>
-              <Button asChild className="mt-4 w-full sm:w-auto">
-                <Link to="/demo">Open patient demo</Link>
-              </Button>
-            </Card>
-            <Card className="p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Doctor demo
-              </p>
-              <h3 className="mt-2 text-xl font-semibold text-foreground">
-                Clinician dashboard
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Review triage, alerts, SBAR summaries, and vitals.
-              </p>
-              <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
-                <Link to="/dashboard">Open clinician view</Link>
-              </Button>
-            </Card>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {features.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <Card key={feature.title} className="border-0 bg-white p-6 shadow-sm transition-all hover:shadow-lg">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${feature.color}`}>
+                      <Icon size={24} />
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold text-slate-900">{feature.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{feature.description}</p>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <Card className="border bg-card/90 p-5 sm:p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        {/* Impact Calculator */}
+        <section id="impact" className="py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
               <div>
-                <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
-                  Wearable data coverage
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  CardioWatch converts wearable signals into actionable clinical context.
-                  Works with Apple Watch today and is extensible to Fitbit, Garmin, and clinical RPM devices.
+                <Badge className="mb-4 bg-teal-50 text-teal-700">Impact Calculator</Badge>
+                <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                  See how signal gains compound into savings
+                </h2>
+                <p className="mt-4 text-lg leading-relaxed text-slate-600">
+                  Adjust the patient volume and baseline readmission rate to visualize how earlier
+                  escalation through continuous monitoring changes outcomes and reduces costs.
                 </p>
+                <div className="mt-8 space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <TrendingDown size={16} className="text-teal-500" />
+                    Model assumes 22% reduction in avoidable readmissions
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <Clock size={16} className="text-teal-500" />
+                    Based on proactive triage and early intervention
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Card className="border bg-secondary/60 p-4">
-                  <p className="text-xs text-muted-foreground">Vitals</p>
-                  <p className="text-sm font-semibold text-foreground">Resting HR, HRV, pulse trends</p>
-                </Card>
-                <Card className="border bg-secondary/60 p-4">
-                  <p className="text-xs text-muted-foreground">Recovery</p>
-                  <p className="text-sm font-semibold text-foreground">Sleep hours, quality, variability</p>
-                </Card>
-                <Card className="border bg-secondary/60 p-4">
-                  <p className="text-xs text-muted-foreground">Activity</p>
-                  <p className="text-sm font-semibold text-foreground">Steps, exertion, mobility</p>
-                </Card>
-                <Card className="border bg-secondary/60 p-4">
-                  <p className="text-xs text-muted-foreground">Trends</p>
-                  <p className="text-sm font-semibold text-foreground">14-day baselines</p>
-                </Card>
-              </div>
+
+              <Card className="border-2 border-slate-200 bg-white p-8">
+                <div className="space-y-8">
+                  <div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-slate-700">Patients monitored</span>
+                      <span className="font-bold text-teal-600">{patientCount.toLocaleString()}</span>
+                    </div>
+                    <Slider
+                      value={patientsMonitored}
+                      onValueChange={setPatientsMonitored}
+                      min={50}
+                      max={400}
+                      step={10}
+                      className="mt-4"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-slate-700">Baseline readmission rate</span>
+                      <span className="font-bold text-teal-600">{readmissionRate[0]}%</span>
+                    </div>
+                    <Slider
+                      value={readmissionRate}
+                      onValueChange={setReadmissionRate}
+                      min={6}
+                      max={20}
+                      step={1}
+                      className="mt-4"
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-xl bg-teal-50 p-4 text-center">
+                      <p className="text-2xl font-bold text-teal-700">{avoidedReadmissions}</p>
+                      <p className="mt-1 text-xs font-medium text-teal-600">Avoided Readmissions</p>
+                    </div>
+                    <div className="rounded-xl bg-green-50 p-4 text-center">
+                      <p className="text-2xl font-bold text-green-700">£{estimatedSavings.toLocaleString()}</p>
+                      <p className="mt-1 text-xs font-medium text-green-600">Estimated Savings</p>
+                    </div>
+                    <div className="rounded-xl bg-blue-50 p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-700">{"<"}15m</p>
+                      <p className="mt-1 text-xs font-medium text-blue-600">Response SLA</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </div>
-          </Card>
+          </div>
         </section>
 
-        <section className="container mx-auto px-4 pb-12 sm:pb-16">
-          <Card className="border bg-card/90 p-6 sm:p-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
-                  Copyright and attribution
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  This CardioWatch demo is curated and developed by Recep Adiyaman.
-                  The content, flows, and visuals are original work prepared for
-                  investor presentations and product discussions.
-                </p>
-              </div>
-              <div className="space-y-3 text-sm text-foreground">
-                <p>• Copyright (c) 2026 Recep Adiyaman. All rights reserved.</p>
-                <p>• Demo data, patient records, and metrics are synthetic.</p>
-                <p>• Distribution or reuse requires permission from the author.</p>
-                <p>• Use this demo for evaluation and discussion only.</p>
-              </div>
-            </div>
-          </Card>
-        </section>
-
-        <section className="container mx-auto px-4 pb-16 sm:pb-20">
-          <Card className="flex flex-col items-start gap-4 border bg-card/90 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
-                Ready for an investor walkthrough?
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Run the patient demo and clinician dashboard in under 3 minutes.
+        {/* Journey Tabs */}
+        <section id="journey" className="bg-slate-50 py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <Badge className="mb-4 bg-white text-slate-700">User Journeys</Badge>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                Choose your perspective
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                Explore CardioWatch from the viewpoint of patients, clinicians, or operations leaders.
               </p>
             </div>
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-              <Button size="lg" className="w-full sm:w-auto" onClick={() => navigate("/demo")}>
-                Launch demo
-              </Button>
-              <Button size="lg" className="w-full sm:w-auto" variant="outline" onClick={() => navigate("/dashboard")}>
-                Open dashboard
-              </Button>
-            </div>
-          </Card>
-        </section>
-      </main>
 
-      <footer className="border-t bg-card/60">
-        <div className="container mx-auto flex flex-col gap-2 px-4 py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
-          <span>Copyright (c) 2026 Recep Adiyaman. All rights reserved.</span>
-          <span>Curated CardioWatch demo for investor presentations.</span>
-        </div>
-      </footer>
+            <div className="mt-12">
+              <Tabs defaultValue="patient" className="mx-auto max-w-4xl">
+                <TabsList className="grid w-full grid-cols-3 bg-white p-1.5 rounded-xl shadow-sm">
+                  {journeyTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <TabsTrigger
+                        key={tab.value}
+                        value={tab.value}
+                        className="flex items-center gap-2 data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 rounded-lg py-3"
+                      >
+                        <Icon size={16} />
+                        <span className="hidden sm:inline">{tab.label}</span>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+
+                {journeyTabs.map((tab) => (
+                  <TabsContent key={tab.value} value={tab.value} className="mt-8">
+                    <Card className="border-0 bg-white p-8 shadow-lg">
+                      <div className="grid gap-8 lg:grid-cols-2">
+                        <div>
+                          <h3 className="text-2xl font-bold text-slate-900">{tab.title}</h3>
+                          <p className="mt-4 text-base leading-relaxed text-slate-600">{tab.description}</p>
+                          <div className="mt-6 flex flex-wrap gap-2">
+                            {tab.bullets.map((bullet) => (
+                              <Badge key={bullet} variant="secondary" className="bg-slate-100 text-slate-700">
+                                {bullet}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-teal-100">
+                              <tab.icon size={40} className="text-teal-600" />
+                            </div>
+                            <Button asChild className="mt-6 bg-teal-600 hover:bg-teal-700">
+                              <Link to={tab.ctaTo}>
+                                {tab.ctaLabel}
+                                <ChevronRight size={16} className="ml-1" />
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
+          </div>
+        </section>
+
+        {/* Wearable Integration */}
+        <section className="py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <Card className="border-2 border-slate-200 bg-gradient-to-br from-white to-slate-50 p-8 lg:p-12">
+              <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+                <div>
+                  <Badge className="mb-4 bg-blue-50 text-blue-700">Wearable Integration</Badge>
+                  <h2 className="text-3xl font-bold text-slate-900">
+                    Continuous monitoring from devices patients already own
+                  </h2>
+                  <p className="mt-4 text-lg leading-relaxed text-slate-600">
+                    CardioWatch converts wearable signals into actionable clinical context.
+                    Works with Apple Watch today, with Fitbit, Garmin, and clinical RPM devices on the roadmap.
+                  </p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    { label: "Vitals", value: "Resting HR, HRV, pulse trends", icon: Heart },
+                    { label: "Recovery", value: "Sleep hours, quality, variability", icon: Clock },
+                    { label: "Activity", value: "Steps, exertion, mobility", icon: Activity },
+                    { label: "Trends", value: "14-day baselines & deltas", icon: LineChart },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-xl bg-white p-5 shadow-sm">
+                      <item.icon size={20} className="text-teal-600" />
+                      <p className="mt-3 text-xs font-medium uppercase tracking-wide text-slate-500">{item.label}</p>
+                      <p className="mt-1 text-sm font-semibold text-slate-900">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        {/* Video Presentation Section */}
+        <section id="video" className="py-16 lg:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-4xl text-center">
+              <Badge className="mb-4 bg-teal-500/20 text-teal-300 border-teal-500/30">Video Walkthrough</Badge>
+              <h2 className="text-3xl font-bold text-white sm:text-4xl">
+                See CardioWatch in Action
+              </h2>
+              <p className="mt-4 text-lg text-slate-300">
+                Watch how patients and clinicians interact with the platform through daily check-ins and smart triage.
+              </p>
+            </div>
+
+            <div className="mt-12 mx-auto max-w-4xl">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-800 border-2 border-slate-700 shadow-2xl shadow-black/50">
+                {/* Video Placeholder - Replace with actual video embed */}
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-900/40 to-slate-900/60 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-24 h-24 mx-auto rounded-full bg-teal-500/20 backdrop-blur-sm flex items-center justify-center border-2 border-teal-400/30 cursor-pointer transition-all hover:scale-110 hover:bg-teal-500/30 group">
+                      <Play size={40} className="text-teal-300 ml-1 group-hover:text-white transition-colors" />
+                    </div>
+                    <p className="mt-6 text-lg font-semibold text-white">Platform Demo Video</p>
+                    <p className="mt-2 text-sm text-slate-400">Coming soon - Interactive walkthrough</p>
+                  </div>
+                </div>
+
+                {/* Video overlay decorations */}
+                <div className="absolute top-4 left-4 flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500" />
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                </div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full w-1/3 bg-teal-500 rounded-full" />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                    <span>0:00</span>
+                    <span>3:24</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Video highlights */}
+              <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { time: "0:15", label: "Patient Check-in Flow" },
+                  { time: "1:02", label: "Wearable Data Sync" },
+                  { time: "1:45", label: "Clinician Dashboard" },
+                  { time: "2:30", label: "Alert Management" },
+                ].map((chapter) => (
+                  <div
+                    key={chapter.time}
+                    className="flex items-center gap-3 bg-slate-800/50 rounded-xl p-3 border border-slate-700 cursor-pointer hover:bg-slate-800 hover:border-teal-500/50 transition-all"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/20 text-teal-400 text-xs font-bold">
+                      {chapter.time}
+                    </div>
+                    <span className="text-sm text-slate-300 font-medium">{chapter.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="bg-teal-600 py-16 lg:py-20">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-bold text-white sm:text-4xl">
+                Ready to see CardioWatch in action?
+              </h2>
+              <p className="mt-4 text-lg text-teal-100">
+                Run through the patient demo and clinician dashboard in under 3 minutes.
+              </p>
+              <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto bg-white text-teal-700 hover:bg-teal-50 px-8 h-12"
+                  onClick={() => navigate("/demo")}
+                >
+                  <Play size={18} className="mr-2" />
+                  Launch Demo
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto border-teal-400 text-white hover:bg-teal-500 px-8 h-12"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  Open Dashboard
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="border-t bg-white py-12">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100">
+                  <Heart size={20} className="text-teal-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">CardioWatch</p>
+                  <p className="text-xs text-slate-500">Signal Guide Health</p>
+                </div>
+              </div>
+              <div className="text-center lg:text-right">
+                <p className="text-sm text-slate-600">
+                  Created by <span className="font-semibold">Recep Adiyaman, PhD</span>
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Copyright © 2026. All rights reserved. Demo data is synthetic.
+                </p>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }

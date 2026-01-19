@@ -19,13 +19,11 @@ export interface JWTPayload {
   exp: number;
 }
 
-// Extend Express Request
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JWTPayload;
-      requestId?: string;
-    }
+// Extend Express Request type
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: JWTPayload;
+    requestId?: string;
   }
 }
 
