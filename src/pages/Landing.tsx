@@ -15,6 +15,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Activity,
   Bell,
@@ -44,6 +47,15 @@ import {
   Droplets,
   CircuitBoard,
   Microscope,
+  Award,
+  FileCheck,
+  Building2,
+  Mail,
+  Linkedin,
+  GraduationCap,
+  BadgeCheck,
+  Globe,
+  Send,
 } from "lucide-react";
 
 const journeyTabs = [
@@ -164,12 +176,13 @@ export default function Landing() {
             </div>
           </div>
 
-          <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 lg:flex">
+          <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 lg:flex">
             <a href="#features" className="hover:text-teal-600 transition-colors">Features</a>
             <a href="#demo" className="hover:text-teal-600 transition-colors">Demo</a>
-            <a href="#video" className="hover:text-teal-600 transition-colors">Video</a>
-            <a href="#impact" className="hover:text-teal-600 transition-colors">Impact</a>
-            <a href="#journey" className="hover:text-teal-600 transition-colors">Journeys</a>
+            <a href="#device" className="hover:text-teal-600 transition-colors">R&D</a>
+            <a href="#compliance" className="hover:text-teal-600 transition-colors">Compliance</a>
+            <a href="#team" className="hover:text-teal-600 transition-colors">Team</a>
+            <a href="#contact" className="hover:text-teal-600 transition-colors">Contact</a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -792,6 +805,242 @@ export default function Landing() {
                   CardioWatch: A Lifeline - Platform demonstration showcasing patient check-ins, wearable data sync, and clinical triage workflows.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Regulatory Compliance Section */}
+        <section id="compliance" className="bg-slate-50 py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <Badge className="mb-4 bg-green-100 text-green-700 border-green-200">Compliance & Standards</Badge>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                Built for Clinical Governance
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                CardioWatch is designed to meet the rigorous standards required for NHS deployment and medical device regulation.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {[
+                {
+                  icon: Shield,
+                  title: "NHS DTAC",
+                  description: "Aligned with Digital Technology Assessment Criteria for clinical safety and data protection",
+                  status: "Compliant",
+                  color: "bg-blue-50 text-blue-600 border-blue-100"
+                },
+                {
+                  icon: FileCheck,
+                  title: "GDPR",
+                  description: "Full compliance with UK GDPR and Data Protection Act 2018 requirements",
+                  status: "Compliant",
+                  color: "bg-green-50 text-green-600 border-green-100"
+                },
+                {
+                  icon: Award,
+                  title: "CE/UKCA Marking",
+                  description: "Medical device classification pathway aligned with MDR 2017/745 requirements",
+                  status: "In Progress",
+                  color: "bg-amber-50 text-amber-600 border-amber-100"
+                },
+                {
+                  icon: BadgeCheck,
+                  title: "Clinical Safety",
+                  description: "DCB0129 clinical risk management and hazard analysis documentation",
+                  status: "Compliant",
+                  color: "bg-purple-50 text-purple-600 border-purple-100"
+                },
+              ].map((item) => (
+                <Card key={item.title} className={`p-6 border-2 ${item.color}`}>
+                  <item.icon size={28} className="mb-4" />
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-bold text-slate-900">{item.title}</h3>
+                    <Badge variant="outline" className={`text-[10px] ${item.status === 'Compliant' ? 'bg-green-100 text-green-700 border-green-300' : 'bg-amber-100 text-amber-700 border-amber-300'}`}>
+                      {item.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-slate-600 leading-relaxed">{item.description}</p>
+                </Card>
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <p className="text-sm text-slate-500">
+                Regulatory documentation and compliance reports available upon request for qualified healthcare organisations.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Team Section */}
+        <section id="team" className="py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <Badge className="mb-4 bg-teal-50 text-teal-700 border-teal-200">Leadership</Badge>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                Built by Scientists, for Clinicians
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                CardioWatch combines deep expertise in computational biology, machine learning, and clinical informatics.
+              </p>
+            </div>
+
+            <div className="mt-12 max-w-4xl mx-auto">
+              <Card className="border-2 border-slate-200 p-8 lg:p-10">
+                <div className="grid gap-8 lg:grid-cols-3 lg:items-center">
+                  <div className="lg:col-span-1 text-center">
+                    <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shadow-xl shadow-teal-500/20">
+                      <span className="text-4xl font-bold text-white">RA</span>
+                    </div>
+                    <h3 className="mt-4 text-xl font-bold text-slate-900">Recep Adiyaman, PhD</h3>
+                    <p className="text-teal-600 font-medium">Founder & Lead Developer</p>
+                    <div className="mt-3 flex justify-center gap-2 flex-wrap">
+                      <a href="mailto:recepadiyaman2244@gmail.com" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-teal-50 hover:border-teal-300" title="Email">
+                          <Mail size={14} />
+                        </Button>
+                      </a>
+                      <a href="https://www.linkedin.com/in/recep-ad%C4%B1yaman/" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-blue-50 hover:border-blue-300" title="LinkedIn">
+                          <Linkedin size={14} />
+                        </Button>
+                      </a>
+                      <a href="https://x.com/RcpAdymn" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-slate-100 hover:border-slate-400" title="X (Twitter)">
+                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                          </svg>
+                        </Button>
+                      </a>
+                      <a href="https://bsky.app/profile/recep44.bsky.social" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-sky-50 hover:border-sky-300" title="Bluesky">
+                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
+                            <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z"/>
+                          </svg>
+                        </Button>
+                      </a>
+                      <a href="https://scholar.google.com/citations?user=4UUzdMsAAAAJ&hl=en" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="h-8 w-8 p-0 hover:bg-blue-50 hover:border-blue-300" title="Google Scholar">
+                          <GraduationCap size={14} />
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <div className="space-y-4 text-slate-600">
+                      <p className="leading-relaxed">
+                        Dr. Adiyaman brings over a decade of experience in computational biology and bioinformatics,
+                        with a focus on translating complex data signals into actionable clinical insights.
+                      </p>
+                      <p className="leading-relaxed">
+                        His research background spans protein structure prediction, molecular dynamics simulation,
+                        and the application of machine learning to biomedical data—expertise now applied to
+                        physiological signal processing and predictive health monitoring.
+                      </p>
+                    </div>
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      {["Computational Biology", "Machine Learning", "Clinical Informatics", "Signal Processing", "Protein Structure"].map((skill) => (
+                        <Badge key={skill} variant="secondary" className="bg-slate-100 text-slate-700">{skill}</Badge>
+                      ))}
+                    </div>
+                    <div className="mt-6 grid grid-cols-3 gap-4 pt-6 border-t">
+                      <div className="text-center">
+                        <GraduationCap size={20} className="mx-auto text-teal-600 mb-1" />
+                        <p className="text-xs text-slate-500">PhD Computational Biology</p>
+                      </div>
+                      <div className="text-center">
+                        <Building2 size={20} className="mx-auto text-teal-600 mb-1" />
+                        <p className="text-xs text-slate-500">University of Leeds</p>
+                      </div>
+                      <div className="text-center">
+                        <Award size={20} className="mx-auto text-teal-600 mb-1" />
+                        <p className="text-xs text-slate-500">10+ Publications</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Contact Section */}
+        <section id="contact" className="bg-slate-50 py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="grid gap-12 lg:grid-cols-2 lg:items-start">
+              <div>
+                <Badge className="mb-4 bg-teal-50 text-teal-700 border-teal-200">Get in Touch</Badge>
+                <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                  Ready to Transform Post-Discharge Care?
+                </h2>
+                <p className="mt-4 text-lg text-slate-600 leading-relaxed">
+                  Whether you're an NHS Trust exploring remote monitoring solutions, an investor interested in
+                  digital health innovation, or a researcher seeking collaboration—we'd love to hear from you.
+                </p>
+
+                <div className="mt-8 space-y-4">
+                  {[
+                    { icon: Building2, label: "For NHS & Healthcare Organisations", description: "Discuss pilot programmes, integration requirements, and clinical workflows" },
+                    { icon: LineChart, label: "For Investors", description: "Learn about our roadmap, market opportunity, and partnership models" },
+                    { icon: GraduationCap, label: "For Researchers", description: "Explore collaboration on clinical validation studies and publications" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-600">
+                        <item.icon size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-900">{item.label}</h4>
+                        <p className="text-sm text-slate-600">{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Card className="border-2 border-slate-200 p-6 lg:p-8">
+                <h3 className="text-xl font-bold text-slate-900 mb-6">Request a Demo</h3>
+                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); }}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-slate-700">First Name</Label>
+                      <Input id="firstName" placeholder="John" className="border-slate-300" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-slate-700">Last Name</Label>
+                      <Input id="lastName" placeholder="Smith" className="border-slate-300" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-slate-700">Work Email</Label>
+                    <Input id="email" type="email" placeholder="john.smith@nhs.uk" className="border-slate-300" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="organisation" className="text-slate-700">Organisation</Label>
+                    <Input id="organisation" placeholder="NHS Trust / Company Name" className="border-slate-300" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-slate-700">Your Role</Label>
+                    <Input id="role" placeholder="e.g., Clinical Director, CTO, Investor" className="border-slate-300" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-slate-700">Message (Optional)</Label>
+                    <Textarea
+                      id="message"
+                      placeholder="Tell us about your interest in CardioWatch..."
+                      className="border-slate-300 min-h-[100px]"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-11">
+                    <Send size={16} className="mr-2" />
+                    Submit Request
+                  </Button>
+                  <p className="text-xs text-slate-500 text-center">
+                    By submitting, you agree to our Privacy Policy. We'll respond within 2 business days.
+                  </p>
+                </form>
+              </Card>
             </div>
           </div>
         </section>
