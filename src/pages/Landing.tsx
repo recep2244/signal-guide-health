@@ -774,53 +774,23 @@ export default function Landing() {
             </div>
 
             <div className="mt-12 mx-auto max-w-4xl">
-              <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-800 border-2 border-slate-700 shadow-2xl shadow-black/50">
-                {/* Video Placeholder - Replace with actual video embed */}
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-900/40 to-slate-900/60 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-24 h-24 mx-auto rounded-full bg-teal-500/20 backdrop-blur-sm flex items-center justify-center border-2 border-teal-400/30 cursor-pointer transition-all hover:scale-110 hover:bg-teal-500/30 group">
-                      <Play size={40} className="text-teal-300 ml-1 group-hover:text-white transition-colors" />
-                    </div>
-                    <p className="mt-6 text-lg font-semibold text-white">Platform Demo Video</p>
-                    <p className="mt-2 text-sm text-slate-400">Coming soon - Interactive walkthrough</p>
-                  </div>
-                </div>
-
-                {/* Video overlay decorations */}
-                <div className="absolute top-4 left-4 flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-full w-1/3 bg-teal-500 rounded-full" />
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-                    <span>0:00</span>
-                    <span>3:24</span>
-                  </div>
-                </div>
+              <div className="relative rounded-2xl overflow-hidden bg-slate-800 border-2 border-slate-700 shadow-2xl shadow-black/50">
+                {/* Video Player */}
+                <video
+                  className="w-full aspect-video"
+                  controls
+                  poster="/demo-reel.mp4#t=0.1"
+                >
+                  <source src="/CardioWatch__A_Lifeline_.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
 
-              {/* Video highlights */}
-              <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { time: "0:15", label: "Patient Check-in Flow" },
-                  { time: "1:02", label: "Wearable Data Sync" },
-                  { time: "1:45", label: "Clinician Dashboard" },
-                  { time: "2:30", label: "Alert Management" },
-                ].map((chapter) => (
-                  <div
-                    key={chapter.time}
-                    className="flex items-center gap-3 bg-slate-800/50 rounded-xl p-3 border border-slate-700 cursor-pointer hover:bg-slate-800 hover:border-teal-500/50 transition-all"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/20 text-teal-400 text-xs font-bold">
-                      {chapter.time}
-                    </div>
-                    <span className="text-sm text-slate-300 font-medium">{chapter.label}</span>
-                  </div>
-                ))}
+              {/* Video description */}
+              <div className="mt-6 text-center">
+                <p className="text-slate-400 text-sm">
+                  CardioWatch: A Lifeline - Platform demonstration showcasing patient check-ins, wearable data sync, and clinical triage workflows.
+                </p>
               </div>
             </div>
           </div>
