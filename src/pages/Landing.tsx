@@ -38,6 +38,12 @@ import {
   Watch,
   ChevronRight,
   Play,
+  Cpu,
+  Target,
+  FlaskConical,
+  Droplets,
+  CircuitBoard,
+  Microscope,
 } from "lucide-react";
 
 const journeyTabs = [
@@ -600,6 +606,157 @@ export default function Landing() {
                 </div>
               </div>
             </Card>
+          </div>
+        </section>
+
+        {/* Device Development Vision Section */}
+        <section id="device" className="bg-gradient-to-br from-purple-50 via-white to-indigo-50 py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-4xl text-center">
+              <Badge className="mb-4 bg-purple-100 text-purple-700 border-purple-200">Research & Development</Badge>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+                From Proof-of-Concept to Purpose-Built Biosensors
+              </h2>
+              <p className="mt-4 text-lg leading-relaxed text-slate-600 max-w-3xl mx-auto">
+                Our current implementation leverages consumer wearables such as Apple Watch to validate the clinical
+                feasibility and algorithmic foundations of continuous remote patient monitoring. This serves as a
+                technology demonstrator, establishing that real-time physiological signal acquisition and intelligent
+                triage are both achievable and clinically meaningful.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-8 lg:grid-cols-2">
+              {/* Current State Card */}
+              <Card className="border-2 border-slate-200 bg-white p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-blue-500/10" />
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                      <Watch size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900">Current Implementation</h3>
+                      <p className="text-sm text-slate-500">Technology Validation Phase</p>
+                    </div>
+                  </div>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    Consumer-grade wearables provide an accessible platform for demonstrating core capabilities:
+                    heart rate variability analysis, activity pattern recognition, and sleep quality assessment.
+                    These devices enable rapid prototyping and clinical workflow validation without custom hardware development.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { icon: CheckCircle2, text: "Validates algorithmic approaches with real physiological data" },
+                      { icon: CheckCircle2, text: "Demonstrates clinical workflow integration feasibility" },
+                      { icon: CheckCircle2, text: "Enables iterative refinement of triage logic" },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-2 text-sm text-slate-600">
+                        <item.icon size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                        <span>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+
+              {/* Future Vision Card */}
+              <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-purple-500/10" />
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
+                      <CircuitBoard size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900">Development Roadmap</h3>
+                      <p className="text-sm text-purple-600">Purpose-Built Medical Device</p>
+                    </div>
+                  </div>
+                  <p className="text-slate-600 leading-relaxed mb-6">
+                    Our long-term objective is the development of a dedicated biosensor platform capable of
+                    multi-modal physiological monitoring. This medical-grade device will integrate specialised
+                    sensors for comprehensive chronic disease management across multiple therapeutic areas.
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { icon: Target, text: "Multi-analyte biosensing for metabolic markers" },
+                      { icon: Target, text: "Non-invasive glucose estimation algorithms" },
+                      { icon: Target, text: "Advanced cardiac arrhythmia detection" },
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-2 text-sm text-slate-600">
+                        <item.icon size={16} className="text-purple-500 mt-0.5 shrink-0" />
+                        <span>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Target Applications */}
+            <div className="mt-12">
+              <h3 className="text-center text-lg font-semibold text-slate-700 mb-8">
+                Target Therapeutic Applications
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  {
+                    icon: Heart,
+                    label: "Cardiovascular",
+                    description: "Heart failure, arrhythmia, hypertension monitoring",
+                    color: "bg-red-50 text-red-600 border-red-100"
+                  },
+                  {
+                    icon: Droplets,
+                    label: "Diabetes",
+                    description: "Continuous glucose trends, insulin response tracking",
+                    color: "bg-blue-50 text-blue-600 border-blue-100"
+                  },
+                  {
+                    icon: Activity,
+                    label: "Respiratory",
+                    description: "COPD exacerbation prediction, SpO2 monitoring",
+                    color: "bg-teal-50 text-teal-600 border-teal-100"
+                  },
+                  {
+                    icon: FlaskConical,
+                    label: "Renal Function",
+                    description: "Fluid balance, electrolyte status indicators",
+                    color: "bg-amber-50 text-amber-600 border-amber-100"
+                  },
+                ].map((app) => (
+                  <Card key={app.label} className={`p-5 border-2 ${app.color} transition-all hover:shadow-lg`}>
+                    <app.icon size={24} className="mb-3" />
+                    <h4 className="font-bold text-slate-900">{app.label}</h4>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{app.description}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Scientific Note */}
+            <div className="mt-12 mx-auto max-w-3xl">
+              <Card className="border-2 border-indigo-100 bg-indigo-50/50 p-6">
+                <div className="flex gap-4">
+                  <div className="shrink-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                      <Microscope size={20} />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 mb-2">Research Foundation</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      This platform represents the convergence of signal processing, machine learning, and clinical
+                      informatics. By establishing robust data pipelines and validated triage algorithms using
+                      commercially available hardware, we create a transferable foundation for future medical-grade
+                      device development. The insights gained from this proof-of-concept directly inform sensor
+                      requirements, sampling frequencies, and clinical decision support thresholds for the
+                      purpose-built biosensor system.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </section>
 
