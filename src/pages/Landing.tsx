@@ -828,7 +828,10 @@ export default function Landing() {
                 <video
                   className="w-full aspect-video"
                   controls
-                  poster="/demo-reel.mp4#t=0.1"
+                  playsInline
+                  preload="metadata"
+                  poster={`${import.meta.env.BASE_URL}placeholder.svg`}
+                  src={demoVideoSrc}
                 >
                   <source src={demoVideoSrc} type="video/mp4" />
                   Your browser does not support the video tag.
