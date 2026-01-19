@@ -130,7 +130,7 @@ export default function PatientDetail() {
                 <MessageSquare size={16} className="mr-1.5" />
                 Message
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => toast.info(`Calling ${patient.name}...`)}>
                 <Phone size={16} className="mr-1.5" />
                 Call
               </Button>
