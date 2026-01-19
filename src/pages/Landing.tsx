@@ -999,11 +999,11 @@ export default function Landing() {
                       </div>
                       <div className="text-center">
                         <Building2 size={20} className="mx-auto text-teal-600 mb-1" />
-                        <p className="text-xs text-slate-500">University of Leeds</p>
+                        <p className="text-xs text-slate-500">Research partnerships</p>
                       </div>
                       <div className="text-center">
                         <Award size={20} className="mx-auto text-teal-600 mb-1" />
-                        <p className="text-xs text-slate-500">10+ Publications</p>
+                        <p className="text-xs text-slate-500">Peer-reviewed research</p>
                       </div>
                     </div>
                   </div>
