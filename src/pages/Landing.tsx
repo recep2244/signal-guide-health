@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -58,6 +58,8 @@ import {
   Send,
 } from "lucide-react";
 
+const demoVideoSrc = `${import.meta.env.BASE_URL}CardioWatch__A_Lifeline_.mp4`;
+const contactEmail = "recepadiyaman2244@gmail.co";
 const journeyTabs = [
   {
     value: "patient",
@@ -145,11 +147,46 @@ export default function Landing() {
   const { user, isAuthenticated, demoLogout } = useDemoAuth();
   const [patientsMonitored, setPatientsMonitored] = useState([140]);
   const [readmissionRate, setReadmissionRate] = useState([14]);
+  const [contactForm, setContactForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    organization: "",
+    role: "",
+    message: "",
+  });
 
   const patientCount = patientsMonitored[0];
   const baselineRate = readmissionRate[0] / 100;
   const avoidedReadmissions = Math.max(1, Math.round(patientCount * baselineRate * 0.22));
   const estimatedSavings = avoidedReadmissions * 4200;
+  const contactSubject = contactForm.organization
+    ? `CardioWatch demo inquiry - ${contactForm.organization}`
+    : "CardioWatch demo inquiry";
+
+  const handleContactChange =
+    (field: keyof typeof contactForm) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setContactForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
+
+  const handleContactSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const fullName = `${contactForm.firstName} ${contactForm.lastName}`.trim();
+    const body = [
+      `Name: ${fullName || "N/A"}`,
+      `Email: ${contactForm.email}`,
+      `Organization: ${contactForm.organization || "N/A"}`,
+      `Role: ${contactForm.role || "N/A"}`,
+      "",
+      "Message:",
+      contactForm.message,
+    ].join("\n");
+    const mailtoUrl = `mailto:${contactEmail}?subject=${encodeURIComponent(
+      contactSubject
+    )}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+  };
 
   const handleLogout = () => {
     demoLogout();
@@ -175,7 +212,6 @@ export default function Landing() {
               <p className="text-xs text-slate-500">Signal Guide Health</p>
             </div>
           </div>
-
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 lg:flex">
             <a href="#features" className="hover:text-teal-600 transition-colors">Features</a>
             <a href="#demo" className="hover:text-teal-600 transition-colors">Demo</a>
@@ -794,7 +830,7 @@ export default function Landing() {
                   controls
                   poster="/demo-reel.mp4#t=0.1"
                 >
-                  <source src="/CardioWatch__A_Lifeline_.mp4" type="video/mp4" />
+                  <source src={demoVideoSrc} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               </div>
@@ -804,6 +840,17 @@ export default function Landing() {
                 <p className="text-slate-400 text-sm">
                   CardioWatch: A Lifeline - Platform demonstration showcasing patient check-ins, wearable data sync, and clinical triage workflows.
                 </p>
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
+                  <span>If the video does not play in your browser, download it here.</span>
+                  <a
+                    href={demoVideoSrc}
+                    className="text-teal-300 underline-offset-4 hover:underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Download video
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -1001,34 +1048,70 @@ export default function Landing() {
 
               <Card className="border-2 border-slate-200 p-6 lg:p-8">
                 <h3 className="text-xl font-bold text-slate-900 mb-6">Request a Demo</h3>
-                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); }}>
+                <form className="space-y-4" onSubmit={handleContactSubmit}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="firstName" className="text-slate-700">First Name</Label>
-                      <Input id="firstName" placeholder="John" className="border-slate-300" />
+                      <Input
+                        id="firstName"
+                        required
+                        value={contactForm.firstName}
+                        onChange={handleContactChange("firstName")}
+                        placeholder="John"
+                        className="border-slate-300"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName" className="text-slate-700">Last Name</Label>
-                      <Input id="lastName" placeholder="Smith" className="border-slate-300" />
+                      <Input
+                        id="lastName"
+                        required
+                        value={contactForm.lastName}
+                        onChange={handleContactChange("lastName")}
+                        placeholder="Smith"
+                        className="border-slate-300"
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-slate-700">Work Email</Label>
-                    <Input id="email" type="email" placeholder="john.smith@nhs.uk" className="border-slate-300" />
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={contactForm.email}
+                      onChange={handleContactChange("email")}
+                      placeholder="john.smith@nhs.uk"
+                      className="border-slate-300"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="organisation" className="text-slate-700">Organisation</Label>
-                    <Input id="organisation" placeholder="NHS Trust / Company Name" className="border-slate-300" />
+                    <Input
+                      id="organisation"
+                      value={contactForm.organization}
+                      onChange={handleContactChange("organization")}
+                      placeholder="NHS Trust / Company Name"
+                      className="border-slate-300"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role" className="text-slate-700">Your Role</Label>
-                    <Input id="role" placeholder="e.g., Clinical Director, CTO, Investor" className="border-slate-300" />
+                    <Input
+                      id="role"
+                      value={contactForm.role}
+                      onChange={handleContactChange("role")}
+                      placeholder="e.g., Clinical Director, CTO, Investor"
+                      className="border-slate-300"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="message" className="text-slate-700">Message (Optional)</Label>
                     <Textarea
                       id="message"
                       placeholder="Tell us about your interest in CardioWatch..."
+                      value={contactForm.message}
+                      onChange={handleContactChange("message")}
                       className="border-slate-300 min-h-[100px]"
                     />
                   </div>
@@ -1037,7 +1120,7 @@ export default function Landing() {
                     Submit Request
                   </Button>
                   <p className="text-xs text-slate-500 text-center">
-                    By submitting, you agree to our Privacy Policy. We'll respond within 2 business days.
+                    Submitting opens your email client with a pre-filled message.
                   </p>
                 </form>
               </Card>
@@ -1054,6 +1137,37 @@ export default function Landing() {
               </h2>
               <p className="mt-4 text-lg text-teal-100">
                 Run through the patient demo and clinician dashboard in under 3 minutes.
+        <section className="container mx-auto px-4 pb-12 sm:pb-16">
+          <Card className="border bg-card/90 p-6 sm:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
+                  Copyright and attribution
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  This CardioWatch demo is curated and developed by Recep Adiyaman.
+                  The content, flows, and visuals are original work prepared for
+                  investor presentations and product discussions.
+                </p>
+              </div>
+              <div className="space-y-3 text-sm text-foreground">
+                <p>• Copyright (c) 2026 Recep Adiyaman. All rights reserved.</p>
+                <p>• Demo data, patient records, and metrics are synthetic.</p>
+                <p>• Distribution or reuse requires permission from the author.</p>
+                <p>• Use this demo for evaluation and discussion only.</p>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        <section className="container mx-auto px-4 pb-16 sm:pb-20">
+          <Card className="flex flex-col items-start gap-4 border bg-card/90 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h3 className="text-xl font-semibold text-foreground font-display sm:text-2xl">
+                Ready for an investor walkthrough?
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Run the patient demo and clinician dashboard in under 3 minutes.
               </p>
               <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <Button
