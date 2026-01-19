@@ -59,7 +59,7 @@ import {
 } from "lucide-react";
 
 const demoVideoSrc = `${import.meta.env.BASE_URL}CardioWatch__A_Lifeline_.mp4`;
-const contactEmail = "recepadiyaman2244@gmail.co";
+const contactEmail = "recepadiyaman2244@gmail.com";
 const journeyTabs = [
   {
     value: "patient",
