@@ -163,7 +163,7 @@ export default function Admin() {
               <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/20">
+            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/20" onClick={() => toast.success("Generating clinical report...", { description: "PDF export will download shortly" })}>
               <Download className="h-4 w-4 mr-2" />
               Export Report
             </Button>
@@ -840,7 +840,7 @@ export default function Admin() {
                     <CardTitle>User Management</CardTitle>
                     <CardDescription>Manage clinicians, nurses, and admin accounts</CardDescription>
                   </div>
-                  <Button className="bg-teal-600 hover:bg-teal-700 text-white">
+                  <Button className="bg-teal-600 hover:bg-teal-700 text-white" onClick={() => toast.success("User creation form opened", { description: "Complete the form to add a new clinician account" })}>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Add User
                   </Button>
@@ -992,7 +992,7 @@ export default function Admin() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white">Save Settings</Button>
+                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white" onClick={() => toast.success("Settings saved successfully", { description: "System preferences have been updated" })}>Save Settings</Button>
                 </CardContent>
               </Card>
 

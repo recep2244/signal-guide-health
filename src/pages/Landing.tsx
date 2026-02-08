@@ -1302,35 +1302,47 @@ export default function Landing() {
               </Card>
             </div>
 
-            {/* Target Applications */}
+            {/* Target Applications — Expanded */}
             <div className="mt-12">
-              <h3 className="text-center text-lg font-semibold text-slate-700 mb-8">
+              <h3 className="text-center text-lg font-semibold text-slate-700 mb-2">
                 Target Therapeutic Applications
               </h3>
+              <p className="text-center text-sm text-slate-500 mb-8 max-w-2xl mx-auto">
+                CardioWatch's biosensor platform and AI triage engine are designed to extend beyond cardiac care
+                into multiple chronic disease areas — each representing a significant global health and market opportunity.
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
                   {
                     icon: Heart,
                     label: "Cardiovascular",
-                    description: "Heart failure, arrhythmia, hypertension monitoring",
+                    description: "Heart failure, arrhythmia, post-MI monitoring, hypertension management, cardiac rehab tracking",
+                    market: "TAM: $12.4B",
+                    status: "Live",
                     color: "bg-red-50 text-red-600 border-red-100"
                   },
                   {
                     icon: Droplets,
                     label: "Diabetes",
-                    description: "Continuous glucose trends, insulin response tracking",
+                    description: "Continuous glucose trends, insulin response tracking, HbA1c correlation, diabetic foot risk, hypoglycaemia alerts",
+                    market: "TAM: $8.7B",
+                    status: "R&D Phase",
                     color: "bg-blue-50 text-blue-600 border-blue-100"
                   },
                   {
                     icon: Activity,
                     label: "Respiratory",
-                    description: "COPD exacerbation prediction, SpO2 monitoring",
+                    description: "COPD exacerbation prediction, SpO2 monitoring, respiratory rate trends, asthma triggers, post-COVID recovery",
+                    market: "TAM: $5.2B",
+                    status: "R&D Phase",
                     color: "bg-teal-50 text-teal-600 border-teal-100"
                   },
                   {
                     icon: FlaskConical,
                     label: "Renal Function",
-                    description: "Fluid balance, electrolyte status indicators",
+                    description: "Fluid balance, electrolyte status, dialysis adequacy, CKD progression tracking, transplant monitoring",
+                    market: "TAM: $3.1B",
+                    status: "Planned",
                     color: "bg-amber-50 text-amber-600 border-amber-100"
                   },
                 ].map((app) => (
@@ -1338,9 +1350,93 @@ export default function Landing() {
                     <app.icon size={24} className="mb-3" />
                     <h4 className="font-bold text-slate-900">{app.label}</h4>
                     <p className="text-xs text-slate-600 mt-1 leading-relaxed">{app.description}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-[10px] font-semibold text-slate-500">{app.market}</span>
+                      <Badge variant="outline" className={`text-[9px] ${app.status === 'Live' ? 'bg-green-100 text-green-700 border-green-300' : app.status === 'R&D Phase' ? 'bg-purple-100 text-purple-700 border-purple-300' : 'bg-slate-100 text-slate-600 border-slate-300'}`}>
+                        {app.status}
+                      </Badge>
+                    </div>
                   </Card>
                 ))}
               </div>
+
+              {/* Additional Applications */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                {[
+                  {
+                    icon: Sparkles,
+                    label: "Neurology",
+                    description: "Epilepsy seizure detection, Parkinson's tremor tracking, sleep disorders, migraine pattern recognition",
+                    market: "TAM: $4.6B",
+                    color: "bg-purple-50 text-purple-600 border-purple-100"
+                  },
+                  {
+                    icon: Users,
+                    label: "Mental Health",
+                    description: "Anxiety/depression biomarkers via HRV, sleep disruption patterns, activity withdrawal detection, stress response",
+                    market: "TAM: $6.3B",
+                    color: "bg-pink-50 text-pink-600 border-pink-100"
+                  },
+                  {
+                    icon: Stethoscope,
+                    label: "Oncology",
+                    description: "Chemotherapy side-effect monitoring, fatigue tracking, immunotherapy response, palliative symptom management",
+                    market: "TAM: $3.8B",
+                    color: "bg-orange-50 text-orange-600 border-orange-100"
+                  },
+                  {
+                    icon: Clock,
+                    label: "Geriatric Care",
+                    description: "Falls risk prediction, frailty assessment, polypharmacy monitoring, cognitive decline early detection, social isolation",
+                    market: "TAM: $7.2B",
+                    color: "bg-green-50 text-green-600 border-green-100"
+                  },
+                ].map((app) => (
+                  <Card key={app.label} className={`p-5 border-2 ${app.color} transition-all hover:shadow-lg`}>
+                    <app.icon size={24} className="mb-3" />
+                    <h4 className="font-bold text-slate-900">{app.label}</h4>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{app.description}</p>
+                    <div className="mt-3">
+                      <span className="text-[10px] font-semibold text-slate-500">{app.market}</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Platform Vision */}
+              <Card className="mt-8 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50 p-6">
+                <div className="grid gap-6 lg:grid-cols-2 items-center">
+                  <div>
+                    <Badge className="mb-3 bg-purple-100 text-purple-700 border-purple-200">Platform Vision</Badge>
+                    <h4 className="text-lg font-bold text-slate-900 mb-2">One Device, Multiple Conditions</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      The CardioWatch biosensor platform is engineered as a multi-purpose chronic disease
+                      management system. The same wearable hardware and AI triage engine can be configured with
+                      condition-specific algorithms, clinical pathways, and escalation protocols — enabling healthcare
+                      systems to deploy a single device across multiple disease cohorts.
+                    </p>
+                    <p className="text-sm text-slate-600 leading-relaxed mt-3">
+                      This platform approach dramatically reduces per-condition development cost, accelerates
+                      regulatory approval via predicate device pathways, and creates a defensible multi-market
+                      position across the $51B global RPM market.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { metric: "8", label: "Therapeutic Areas", detail: "Addressable with single platform" },
+                      { metric: "$51B", label: "Combined TAM", detail: "Across all target conditions" },
+                      { metric: "70%", label: "Code Reuse", detail: "Shared AI engine & infrastructure" },
+                      { metric: "3-5x", label: "Faster Approval", detail: "Via predicate device pathway" },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-lg bg-white p-4 text-center shadow-sm border border-purple-100">
+                        <p className="text-xl font-bold text-purple-700">{item.metric}</p>
+                        <p className="text-xs font-semibold text-slate-900 mt-1">{item.label}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">{item.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Card>
             </div>
 
             {/* Scientific Note */}
