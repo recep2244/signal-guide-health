@@ -56,6 +56,13 @@ import {
   BadgeCheck,
   Globe,
   Send,
+  TrendingUp,
+  BarChart3,
+  Banknote,
+  Briefcase,
+  PieChart,
+  Scale,
+  Rocket,
 } from "lucide-react";
 
 const demoVideoSrc = `${import.meta.env.BASE_URL}CardioWatch__A_Lifeline_.mp4`;
@@ -215,6 +222,7 @@ export default function Landing() {
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 lg:flex">
             <a href="#features" className="hover:text-teal-600 transition-colors">Features</a>
             <a href="#demo" className="hover:text-teal-600 transition-colors">Demo</a>
+            <a href="#investors" className="hover:text-teal-600 transition-colors font-semibold text-teal-600">Investors</a>
             <a href="#device" className="hover:text-teal-600 transition-colors">R&D</a>
             <a href="#compliance" className="hover:text-teal-600 transition-colors">Compliance</a>
             <a href="#team" className="hover:text-teal-600 transition-colors">Team</a>
@@ -550,6 +558,226 @@ export default function Landing() {
                       <p className="mt-1 text-xs font-medium text-blue-600">Response SLA</p>
                     </div>
                   </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Investment Section */}
+        <section id="investors" className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-16 lg:py-24">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mx-auto max-w-3xl text-center">
+              <Badge className="mb-4 bg-teal-500/20 text-teal-300 border-teal-500/30">Investment Opportunity</Badge>
+              <h2 className="text-3xl font-bold text-white sm:text-4xl">
+                Why Invest in CardioWatch
+              </h2>
+              <p className="mt-4 text-lg text-slate-300 leading-relaxed">
+                The NHS spends over £2.1 billion annually on unplanned cardiac readmissions. CardioWatch turns
+                continuous patient signals into early intervention, reducing costs and improving outcomes at scale.
+              </p>
+            </div>
+
+            {/* Market Opportunity */}
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { value: "£4.2B", label: "UK RPM Market by 2028", sublabel: "Remote Patient Monitoring", icon: TrendingUp, color: "text-teal-400" },
+                { value: "23%", label: "Annual Growth Rate", sublabel: "CAGR 2024-2028", icon: BarChart3, color: "text-green-400" },
+                { value: "1.4M", label: "Heart Failure Patients", sublabel: "In the UK alone", icon: Heart, color: "text-red-400" },
+                { value: "£4,200", label: "Cost per Readmission", sublabel: "Average NHS spend", icon: Banknote, color: "text-amber-400" },
+              ].map((stat) => (
+                <Card key={stat.label} className="bg-white/5 border-white/10 p-6 text-center backdrop-blur-sm">
+                  <stat.icon size={24} className={`mx-auto mb-3 ${stat.color}`} />
+                  <p className="text-2xl font-bold text-white lg:text-3xl">{stat.value}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-200">{stat.label}</p>
+                  <p className="text-xs text-slate-400">{stat.sublabel}</p>
+                </Card>
+              ))}
+            </div>
+
+            {/* Investment Thesis */}
+            <div className="mt-16 grid gap-8 lg:grid-cols-2">
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                  <Briefcase size={24} className="text-teal-400" />
+                  Investment Thesis
+                </h3>
+                <div className="space-y-5">
+                  {[
+                    {
+                      title: "Massive Addressable Market",
+                      description: "Heart failure alone costs the NHS £2.1B in readmissions yearly. CardioWatch targets a growing population with chronic cardiac conditions requiring continuous monitoring.",
+                      icon: PieChart,
+                      color: "bg-teal-500/20 text-teal-400",
+                    },
+                    {
+                      title: "Proven Clinical Value",
+                      description: "24% reduction in readmissions, 9-minute average escalation response, and 27% improvement in patient adherence demonstrated in pilot deployments.",
+                      icon: CheckCircle2,
+                      color: "bg-green-500/20 text-green-400",
+                    },
+                    {
+                      title: "NHS-Ready Regulatory Pathway",
+                      description: "Compliant with GDPR, DTAC, and DCB0129 clinical safety standards. CE/UKCA marking pathway in progress. Built specifically for UK healthcare integration.",
+                      icon: Shield,
+                      color: "bg-blue-500/20 text-blue-400",
+                    },
+                    {
+                      title: "Platform Expansion Potential",
+                      description: "Starting with cardiac care, the platform architecture supports expansion into diabetes, COPD, renal, and multi-morbidity monitoring with minimal additional development.",
+                      icon: Rocket,
+                      color: "bg-purple-500/20 text-purple-400",
+                    },
+                  ].map((item) => (
+                    <div key={item.title} className="flex gap-4">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${item.color}`}>
+                        <item.icon size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-white">{item.title}</h4>
+                        <p className="mt-1 text-sm text-slate-300 leading-relaxed">{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Business Model */}
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                  <Scale size={24} className="text-teal-400" />
+                  Business Model & Revenue
+                </h3>
+                <Card className="bg-white/5 border-white/10 p-6 backdrop-blur-sm">
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-teal-400 mb-2">Revenue Model</p>
+                      <p className="text-sm text-slate-300 leading-relaxed">
+                        SaaS per-patient-per-month pricing to NHS Trusts and Integrated Care Boards (ICBs).
+                        Tiered pricing scales with patient volume, creating predictable recurring revenue.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="rounded-xl bg-white/5 p-4 text-center border border-white/10">
+                        <p className="text-xl font-bold text-teal-400">£15-25</p>
+                        <p className="text-xs text-slate-400 mt-1">per patient / month</p>
+                      </div>
+                      <div className="rounded-xl bg-white/5 p-4 text-center border border-white/10">
+                        <p className="text-xl font-bold text-green-400">85%+</p>
+                        <p className="text-xs text-slate-400 mt-1">target gross margin</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-teal-400 mb-3">Revenue Streams</p>
+                      <div className="space-y-2">
+                        {[
+                          { label: "Platform SaaS License", percentage: 60 },
+                          { label: "Wearable Device Provisioning", percentage: 20 },
+                          { label: "Analytics & Insights API", percentage: 12 },
+                          { label: "Training & Onboarding", percentage: 8 },
+                        ].map((stream) => (
+                          <div key={stream.label}>
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <span className="text-slate-300">{stream.label}</span>
+                              <span className="text-teal-400 font-semibold">{stream.percentage}%</span>
+                            </div>
+                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full"
+                                style={{ width: `${stream.percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-teal-400 mb-3">Growth Milestones</p>
+                      <div className="space-y-2">
+                        {[
+                          { milestone: "Year 1: 3 NHS Trust pilots (500 patients)", status: "In Progress" },
+                          { milestone: "Year 2: 10 Trusts, ICB contracts (5,000 patients)", status: "Target" },
+                          { milestone: "Year 3: National rollout + expansion (25,000 patients)", status: "Vision" },
+                        ].map((item) => (
+                          <div key={item.milestone} className="flex items-start gap-2 text-xs">
+                            <Badge className={`shrink-0 text-[9px] ${
+                              item.status === 'In Progress' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                              item.status === 'Target' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                              'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                            }`}>{item.status}</Badge>
+                            <span className="text-slate-300">{item.milestone}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+
+            {/* Competitive Advantages */}
+            <div className="mt-16">
+              <h3 className="text-center text-xl font-bold text-white mb-8">Competitive Advantages</h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  {
+                    icon: Stethoscope,
+                    title: "NHS-First Design",
+                    description: "Purpose-built for NHS clinical workflows, not retrofitted from consumer health apps",
+                    color: "text-teal-400",
+                  },
+                  {
+                    icon: Zap,
+                    title: "AI-Powered Triage",
+                    description: "Intelligent signal processing reduces clinician alert fatigue by prioritising actionable insights",
+                    color: "text-amber-400",
+                  },
+                  {
+                    icon: Smartphone,
+                    title: "WhatsApp Engagement",
+                    description: "Meets patients where they are with 95%+ UK smartphone penetration via familiar messaging",
+                    color: "text-green-400",
+                  },
+                  {
+                    icon: CircuitBoard,
+                    title: "Hardware Roadmap",
+                    description: "Proprietary biosensor development creates defensible IP and long-term competitive moat",
+                    color: "text-purple-400",
+                  },
+                ].map((item) => (
+                  <Card key={item.title} className="bg-white/5 border-white/10 p-5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                    <item.icon size={24} className={`mb-3 ${item.color}`} />
+                    <h4 className="font-semibold text-white text-sm">{item.title}</h4>
+                    <p className="mt-1 text-xs text-slate-400 leading-relaxed">{item.description}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Investor CTA */}
+            <div className="mt-16 text-center">
+              <Card className="inline-block bg-gradient-to-r from-teal-500/20 to-teal-600/20 border-teal-500/30 px-8 py-6 backdrop-blur-sm">
+                <p className="text-lg font-semibold text-white mb-2">Interested in partnering or investing?</p>
+                <p className="text-sm text-slate-300 mb-4">We're actively seeking strategic partners and seed investors.</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    className="bg-teal-500 hover:bg-teal-400 text-white px-6"
+                    onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    <Mail size={16} className="mr-2" />
+                    Request Investor Pack
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-teal-500/50 text-teal-300 hover:bg-teal-500/20 px-6"
+                    onClick={() => navigate("/dashboard")}
+                  >
+                    <Play size={16} className="mr-2" />
+                    See Live Demo
+                  </Button>
                 </div>
               </Card>
             </div>
@@ -995,7 +1223,7 @@ export default function Landing() {
                         <Badge key={skill} variant="secondary" className="bg-slate-100 text-slate-700">{skill}</Badge>
                       ))}
                     </div>
-                    <div className="mt-6 grid grid-cols-3 gap-4 pt-6 border-t">
+                    <div className="mt-6 grid grid-cols-2 gap-4 pt-6 border-t">
                       <div className="text-center">
                         <GraduationCap size={20} className="mx-auto text-teal-600 mb-1" />
                         <p className="text-xs text-slate-500">PhD Computational Biology</p>

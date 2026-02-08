@@ -21,8 +21,28 @@ import {
   ChevronRight,
   Sparkles,
   User,
+  Stethoscope,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+function renderMarkdown(text: string) {
+  const lines = text.split('\n');
+  return lines.map((line, lineIdx) => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    const rendered = parts.map((part, partIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={partIdx} className="font-semibold">{part.slice(2, -2)}</strong>;
+      }
+      return <span key={partIdx}>{part}</span>;
+    });
+    return (
+      <span key={lineIdx}>
+        {rendered}
+        {lineIdx < lines.length - 1 && <br />}
+      </span>
+    );
+  });
+}
 
 interface Message {
   id: string;
@@ -295,6 +315,72 @@ const AMBULANCE_FLOW: FlowStep[] = [
   },
   FINAL_SUMMARY,
 ];
+
+const MEDICAL_FREETEXT_RESPONSES: { keywords: string[]; response: string; options?: string[] }[] = [
+  {
+    keywords: ['chest', 'pain', 'pressure', 'tight', 'squeeze'],
+    response: "**I take chest symptoms very seriously.**\n\nChest pain or pressure after a cardiac procedure needs immediate medical attention.\n\n**If the pain is severe, worsening, or accompanied by breathlessness:**\n• Call 999 immediately\n• Chew an aspirin if available\n• Stay still and try to remain calm\n\nI'm flagging this for your care team right now. Should I escalate this as urgent?",
+    options: ["Yes, escalate urgently", "It's mild, just logging it", "Call 999 now"],
+  },
+  {
+    keywords: ['dizzy', 'dizziness', 'lightheaded', 'faint', 'vertigo'],
+    response: "**Dizziness is something we monitor closely after cardiac procedures.**\n\nThis could be related to:\n• Blood pressure changes from your medication\n• Dehydration or low fluid intake\n• Postural hypotension (standing up too quickly)\n\n**Immediate steps:**\n• Sit or lie down until it passes\n• Drink a glass of water\n• Avoid sudden position changes\n\nI'll log this for your care team. When did this start?",
+    options: ["Just started", "Been happening today", "On and off for days"],
+  },
+  {
+    keywords: ['breath', 'breathing', 'breathless', 'short of breath', 'wheeze', 'panting'],
+    response: "**Breathlessness is an important symptom to assess carefully.**\n\n**If you are breathless at rest or it's suddenly worsened:**\n• This is urgent - call 999\n• Sit upright, don't lie flat\n\n**If it's with activity only:**\n• This may be expected during recovery\n• Gradual improvement is normal over weeks\n• Note when it happens and what triggers it\n\nI'm logging this for your care team. How severe would you rate it?",
+    options: ["Mild - only with exertion", "Moderate - affecting daily tasks", "Severe - at rest"],
+  },
+  {
+    keywords: ['medication', 'medicine', 'pill', 'tablet', 'drug', 'dose', 'prescription'],
+    response: `**Medication management is a key part of your recovery.**\n\nYour care team reviews your medications regularly. If you have questions about:\n• **Side effects** - we can log them for ${CLINICIAN_NAME}\n• **Missed doses** - don't double up, resume normally\n• **Refills** - I can request one for you\n• **Interactions** - always check before taking new medications\n\nWhat would you like help with?`,
+    options: ["Request a refill", "Report side effects", "Missed a dose", "General question"],
+  },
+  {
+    keywords: ['sleep', 'insomnia', 'tired', 'exhausted', 'fatigue', 'rest', 'awake'],
+    response: "**Sleep quality is vital for cardiac recovery.**\n\nYour Apple Watch shows you got **" + WATCH_SNAPSHOT.sleepHours + " hours** of sleep last night.\n\n**Tips for better recovery sleep:**\n• Keep a consistent bedtime routine\n• Avoid caffeine after 2pm\n• Light activity during the day helps\n• Elevate your head slightly if you feel breathless lying flat\n\nPoor sleep can affect heart rate variability and recovery. I'll continue monitoring your sleep trends.",
+    options: ["My sleep has been poor", "I feel more rested lately", "I need help sleeping"],
+  },
+  {
+    keywords: ['anxious', 'anxiety', 'worried', 'scared', 'nervous', 'panic', 'stress', 'mental'],
+    response: "**It's completely normal to feel anxious after a cardiac procedure.**\n\nMany patients experience anxiety about their heart health during recovery. This is a recognised part of the recovery process.\n\n**What may help:**\n• Slow, controlled breathing (4 seconds in, 6 seconds out)\n• Gentle walking when comfortable\n• Talking to someone you trust\n• Your care team can discuss support options\n\nWould you like me to flag this for your care team?",
+    options: ["Yes, please flag it", "I'm managing okay", "I'd like support resources"],
+  },
+  {
+    keywords: ['swollen', 'swelling', 'ankle', 'leg', 'feet', 'oedema', 'fluid'],
+    response: "**Swelling in the legs or ankles can indicate fluid retention.**\n\nThis is monitored closely in cardiac patients because it may relate to:\n• Heart function changes\n• Medication effects\n• Salt or fluid intake\n\n**What to watch for:**\n• Sudden weight gain (>2kg in 2 days)\n• Worsening swelling despite elevation\n• Breathlessness alongside swelling\n\nI'll log this for your care team. Has the swelling changed recently?",
+    options: ["Getting worse", "About the same", "Improving"],
+  },
+  {
+    keywords: ['exercise', 'walk', 'active', 'activity', 'gym', 'sport', 'run'],
+    response: "**Physical activity is important for cardiac recovery, but it needs to be gradual.**\n\nYour Apple Watch shows **" + WATCH_SNAPSHOT.steps.toLocaleString() + " steps** today.\n\n**General guidance:**\n• Start with short walks, gradually increasing distance\n• Avoid heavy lifting for the period your surgeon specified\n• Stop if you experience chest pain, dizziness, or breathlessness\n• Listen to your body - some days will be better than others\n\nYour care team can provide a personalised cardiac rehabilitation plan.",
+    options: ["I want to do more", "Activity makes me tired", "When can I return to normal?"],
+  },
+  {
+    keywords: ['heart rate', 'pulse', 'bpm', 'palpitation', 'racing', 'fast', 'irregular', 'skip'],
+    response: "**Your Apple Watch recorded a resting HR of " + WATCH_SNAPSHOT.restingHR + " bpm and HRV of " + WATCH_SNAPSHOT.hrv + " ms today.**\n\n**What's normal after your procedure:**\n• Some heart rate variability is expected\n• Occasional palpitations may occur as your heart adjusts\n• Your 7-day trend shows stable patterns\n\n**Seek urgent help if you experience:**\n• Sustained rapid heart rate (>120 bpm at rest)\n• Very slow heart rate (<50 bpm) with dizziness\n• Persistent irregular rhythm\n\nI'm monitoring your trends continuously.",
+    options: ["My heart feels fast", "I felt a skipped beat", "Seems normal to me"],
+  },
+  {
+    keywords: ['thank', 'thanks', 'great', 'good', 'fine', 'okay', 'well', 'better'],
+    response: "That's great to hear! Your recovery data is looking positive.\n\nRemember, I'm here 24/7 if you need anything. Your next scheduled check-in is tomorrow at 9:00 AM.\n\nIs there anything else you'd like to discuss?",
+    options: ["No, that's all for now", "Actually, I have a question"],
+  },
+];
+
+const findFreeTextResponse = (text: string): { response: string; options?: string[] } => {
+  const lower = text.toLowerCase();
+  for (const entry of MEDICAL_FREETEXT_RESPONSES) {
+    if (entry.keywords.some(kw => lower.includes(kw))) {
+      return { response: entry.response, options: entry.options };
+    }
+  }
+  return {
+    response: `Thank you for sharing that. I've recorded your message and sent it to ${CLINICIAN_NAME}'s team for review.\n\nIf you're experiencing any symptoms you're concerned about, please let me know and I can help assess the urgency.\n\nIs there anything specific you'd like help with?`,
+    options: ["Report a symptom", "Request appointment", "Continue check-in"],
+  };
+};
 
 const AGENT_TYPING_DELAY_MS = 800;
 
@@ -633,22 +719,22 @@ export default function PatientDemo() {
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
+    const userText = inputValue;
     setMessages(prev => [
       ...prev,
       {
         id: `patient-${Date.now()}`,
         role: 'patient',
-        content: inputValue,
+        content: userText,
         timestamp: new Date(),
       },
     ]);
     setInputValue('');
 
+    const { response, options } = findFreeTextResponse(userText);
+    addTimelineEvent("Patient message received", "info");
     setTimeout(() => {
-      addAgentMessage(
-        "Thank you for sharing that. I've noted this for your care team. Is there anything else you'd like to tell me?",
-        ["No, that's everything", "Yes, one more thing"]
-      );
+      addAgentMessage(response, options);
     }, 500);
   };
 
@@ -887,13 +973,13 @@ export default function PatientDemo() {
                       >
                         <div
                           className={cn(
-                            'rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap',
+                            'rounded-2xl px-4 py-3 text-sm leading-relaxed',
                             message.role === 'patient'
                               ? 'bg-teal-600 text-white rounded-br-md'
                               : 'bg-white border-2 border-slate-200 text-slate-700 rounded-bl-md shadow-sm'
                           )}
                         >
-                          {message.content}
+                          {message.role === 'agent' ? renderMarkdown(message.content) : message.content}
                         </div>
                         {message.options && message.role === 'agent' && (
                           <div className="flex flex-wrap gap-2 mt-1">
@@ -953,6 +1039,16 @@ export default function PatientDemo() {
             <div className="border-t bg-white/95 backdrop-blur-lg p-4">
               <div className="container mx-auto max-w-3xl">
                 {/* Quick Actions */}
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <Stethoscope size={12} className="text-teal-600" />
+                    Clinician-verified responses by {CLINICIAN_NAME}
+                  </p>
+                  <Badge className="bg-green-50 text-green-700 border-green-200 text-[10px]">
+                    <CheckCircle2 size={10} className="mr-1" />
+                    Supervised AI
+                  </Badge>
+                </div>
                 <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-thin">
                   {QUICK_ACTIONS_OPTIONS.filter(option => option !== "Continue check-in").map((option) => {
                     const isUrgent = option === "Request ambulance";
@@ -1022,7 +1118,15 @@ export default function PatientDemo() {
               <p className="text-sm font-bold text-red-800">Care team alerted</p>
               <p className="text-xs text-red-600">Emergency contact will call shortly</p>
             </div>
-            <Button className="shrink-0 bg-red-600 hover:bg-red-700 text-white">
+            <Button
+              className="shrink-0 bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => {
+                addTimelineEvent("999 call initiated", "danger");
+                addAgentMessage(
+                  "**Emergency services have been contacted.**\n\nStay calm and keep the line available. A paramedic team has been dispatched to your registered address.\n\nYour care team has also been alerted."
+                );
+              }}
+            >
               <Phone size={16} className="mr-2" />
               Call 999
             </Button>

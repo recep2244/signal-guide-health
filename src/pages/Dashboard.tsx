@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Loader2, RefreshCw, Search } from "lucide-react";
+import { AlertCircle, Loader2, RefreshCw, Search, Clock, Heart, Activity, CheckCircle2, TrendingDown, Stethoscope, Watch, Moon } from "lucide-react";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { TriageOverview } from "@/components/TriageOverview";
 import { PatientCard } from "@/components/PatientCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePatientList, useTriageStatistics, usePatientSearchQuery } from "@/hooks/usePatientData";
@@ -142,6 +143,99 @@ export default function Dashboard() {
             onFilterChange={setFilter}
           />
         )}
+
+        {/* Clinical Summary Metrics */}
+        {displayPatients.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {(() => {
+              const avgHR = Math.round(
+                displayPatients.reduce((acc, p) => acc + p.wearableData[p.wearableData.length - 1].restingHR, 0) / displayPatients.length
+              );
+              const avgHRV = Math.round(
+                displayPatients.reduce((acc, p) => acc + p.wearableData[p.wearableData.length - 1].hrv, 0) / displayPatients.length
+              );
+              const avgSleep = (
+                displayPatients.reduce((acc, p) => acc + p.wearableData[p.wearableData.length - 1].sleepHours, 0) / displayPatients.length
+              ).toFixed(1);
+              const avgWellbeing = (
+                displayPatients.reduce((acc, p) => acc + p.wellbeingScore, 0) / displayPatients.length
+              ).toFixed(1);
+              const totalAlerts = displayPatients.reduce((acc, p) => acc + p.alerts.filter(a => !a.resolved).length, 0);
+              const resolvedToday = displayPatients.reduce((acc, p) => acc + p.alerts.filter(a => a.resolved).length, 0);
+
+              return [
+                {
+                  label: "Avg Resting HR",
+                  value: `${avgHR} bpm`,
+                  icon: Heart,
+                  color: avgHR > 80 ? "text-red-600 bg-red-50 border-red-100" : "text-teal-600 bg-teal-50 border-teal-100",
+                  detail: avgHR > 80 ? "Above normal range" : "Within normal range",
+                },
+                {
+                  label: "Avg HRV",
+                  value: `${avgHRV} ms`,
+                  icon: Activity,
+                  color: avgHRV < 30 ? "text-amber-600 bg-amber-50 border-amber-100" : "text-blue-600 bg-blue-50 border-blue-100",
+                  detail: avgHRV < 30 ? "Below baseline" : "Healthy variability",
+                },
+                {
+                  label: "Avg Sleep",
+                  value: `${avgSleep} hrs`,
+                  icon: Moon,
+                  color: parseFloat(avgSleep) < 6 ? "text-amber-600 bg-amber-50 border-amber-100" : "text-purple-600 bg-purple-50 border-purple-100",
+                  detail: parseFloat(avgSleep) < 6 ? "Below 6hr threshold" : "Adequate recovery",
+                },
+                {
+                  label: "Avg Wellbeing",
+                  value: `${avgWellbeing}/10`,
+                  icon: CheckCircle2,
+                  color: parseFloat(avgWellbeing) <= 4 ? "text-red-600 bg-red-50 border-red-100" : parseFloat(avgWellbeing) <= 6 ? "text-amber-600 bg-amber-50 border-amber-100" : "text-green-600 bg-green-50 border-green-100",
+                  detail: `${totalAlerts} active alerts, ${resolvedToday} resolved`,
+                },
+              ].map((metric) => (
+                <Card key={metric.label} className={`p-4 border-2 ${metric.color}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-white/80 flex items-center justify-center shadow-sm">
+                      <metric.icon size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-slate-500">{metric.label}</p>
+                      <p className="text-lg font-bold">{metric.value}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">{metric.detail}</p>
+                </Card>
+              ));
+            })()}
+          </div>
+        )}
+
+        {/* Clinical Actions Bar */}
+        <Card className="border-2 border-slate-200 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Stethoscope size={20} className="text-teal-600" />
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Clinician Summary</p>
+                <p className="text-xs text-slate-500">
+                  {displayPatients.filter(p => p.triageLevel === 'red').length > 0
+                    ? `${displayPatients.filter(p => p.triageLevel === 'red').length} patient(s) require urgent review`
+                    : 'No urgent patients - all queues manageable'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-xs">
+                <Watch size={12} className="mr-1" />
+                {displayPatients.length} wearables active
+              </Badge>
+              <Badge className="bg-teal-50 text-teal-700 border-teal-200 text-xs">
+                <Clock size={12} className="mr-1" />
+                Last sync: {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              </Badge>
+            </div>
+          </div>
+        </Card>
 
         {/* Patient List */}
         <div>

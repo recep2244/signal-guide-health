@@ -60,32 +60,28 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const data = loginSchema.parse(req.body);
 
-    // TODO: Implement actual authentication
-    // 1. Find user by email
-    // 2. Verify password with bcrypt
-    // 3. Check MFA if enabled
-    // 4. Generate JWT and refresh token
-    // 5. Set refresh token in httpOnly cookie
-    // 6. Log audit event
+    const result = await authService.login(
+      data.email,
+      data.password,
+      data.mfaCode,
+      req.ip,
+      req.get('User-Agent')
+    );
 
-    await logAuditEvent('LOGIN', {
-      userEmail: data.email,
-      ipAddress: req.ip,
-      status: 'success',
+    // Set refresh token in httpOnly cookie
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.json({
       status: 'success',
       data: {
-        accessToken: 'jwt_token_here',
-        expiresIn: 900, // 15 minutes
-        user: {
-          id: 'user-id',
-          email: data.email,
-          role: 'doctor',
-          firstName: 'Demo',
-          lastName: 'User',
-        },
+        accessToken: result.accessToken,
+        expiresIn: result.expiresIn,
+        user: result.user,
       },
     });
   } catch (error) {
