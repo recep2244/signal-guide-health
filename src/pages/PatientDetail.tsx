@@ -29,6 +29,12 @@ import {
   TrendingDown,
   Minus,
   ShieldCheck,
+  Gauge,
+  Syringe,
+  AlertTriangle,
+  Waves,
+  Building2,
+  FlaskConical,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -216,6 +222,132 @@ export default function PatientDetail() {
           </Card>
         </div>
 
+        {/* Cardiac Clinical Panel */}
+        {patient.ejectionFraction !== undefined && (
+          <Card className="mb-6 border-2 border-slate-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-50 to-white px-5 py-3 border-b border-slate-200">
+              <div className="flex items-center gap-2">
+                <Heart size={16} className="text-red-500" />
+                <h3 className="text-sm font-semibold text-slate-900">Cardiac Clinical Summary</h3>
+                {patient.consultant && (
+                  <Badge variant="outline" className="ml-auto text-[10px] bg-white">
+                    Consultant: {patient.consultant}
+                  </Badge>
+                )}
+              </div>
+              {patient.dischargeFrom && (
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                  <Building2 size={11} />
+                  {patient.dischargeFrom}
+                </p>
+              )}
+            </div>
+            <div className="p-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {/* Ejection Fraction */}
+                <div className={cn("rounded-xl p-3 border-2", patient.ejectionFraction < 40 ? "border-red-200 bg-red-50/50" : patient.ejectionFraction < 50 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Gauge size={12} className={cn(patient.ejectionFraction < 40 ? "text-red-500" : patient.ejectionFraction < 50 ? "text-amber-500" : "text-green-500")} />
+                    <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">LVEF</p>
+                  </div>
+                  <p className="text-lg font-bold text-slate-900">{patient.ejectionFraction}%</p>
+                  <p className="text-[10px] text-slate-500">{patient.ejectionFraction >= 50 ? "Preserved" : patient.ejectionFraction >= 40 ? "Mildly reduced" : "Reduced (HFrEF)"}</p>
+                </div>
+
+                {/* NYHA Class */}
+                {patient.nyhaClass && (
+                  <div className={cn("rounded-xl p-3 border-2", patient.nyhaClass === "IV" || patient.nyhaClass === "III" ? "border-red-200 bg-red-50/50" : patient.nyhaClass === "II" ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Activity size={12} className="text-blue-500" />
+                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">NYHA</p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">Class {patient.nyhaClass}</p>
+                    <p className="text-[10px] text-slate-500">
+                      {patient.nyhaClass === "I" ? "No limitation" : patient.nyhaClass === "II" ? "Slight limitation" : patient.nyhaClass === "III" ? "Marked limitation" : "Unable at rest"}
+                    </p>
+                  </div>
+                )}
+
+                {/* ECG Status */}
+                {patient.ecgStatus && (
+                  <div className={cn("rounded-xl p-3 border-2", patient.ecgStatus === "Normal sinus rhythm" ? "border-green-200 bg-green-50/50" : patient.ecgStatus === "Atrial fibrillation" ? "border-red-200 bg-red-50/50" : "border-amber-200 bg-amber-50/50")}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Waves size={12} className="text-purple-500" />
+                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">ECG</p>
+                    </div>
+                    <p className="text-xs font-bold text-slate-900 leading-tight">{patient.ecgStatus}</p>
+                  </div>
+                )}
+
+                {/* Blood Pressure */}
+                {patient.bloodPressure && (
+                  <div className={cn("rounded-xl p-3 border-2", patient.bloodPressure.systolic >= 140 ? "border-red-200 bg-red-50/50" : patient.bloodPressure.systolic >= 130 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Syringe size={12} className="text-red-400" />
+                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">BP</p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">{patient.bloodPressure.systolic}/{patient.bloodPressure.diastolic}</p>
+                    <p className="text-[10px] text-slate-500">mmHg</p>
+                  </div>
+                )}
+
+                {/* NT-proBNP */}
+                {patient.cardiacBiomarkers && (
+                  <div className={cn("rounded-xl p-3 border-2", patient.cardiacBiomarkers.ntProBNP > 900 ? "border-red-200 bg-red-50/50" : patient.cardiacBiomarkers.ntProBNP > 300 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <FlaskConical size={12} className="text-indigo-500" />
+                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">NT-proBNP</p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">{patient.cardiacBiomarkers.ntProBNP.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-500">pg/mL{patient.cardiacBiomarkers.ntProBNP > 900 ? " (elevated)" : ""}</p>
+                  </div>
+                )}
+
+                {/* Troponin */}
+                {patient.cardiacBiomarkers && (
+                  <div className={cn("rounded-xl p-3 border-2", patient.cardiacBiomarkers.hsTroponinI > 26 ? "border-red-200 bg-red-50/50" : patient.cardiacBiomarkers.hsTroponinI > 14 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <AlertTriangle size={12} className={cn(patient.cardiacBiomarkers.hsTroponinI > 26 ? "text-red-500" : "text-slate-400")} />
+                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">hs-TnI</p>
+                    </div>
+                    <p className="text-lg font-bold text-slate-900">{patient.cardiacBiomarkers.hsTroponinI}</p>
+                    <p className="text-[10px] text-slate-500">ng/L{patient.cardiacBiomarkers.hsTroponinI > 26 ? " (above 99th %ile)" : ""}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Cardiac Rehab Phase + Risk Scores */}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {patient.cardiacRehabPhase && (
+                  <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 text-xs">
+                    {patient.cardiacRehabPhase}
+                  </Badge>
+                )}
+                {patient.riskScores?.grace !== undefined && (
+                  <Badge variant="outline" className={cn("text-xs", patient.riskScores.grace > 140 ? "bg-red-50 text-red-700 border-red-200" : patient.riskScores.grace > 108 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-green-50 text-green-700 border-green-200")}>
+                    GRACE: {patient.riskScores.grace} ({patient.riskScores.grace > 140 ? "High" : patient.riskScores.grace > 108 ? "Intermediate" : "Low"})
+                  </Badge>
+                )}
+                {patient.riskScores?.cha2ds2vasc !== undefined && (
+                  <Badge variant="outline" className={cn("text-xs", patient.riskScores.cha2ds2vasc >= 2 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-green-50 text-green-700 border-green-200")}>
+                    CHA₂DS₂-VASc: {patient.riskScores.cha2ds2vasc}
+                  </Badge>
+                )}
+                {patient.riskScores?.hasbled !== undefined && (
+                  <Badge variant="outline" className={cn("text-xs", patient.riskScores.hasbled >= 3 ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200")}>
+                    HAS-BLED: {patient.riskScores.hasbled}
+                  </Badge>
+                )}
+                {patient.cardiacBiomarkers && (
+                  <span className="text-[10px] text-slate-400 ml-auto">
+                    Bloods drawn: {formatDate(patient.cardiacBiomarkers.lastDrawDate)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2 mb-6">
           <Card className="p-5 border-2 border-slate-200">
             <div className="flex items-center gap-2 mb-1">
@@ -254,12 +386,18 @@ export default function PatientDetail() {
                 <span className="text-xs font-medium text-slate-500">Primary clinician</span>
                 <span className="text-sm font-semibold text-slate-900">{clinicianName}</span>
               </div>
+              {patient.consultant && (
+                <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                  <span className="text-xs font-medium text-slate-500">Referring consultant</span>
+                  <span className="text-sm font-semibold text-slate-900">{patient.consultant}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between py-2 border-b border-slate-100">
                 <span className="text-xs font-medium text-slate-500">Preferred pharmacy</span>
                 <span className="text-sm font-semibold text-slate-900">{pharmacyName}</span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-xs font-medium text-slate-500">Last wearable update</span>
+                <span className="text-xs font-medium text-slate-500">Last wearable sync</span>
                 <span className="text-sm font-semibold text-slate-900">{formatDate(patient.lastCheckIn)} at {new Date(patient.lastCheckIn).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             </div>

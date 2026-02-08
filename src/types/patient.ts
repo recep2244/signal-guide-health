@@ -107,6 +107,40 @@ export interface SBARSummary {
 }
 
 // ============================================================================
+// CARDIAC CLINICAL TYPES
+// ============================================================================
+
+export interface CardiacBiomarkers {
+  /** NT-proBNP in pg/mL */
+  ntProBNP: number;
+  /** High-sensitivity Troponin I in ng/L */
+  hsTroponinI: number;
+  /** Timestamp of last blood draw */
+  lastDrawDate: string;
+}
+
+export type NYHAClass = "I" | "II" | "III" | "IV";
+
+export type ECGStatus = "Normal sinus rhythm" | "Atrial fibrillation" | "Sinus tachycardia" | "Sinus bradycardia" | "Paced rhythm" | "Awaiting review";
+
+export type CardiacRehabPhase = "Phase I (Inpatient)" | "Phase II (Early post-discharge)" | "Phase III (Supervised outpatient)" | "Phase IV (Long-term maintenance)";
+
+export interface BloodPressure {
+  systolic: number;
+  diastolic: number;
+  timestamp: string;
+}
+
+export interface ClinicalRiskScores {
+  /** GRACE score for ACS risk (0-372) */
+  grace?: number;
+  /** CHA₂DS₂-VASc score for AF stroke risk (0-9) */
+  cha2ds2vasc?: number;
+  /** HAS-BLED score for bleeding risk (0-9) */
+  hasbled?: number;
+}
+
+// ============================================================================
 // PATIENT TYPES
 // ============================================================================
 
@@ -140,6 +174,24 @@ export interface Patient {
   medications: string[];
   /** NHS number identifier */
   nhsNumber: string;
+  /** Left ventricular ejection fraction (%) */
+  ejectionFraction?: number;
+  /** NYHA functional classification */
+  nyhaClass?: NYHAClass;
+  /** Latest cardiac biomarkers */
+  cardiacBiomarkers?: CardiacBiomarkers;
+  /** Last recorded ECG rhythm */
+  ecgStatus?: ECGStatus;
+  /** Last recorded blood pressure */
+  bloodPressure?: BloodPressure;
+  /** Current cardiac rehabilitation phase */
+  cardiacRehabPhase?: CardiacRehabPhase;
+  /** Clinical risk scores */
+  riskScores?: ClinicalRiskScores;
+  /** Referring consultant */
+  consultant?: string;
+  /** Discharge ward/hospital */
+  dischargeFrom?: string;
 }
 
 // ============================================================================

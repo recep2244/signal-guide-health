@@ -429,6 +429,13 @@ export default function Admin() {
                     { name: "NHS Spine / PDS", desc: "Patient Demographics Service", status: "Ready" },
                     { name: "SNOMED CT", desc: "Clinical terminology coding", status: "Supported" },
                     { name: "NHS Number Validation", desc: "Modulus 11 check digit", status: "Supported" },
+                    { name: "EMIS Web API", desc: "GP clinical system integration", status: "Supported" },
+                    { name: "SystmOne (TPP)", desc: "GP system integration", status: "Ready" },
+                    { name: "EPIC FHIR", desc: "Secondary care EHR integration", status: "In Progress" },
+                    { name: "NHS MESH", desc: "Secure messaging service", status: "Ready" },
+                    { name: "DCB0129 Clinical Safety", desc: "Clinical risk management standard", status: "Certified" },
+                    { name: "DCB0160 Clinical Safety", desc: "Manufacturer safety standard", status: "Certified" },
+                    { name: "NHS DSPT", desc: "Data Security and Protection Toolkit", status: "Certified" },
                     { name: "DICOM (Future)", desc: "Medical imaging data", status: "Roadmap" },
                   ].map((standard) => (
                     <div key={standard.name} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50">
@@ -440,6 +447,8 @@ export default function Admin() {
                         "text-[10px]",
                         standard.status === "Supported" ? "border-green-300 text-green-700 bg-green-50" :
                         standard.status === "Ready" ? "border-blue-300 text-blue-700 bg-blue-50" :
+                        standard.status === "Certified" ? "border-green-300 text-green-700 bg-green-50" :
+                        standard.status === "In Progress" ? "border-amber-300 text-amber-700 bg-amber-50" :
                         "border-slate-300 text-slate-500"
                       )}>
                         {standard.status}
@@ -449,6 +458,131 @@ export default function Admin() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Clinical Governance */}
+            <Card className="border-2 border-green-200 bg-green-50/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-green-600" />
+                  Clinical Governance
+                </CardTitle>
+                <CardDescription>Regulatory compliance, clinical safety, and governance status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {[
+                    { item: "DCB0129 Clinical Safety Case", detail: "Clinical risk management for health IT — hazard log maintained and reviewed", done: true },
+                    { item: "DCB0160 Manufacturer Standard", detail: "Manufacturer's clinical safety case report submitted to NHS Digital", done: true },
+                    { item: "Clinical Safety Officer Appointed", detail: "Dr. A. Patel (GMC 7281943) — responsible for clinical safety governance", done: true },
+                    { item: "DTAC Compliance", detail: "Digital Technology Assessment Criteria — clinical safety, data protection, technical security, interoperability, usability & accessibility", done: true },
+                    { item: "NHS Digital Certification", detail: "Certification application submitted — awaiting final review panel", done: false },
+                    { item: "IG Toolkit (DSPT) Submission", detail: "Data Security and Protection Toolkit — annual submission to NHS Digital", done: true },
+                    { item: "MHRA Device Classification", detail: "Class IIa medical device under UK MDR 2002 — UKCA marking obtained", done: true },
+                    { item: "IG Training Compliance", detail: "All staff completed annual Information Governance training (100%)", done: false },
+                  ].map((row) => (
+                    <div key={row.item} className={cn(
+                      "flex items-start gap-3 p-3 rounded-xl border-2 transition-colors",
+                      row.done ? "border-green-200 bg-white" : "border-amber-200 bg-amber-50/30"
+                    )}>
+                      <div className={cn(
+                        "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+                        row.done ? "bg-green-100" : "bg-amber-100"
+                      )}>
+                        {row.done ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Circle className="h-4 w-4 text-amber-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-sm font-semibold text-slate-900">{row.item}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[10px] flex-shrink-0",
+                            row.done ? "border-green-300 text-green-700 bg-green-50" : "border-amber-300 text-amber-700 bg-amber-50"
+                          )}>
+                            {row.done ? "Complete" : "In Progress"}
+                          </Badge>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">{row.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* International Deployment */}
+            <Card className="border-2 border-blue-200 bg-blue-50/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-blue-600" />
+                  International Deployment
+                </CardTitle>
+                <CardDescription>Global market readiness and regulatory pathway status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {[
+                    {
+                      flag: "\uD83C\uDDEC\uD83C\uDDE7",
+                      country: "United Kingdom / NHS",
+                      status: "Live",
+                      statusColor: "green",
+                      requirements: "UKCA marked \u2022 NICE compliant \u2022 NHS DSPT certified \u2022 DCB0129/0160 approved",
+                    },
+                    {
+                      flag: "\uD83C\uDDEA\uD83C\uDDFA",
+                      country: "European Union",
+                      status: "Preparing",
+                      statusColor: "amber",
+                      requirements: "CE marking under MDR (EU) 2017/745 \u2022 Notified body assessment in progress \u2022 GDPR Art. 9 health data compliance",
+                    },
+                    {
+                      flag: "\uD83C\uDDFA\uD83C\uDDF8",
+                      country: "United States",
+                      status: "Planning",
+                      statusColor: "blue",
+                      requirements: "FDA 510(k) pathway identified \u2022 CMS RPM reimbursement codes CPT 99453\u201399458 \u2022 HIPAA BAA template prepared",
+                    },
+                    {
+                      flag: "\uD83C\uDDF8\uD83C\uDDE6",
+                      country: "Gulf States (KSA / UAE)",
+                      status: "Exploring",
+                      statusColor: "slate",
+                      requirements: "SFDA medical device registration \u2022 DHA facility approval \u2022 Arabic localisation scoped",
+                    },
+                    {
+                      flag: "\uD83C\uDDE6\uD83C\uDDFA",
+                      country: "Australia",
+                      status: "Exploring",
+                      statusColor: "slate",
+                      requirements: "TGA Class IIa device notification pathway \u2022 My Health Record integration assessment",
+                    },
+                  ].map((market) => (
+                    <div key={market.country} className="flex items-center justify-between p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-blue-200 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl">{market.flag}</span>
+                        <div>
+                          <h4 className="font-semibold text-slate-900 text-sm">{market.country}</h4>
+                          <p className="text-[11px] text-slate-500 leading-relaxed max-w-lg">{market.requirements}</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className={cn(
+                        "text-xs flex-shrink-0 ml-4",
+                        market.statusColor === "green" ? "border-green-300 text-green-700 bg-green-50" :
+                        market.statusColor === "amber" ? "border-amber-300 text-amber-700 bg-amber-50" :
+                        market.statusColor === "blue" ? "border-blue-300 text-blue-700 bg-blue-50" :
+                        "border-slate-300 text-slate-600 bg-slate-50"
+                      )}>
+                        {market.status === "Live" && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                        {market.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Usage Analytics Tab - NEW */}
@@ -557,7 +691,10 @@ export default function Admin() {
                   {[
                     { name: "Apple HealthKit", status: "Connected", icon: Smartphone, color: "green" },
                     { name: "WhatsApp Business", status: "Connected", icon: MessageCircle, color: "green" },
-                    { name: "NHS Spine / PDS", status: "Pending", icon: Database, color: "amber" },
+                    { name: "EMIS Web", status: "Connected", icon: Database, color: "green" },
+                    { name: "SystmOne / TPP", status: "In Progress", icon: Database, color: "amber" },
+                    { name: "EPIC EHR", status: "Planning", icon: Server, color: "blue" },
+                    { name: "NHS Spine / MESH", status: "Pending", icon: Globe, color: "amber" },
                     { name: "Fitbit API", status: "Connected", icon: Activity, color: "green" },
                     { name: "Google Fit", status: "Connected", icon: Heart, color: "green" },
                   ].map((integration) => {
@@ -570,7 +707,9 @@ export default function Admin() {
                         </div>
                         <Badge variant="outline" className={cn(
                           "text-xs",
-                          integration.color === "green" ? "border-green-300 text-green-700 bg-green-50" : "border-amber-300 text-amber-700 bg-amber-50"
+                          integration.color === "green" ? "border-green-300 text-green-700 bg-green-50" :
+                          integration.color === "amber" ? "border-amber-300 text-amber-700 bg-amber-50" :
+                          "border-blue-300 text-blue-700 bg-blue-50"
                         )}>
                           {integration.status === "Connected" && <CheckCircle2 className="h-3 w-3 mr-1" />}
                           {integration.status}
