@@ -344,6 +344,24 @@ export default function PatientDetail() {
                   </span>
                 )}
               </div>
+
+              {/* International Guideline References */}
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <p className="text-[10px] font-medium text-slate-500 mb-2 uppercase tracking-wider">Guideline References</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: "NICE CG172", desc: "MI secondary prevention" },
+                    { label: "NICE CG187", desc: "Acute heart failure" },
+                    { label: "NICE NG106", desc: "Chronic heart failure" },
+                    { label: "ESC 2023 HF", desc: "European HF guidelines" },
+                    { label: "ACC/AHA 2022", desc: "US HF management" },
+                  ].map((ref) => (
+                    <Badge key={ref.label} variant="outline" className="text-[9px] bg-slate-50 text-slate-500 border-slate-200 cursor-help" title={ref.desc}>
+                      {ref.label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             </div>
           </Card>
         )}

@@ -237,6 +237,30 @@ export default function Dashboard() {
           </div>
         </Card>
 
+        {/* Clinical Standards & International Compliance */}
+        <Card className="border-2 border-blue-100 bg-blue-50/30 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Gauge size={16} className="text-blue-600" />
+              <p className="text-xs font-semibold text-slate-700">Clinical Standards Compliance</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { label: "NICE CG172", color: "bg-green-50 text-green-700 border-green-200" },
+                { label: "NICE CG187", color: "bg-green-50 text-green-700 border-green-200" },
+                { label: "ESC 2023", color: "bg-blue-50 text-blue-700 border-blue-200" },
+                { label: "ACC/AHA", color: "bg-purple-50 text-purple-700 border-purple-200" },
+                { label: "UKCA Class IIa", color: "bg-teal-50 text-teal-700 border-teal-200" },
+                { label: "ISO 13485", color: "bg-slate-100 text-slate-600 border-slate-200" },
+              ].map((std) => (
+                <Badge key={std.label} className={`text-[9px] px-1.5 py-0 ${std.color}`}>
+                  {std.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </Card>
+
         {/* Cardiac Clinical Overview */}
         {displayPatients.length > 0 && (
           <div className="space-y-4">

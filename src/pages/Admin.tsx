@@ -517,11 +517,12 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-blue-600" />
-                  International Deployment
+                  International Deployment & Adoption
                 </CardTitle>
-                <CardDescription>Global market readiness and regulatory pathway status</CardDescription>
+                <CardDescription>Global market readiness, regulatory pathway status, and adoption roadmap</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Market Readiness */}
                 <div className="space-y-3">
                   {[
                     {
@@ -530,6 +531,8 @@ export default function Admin() {
                       status: "Live",
                       statusColor: "green",
                       requirements: "UKCA marked \u2022 NICE compliant \u2022 NHS DSPT certified \u2022 DCB0129/0160 approved",
+                      adoption: "3 NHS Trusts live \u2022 128 patients monitored \u2022 ICB commissioning pathway established",
+                      reimbursement: "Block contract + CQUIN \u2022 \u00A315-25/patient/month",
                     },
                     {
                       flag: "\uD83C\uDDEA\uD83C\uDDFA",
@@ -537,6 +540,8 @@ export default function Admin() {
                       status: "Preparing",
                       statusColor: "amber",
                       requirements: "CE marking under MDR (EU) 2017/745 \u2022 Notified body assessment in progress \u2022 GDPR Art. 9 health data compliance",
+                      adoption: "Germany DiGA fast-track application \u2022 France PECAN pathway scoped \u2022 Netherlands pilot discussions",
+                      reimbursement: "DiGA: \u20AC300-500/quarter \u2022 PECAN: \u20AC50-80/patient/month",
                     },
                     {
                       flag: "\uD83C\uDDFA\uD83C\uDDF8",
@@ -544,6 +549,8 @@ export default function Admin() {
                       status: "Planning",
                       statusColor: "blue",
                       requirements: "FDA 510(k) pathway identified \u2022 CMS RPM reimbursement codes CPT 99453\u201399458 \u2022 HIPAA BAA template prepared",
+                      adoption: "Epic/Cerner integration scoped \u2022 US cardiology KOL advisory board forming \u2022 ACC partnership discussions",
+                      reimbursement: "CPT 99453-99458 \u2022 $120-150/patient/month Medicare Part B",
                     },
                     {
                       flag: "\uD83C\uDDF8\uD83C\uDDE6",
@@ -551,6 +558,8 @@ export default function Admin() {
                       status: "Exploring",
                       statusColor: "slate",
                       requirements: "SFDA medical device registration \u2022 DHA facility approval \u2022 Arabic localisation scoped",
+                      adoption: "DHA digital health accelerator applied \u2022 SEHA procurement pipeline \u2022 NPHIES integration assessment",
+                      reimbursement: "Government tender + private insurance bundled packages",
                     },
                     {
                       flag: "\uD83C\uDDE6\uD83C\uDDFA",
@@ -558,28 +567,128 @@ export default function Admin() {
                       status: "Exploring",
                       statusColor: "slate",
                       requirements: "TGA Class IIa device notification pathway \u2022 My Health Record integration assessment",
+                      adoption: "NHFA partnership discussions \u2022 PHN commissioning model scoped \u2022 Telehealth MBS item alignment",
+                      reimbursement: "MBS chronic disease items \u2022 AUD 80-120/patient/month",
                     },
                   ].map((market) => (
-                    <div key={market.country} className="flex items-center justify-between p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-blue-200 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl">{market.flag}</span>
-                        <div>
+                    <div key={market.country} className="p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-blue-200 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{market.flag}</span>
                           <h4 className="font-semibold text-slate-900 text-sm">{market.country}</h4>
-                          <p className="text-[11px] text-slate-500 leading-relaxed max-w-lg">{market.requirements}</p>
+                        </div>
+                        <Badge variant="outline" className={cn(
+                          "text-xs flex-shrink-0",
+                          market.statusColor === "green" ? "border-green-300 text-green-700 bg-green-50" :
+                          market.statusColor === "amber" ? "border-amber-300 text-amber-700 bg-amber-50" :
+                          market.statusColor === "blue" ? "border-blue-300 text-blue-700 bg-blue-50" :
+                          "border-slate-300 text-slate-600 bg-slate-50"
+                        )}>
+                          {market.status === "Live" && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                          {market.status}
+                        </Badge>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3 text-[11px]">
+                        <div>
+                          <p className="font-medium text-slate-500 mb-0.5">Regulatory</p>
+                          <p className="text-slate-700 leading-relaxed">{market.requirements}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-500 mb-0.5">Adoption Progress</p>
+                          <p className="text-slate-700 leading-relaxed">{market.adoption}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-500 mb-0.5">Reimbursement</p>
+                          <p className="text-slate-700 leading-relaxed">{market.reimbursement}</p>
                         </div>
                       </div>
-                      <Badge variant="outline" className={cn(
-                        "text-xs flex-shrink-0 ml-4",
-                        market.statusColor === "green" ? "border-green-300 text-green-700 bg-green-50" :
-                        market.statusColor === "amber" ? "border-amber-300 text-amber-700 bg-amber-50" :
-                        market.statusColor === "blue" ? "border-blue-300 text-blue-700 bg-blue-50" :
-                        "border-slate-300 text-slate-600 bg-slate-50"
-                      )}>
-                        {market.status === "Live" && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                        {market.status}
-                      </Badge>
                     </div>
                   ))}
+                </div>
+
+                {/* Adoption Roadmap Timeline */}
+                <div className="border-2 border-slate-200 rounded-xl p-5 bg-white">
+                  <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4 text-blue-600" />
+                    International Adoption Roadmap
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {[
+                      { year: "2024-25", title: "UK Foundation", items: ["NHS pilot expansion to 10+ Trusts", "NICE Medtech Innovation Briefing", "500+ patients monitored", "Peer-reviewed publication"] },
+                      { year: "2025-26", title: "EU Entry", items: ["CE mark obtained", "Germany DiGA listing", "France PECAN approval", "EU clinical validation study"] },
+                      { year: "2026-27", title: "US Launch", items: ["FDA 510(k) clearance", "US payer contracts", "Epic marketplace listing", "US cardiology RCT"] },
+                      { year: "2027-28", title: "Global Scale", items: ["APAC market entry", "Gulf States deployment", "10,000+ patients globally", "WHO Essential Package alignment"] },
+                    ].map((phase) => (
+                      <div key={phase.year} className="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                        <Badge variant="outline" className="text-[10px] border-blue-200 text-blue-700 bg-blue-50 mb-2">{phase.year}</Badge>
+                        <p className="text-xs font-bold text-slate-900 mb-2">{phase.title}</p>
+                        <div className="space-y-1">
+                          {phase.items.map((item) => (
+                            <div key={item} className="flex items-start gap-1.5">
+                              <CheckCircle2 className="h-3 w-3 text-teal-500 mt-0.5 flex-shrink-0" />
+                              <span className="text-[10px] text-slate-600">{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Data Sovereignty & Localisation */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="border-2 border-slate-200 rounded-xl p-5 bg-white">
+                    <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                      <Database className="h-4 w-4 text-purple-600" />
+                      Data Sovereignty & Hosting
+                    </h4>
+                    <div className="space-y-2">
+                      {[
+                        { region: "UK", hosting: "NHS-approved UK-West Azure / AWS eu-west-2", compliance: "UK GDPR, NHS DSPT, Cyber Essentials Plus" },
+                        { region: "EU", hosting: "AWS eu-central-1 (Frankfurt)", compliance: "EU GDPR Art. 9, Schrems II compliant" },
+                        { region: "US", hosting: "AWS us-east-1 (HIPAA eligible)", compliance: "HIPAA, HITECH Act, SOC 2 Type II" },
+                        { region: "Gulf", hosting: "AWS me-south-1 (Bahrain)", compliance: "PDPL (KSA), DHA data residency" },
+                        { region: "APAC", hosting: "AWS ap-southeast-2 (Sydney)", compliance: "Privacy Act 1988, My Health Record Act" },
+                      ].map((item) => (
+                        <div key={item.region} className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 text-[11px]">
+                          <Badge variant="outline" className="text-[9px] border-purple-200 text-purple-700 bg-purple-50 shrink-0 mt-0.5">{item.region}</Badge>
+                          <div>
+                            <p className="text-slate-700 font-medium">{item.hosting}</p>
+                            <p className="text-slate-500">{item.compliance}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-2 border-slate-200 rounded-xl p-5 bg-white">
+                    <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-blue-600" />
+                      Localisation & Clinical Adaptation
+                    </h4>
+                    <div className="space-y-2">
+                      {[
+                        { lang: "English (UK/US/AU)", status: "Complete", detail: "NHS terminology, US clinical vocabulary, Australian MBS coding" },
+                        { lang: "German", status: "In Progress", detail: "DiGA requirement — medical German, Kassenärztliche Vereinigung terminology" },
+                        { lang: "French", status: "Planned", detail: "PECAN pathway — medical French, HAS evaluation terminology" },
+                        { lang: "Arabic (RTL)", status: "Scoped", detail: "DHA/SFDA requirement — right-to-left UI, culturally adapted symptom ontology" },
+                        { lang: "Japanese", status: "Roadmap", detail: "PMDA pathway — Japanese medical terminology, J-STAGE clinical references" },
+                      ].map((item) => (
+                        <div key={item.lang} className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 text-[11px]">
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] shrink-0 mt-0.5",
+                            item.status === "Complete" ? "border-green-200 text-green-700 bg-green-50" :
+                            item.status === "In Progress" ? "border-amber-200 text-amber-700 bg-amber-50" :
+                            "border-slate-200 text-slate-600 bg-slate-50"
+                          )}>{item.status}</Badge>
+                          <div>
+                            <p className="text-slate-700 font-medium">{item.lang}</p>
+                            <p className="text-slate-500">{item.detail}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

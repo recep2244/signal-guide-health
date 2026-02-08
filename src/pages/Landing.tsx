@@ -879,6 +879,216 @@ export default function Landing() {
               </div>
             </div>
 
+            {/* Global Adoption Strategy */}
+            <div className="mt-16">
+              <h3 className="text-center text-xl font-bold text-white mb-2">Global Adoption Strategy</h3>
+              <p className="text-center text-sm text-slate-400 mb-8 max-w-2xl mx-auto">
+                A phased, expert-validated approach to international scale — designed by cardiologists, biomedical engineers,
+                NHS pathway specialists, and health economics experts.
+              </p>
+
+              {/* Regulatory Roadmap Timeline */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                {[
+                  {
+                    phase: "Phase 1: UK (Now)",
+                    timeline: "2024-2025",
+                    items: ["UKCA Class IIa marked", "NICE CG172/CG187 aligned", "DCB0129/0160 certified", "NHS DSPT compliant", "ICB procurement pathway"],
+                    color: "border-green-500/40 bg-green-500/10",
+                    badge: "Live",
+                    badgeColor: "bg-green-500/20 text-green-400",
+                  },
+                  {
+                    phase: "Phase 2: EU (Next)",
+                    timeline: "2025-2026",
+                    items: ["CE marking MDR 2017/745", "Notified Body audit (BSI/TÜV)", "GDPR Art. 9 health data", "ESC guideline alignment", "German DiGA pathway"],
+                    color: "border-blue-500/40 bg-blue-500/10",
+                    badge: "Preparing",
+                    badgeColor: "bg-blue-500/20 text-blue-400",
+                  },
+                  {
+                    phase: "Phase 3: US Market",
+                    timeline: "2026-2027",
+                    items: ["FDA 510(k) De Novo pathway", "CPT 99453-99458 reimbursement", "HIPAA BAA compliance", "Epic/Cerner EHR integration", "ACC/AHA guideline mapping"],
+                    color: "border-purple-500/40 bg-purple-500/10",
+                    badge: "Planning",
+                    badgeColor: "bg-purple-500/20 text-purple-400",
+                  },
+                  {
+                    phase: "Phase 4: APAC & Gulf",
+                    timeline: "2027-2028",
+                    items: ["TGA (Australia) notification", "SFDA/DHA (Gulf) registration", "PMDA (Japan) consultation", "HSA (Singapore) Class B", "Multi-language localisation"],
+                    color: "border-amber-500/40 bg-amber-500/10",
+                    badge: "Roadmap",
+                    badgeColor: "bg-amber-500/20 text-amber-400",
+                  },
+                ].map((phase) => (
+                  <Card key={phase.phase} className={`border p-5 backdrop-blur-sm ${phase.color}`}>
+                    <Badge className={`text-[9px] mb-3 ${phase.badgeColor}`}>{phase.badge}</Badge>
+                    <p className="text-sm font-bold text-white">{phase.phase}</p>
+                    <p className="text-[10px] text-slate-400 mb-3">{phase.timeline}</p>
+                    <div className="space-y-1.5">
+                      {phase.items.map((item) => (
+                        <div key={item} className="flex items-start gap-2">
+                          <CheckCircle2 size={12} className="text-teal-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-[11px] text-slate-300 leading-tight">{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Reimbursement Models by Region */}
+              <Card className="bg-white/5 border-white/10 p-6 backdrop-blur-sm mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Banknote size={18} className="text-teal-400" />
+                  <p className="text-sm font-bold text-white">Reimbursement & Payment Models by Region</p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    {
+                      region: "UK NHS",
+                      model: "Block contract + CQUIN incentives",
+                      detail: "ICB commissioning via NHS Standard Contract. Cardiac RPM tariff under NHSE Long Term Plan. £15-25 per patient/month.",
+                      revenue: "£15-25/patient/mo",
+                    },
+                    {
+                      region: "Germany (DiGA)",
+                      model: "Prescribed digital therapeutic",
+                      detail: "BfArM fast-track listing. Statutory health insurance reimbursement at manufacturer's price for 12 months. €300-500/quarter.",
+                      revenue: "€300-500/quarter",
+                    },
+                    {
+                      region: "France (PECAN)",
+                      model: "PECAN reimbursement pathway",
+                      detail: "HAS evaluation for connected medical devices. Télésurveillance for chronic heart failure. €50-80/patient/month.",
+                      revenue: "€50-80/patient/mo",
+                    },
+                    {
+                      region: "United States",
+                      model: "CMS RPM + CCM codes",
+                      detail: "CPT 99453 (setup), 99454 (device supply), 99457/99458 (monitoring). Medicare Part B reimbursement ~$120-150/patient/month.",
+                      revenue: "$120-150/patient/mo",
+                    },
+                    {
+                      region: "Australia",
+                      model: "MBS item numbers + PHN",
+                      detail: "Medicare Benefits Schedule chronic disease management items. Primary Health Network commissioning for post-discharge care.",
+                      revenue: "AUD 80-120/patient/mo",
+                    },
+                    {
+                      region: "Gulf States",
+                      model: "Insurance + government tenders",
+                      detail: "DHA/SEHA direct procurement (UAE). NPHIES digital health programme (KSA). Private insurance bundled cardiac care packages.",
+                      revenue: "Contract-based",
+                    },
+                  ].map((item) => (
+                    <div key={item.region} className="rounded-lg bg-white/5 border border-white/10 p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-bold text-teal-400">{item.region}</p>
+                        <span className="text-[10px] font-semibold text-white bg-white/10 px-2 py-0.5 rounded-full">{item.revenue}</span>
+                      </div>
+                      <p className="text-xs font-medium text-slate-300 mb-1">{item.model}</p>
+                      <p className="text-[10px] text-slate-400 leading-relaxed">{item.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Health System Comparison & Scalability */}
+              <div className="grid gap-4 lg:grid-cols-2 mb-8">
+                {/* Clinical Evidence Transferability */}
+                <Card className="bg-white/5 border-white/10 p-6 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Stethoscope size={18} className="text-teal-400" />
+                    <p className="text-sm font-bold text-white">Clinical Evidence Transferability</p>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-4">
+                    CardioWatch's clinical validation is designed to transfer across international guidelines.
+                  </p>
+                  <div className="space-y-2.5">
+                    {[
+                      { guideline: "NICE CG172 / CG187", region: "UK", desc: "MI secondary prevention & acute HF — primary evidence base" },
+                      { guideline: "ESC 2023 Guidelines", region: "EU", desc: "Heart failure diagnosis & management — aligned endpoints" },
+                      { guideline: "ACC/AHA 2022", region: "US", desc: "HF management guidelines — compatible outcome measures" },
+                      { guideline: "JCS 2021 Guidelines", region: "Japan", desc: "Cardiovascular disease prevention — adapting for cultural context" },
+                      { guideline: "NHFA 2023", region: "Australia", desc: "National Heart Foundation chronic HF guidelines — aligned protocol" },
+                      { guideline: "WHO CVD Package", region: "Global", desc: "Essential CVD interventions — low-resource adaptation pathway" },
+                    ].map((item) => (
+                      <div key={item.guideline} className="flex items-start gap-3 text-xs">
+                        <Badge className="text-[9px] bg-white/10 border-white/20 text-slate-300 shrink-0 mt-0.5">{item.region}</Badge>
+                        <div>
+                          <span className="text-teal-400 font-medium">{item.guideline}</span>
+                          <span className="text-slate-400"> — {item.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Technical Scalability Architecture */}
+                <Card className="bg-white/5 border-white/10 p-6 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Globe size={18} className="text-teal-400" />
+                    <p className="text-sm font-bold text-white">Scalability & Data Sovereignty</p>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-4">
+                    Multi-region architecture designed by biomedical engineers for global regulatory compliance.
+                  </p>
+                  <div className="space-y-2.5">
+                    {[
+                      { feature: "Regional data hosting", desc: "NHS (UK-West), AWS eu-central-1 (EU), us-east-1 (US), ap-southeast-2 (APAC) — data never leaves jurisdiction" },
+                      { feature: "FHIR R4 interoperability", desc: "HL7 FHIR standard APIs for EHR integration — EMIS, SystmOne, Epic, Cerner, MEDITECH compatibility" },
+                      { feature: "Multi-language platform", desc: "English, German, French, Arabic, Japanese, Mandarin — RTL support, culturally adapted symptom ontology" },
+                      { feature: "Configurable clinical pathways", desc: "Triage thresholds, escalation rules, and care protocols adaptable per region and health system" },
+                      { feature: "ISO 13485 QMS", desc: "Medical device quality management system supporting UKCA, CE, FDA, and TGA submissions from single codebase" },
+                      { feature: "SOC 2 Type II compliant", desc: "Security, availability, and confidentiality controls independently audited annually" },
+                    ].map((item) => (
+                      <div key={item.feature} className="text-xs">
+                        <p className="text-teal-400 font-medium">{item.feature}</p>
+                        <p className="text-slate-400 leading-relaxed">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              {/* Global Cardiac Burden & Adoption Drivers */}
+              <Card className="bg-white/5 border-white/10 p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Heart size={18} className="text-red-400" />
+                  <p className="text-sm font-bold text-white">Global Cardiac Disease Burden — Why International Adoption is Inevitable</p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    { stat: "64M", label: "Heart failure patients globally", detail: "WHO estimates 64 million people living with HF worldwide, growing 1-2% annually", color: "text-red-400" },
+                    { stat: "17.9M", label: "Annual CVD deaths worldwide", detail: "Cardiovascular disease remains the #1 cause of death globally (WHO 2024)", color: "text-amber-400" },
+                    { stat: "$346B", label: "Global CVD cost by 2030", detail: "Direct medical costs + productivity losses — remote monitoring reduces both", color: "text-purple-400" },
+                    { stat: "70%", label: "Of HF readmissions are preventable", detail: "Early detection through continuous monitoring addresses the root cause", color: "text-teal-400" },
+                  ].map((item) => (
+                    <div key={item.label} className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
+                      <p className={`text-2xl font-bold ${item.color}`}>{item.stat}</p>
+                      <p className="text-xs font-semibold text-white mt-1">{item.label}</p>
+                      <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">{item.detail}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  {[
+                    { driver: "Ageing populations", desc: "Every developed nation faces a cardiac care capacity crisis as populations age — remote monitoring is the scalable solution" },
+                    { driver: "Workforce shortages", desc: "Global shortage of 18M healthcare workers by 2030 (WHO) — AI-powered triage multiplies clinician capacity 3-5x" },
+                    { driver: "Value-based care shift", desc: "Payers globally moving from fee-for-service to outcomes-based contracts — RPM data demonstrates measurable value" },
+                  ].map((item) => (
+                    <div key={item.driver} className="rounded-lg bg-white/5 border border-white/10 p-4">
+                      <p className="text-xs font-bold text-teal-400 mb-1">{item.driver}</p>
+                      <p className="text-[10px] text-slate-400 leading-relaxed">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
             {/* Investor CTA */}
             <div className="mt-16 text-center">
               <Card className="inline-block bg-gradient-to-r from-teal-500/20 to-teal-600/20 border-teal-500/30 px-8 py-6 backdrop-blur-sm">
