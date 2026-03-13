@@ -31,11 +31,14 @@ interface DevicePairingModalProps {
   onOpenChange: (open: boolean) => void;
   patientId: string;
   apiBaseUrl?: string;
+  initialToken?: string;
+  initialShortCode?: string;
+  initialQrPayload?: string;
 }
 
 const PAIRING_TTL_SECONDS = 15 * 60; // 15 minutes
 
-export function DevicePairingModal({ open, onOpenChange, patientId, apiBaseUrl = '' }: DevicePairingModalProps) {
+export function DevicePairingModal({ open, onOpenChange, patientId, apiBaseUrl = '', initialToken, initialShortCode, initialQrPayload }: DevicePairingModalProps) {
   const [session, setSession] = useState<PairingSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -54,6 +57,18 @@ export function DevicePairingModal({ open, onOpenChange, patientId, apiBaseUrl =
       setQrDataUrl('');
       setPaired(false);
       setSecondsLeft(PAIRING_TTL_SECONDS);
+      return;
+    }
+    // Use pre-fetched session data if provided (e.g. from handleRequestLiveSync)
+    if (initialToken && initialShortCode && initialQrPayload) {
+      const preSession: PairingSession = {
+        token: initialToken,
+        shortCode: initialShortCode,
+        qrPayload: initialQrPayload,
+        expiresAt: new Date(Date.now() + PAIRING_TTL_SECONDS * 1000).toISOString(),
+      };
+      setSession(preSession);
+      void QRCode.toDataURL(initialQrPayload, { width: 240, margin: 2 }).then(setQrDataUrl);
       return;
     }
     void generateSession();

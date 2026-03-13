@@ -41,6 +41,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAlerts } from '@/context/AlertsContext';
 import { DevicePairingModal } from '@/pilot/components/DevicePairingModal';
+import { useQueryClient } from '@tanstack/react-query';
+import apiClient from '@/services/api/client';
 
 export default function PatientDetail() {
   const { patientId } = useParams<{ patientId: string }>();
@@ -48,7 +50,11 @@ export default function PatientDetail() {
   const dashboardPath = '/pilot/dashboard';
   const { resolvedAlertIds, resolveAlert } = useAlerts();
   const { data: patient, isLoading, error } = usePatientDetail(patientId || '');
+  const queryClient = useQueryClient();
   const [pairingOpen, setPairingOpen] = useState(false);
+  const [pairingToken, setPairingToken] = useState<string | undefined>(undefined);
+  const [pairingShortCode, setPairingShortCode] = useState<string | undefined>(undefined);
+  const [pairingQrPayload, setPairingQrPayload] = useState<string | undefined>(undefined);
 
   if (isLoading) {
     return (
@@ -68,9 +74,17 @@ export default function PatientDetail() {
     );
   }
 
-  const handleResolveAlert = (alertId: string) => {
-    resolveAlert(alertId);
-    toast.success('Alert marked as resolved');
+  const handleResolveAlert = async (alertId: string) => {
+    try {
+      await apiClient.patch(`/alerts/${alertId}/acknowledge`);
+      resolveAlert(alertId);
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      toast.success('Alert acknowledged');
+    } catch {
+      // Optimistically update local state even if API fails
+      resolveAlert(alertId);
+      toast.success('Alert marked as resolved');
+    }
   };
 
   const handleRequestAppointment = () => {
@@ -78,7 +92,12 @@ export default function PatientDetail() {
   };
 
   const handleContactPatient = () => {
-    toast.info('Opening secure messaging...');
+    const phone = (patient as { whatsappPhone?: string }).whatsappPhone?.replace(/\D/g, '');
+    if (phone) {
+      window.open(`https://wa.me/${phone}`, '_blank');
+    } else {
+      toast.info('No WhatsApp number on file for this patient');
+    }
   };
 
   const clinicianName = 'Dr. Sarah Mitchell';
@@ -119,8 +138,19 @@ export default function PatientDetail() {
     toast.success(`Medication order sent to ${pharmacyName}`);
   };
 
-  const handleRequestLiveSync = () => {
-    toast.success('Live wearable sync requested');
+  const handleRequestLiveSync = async () => {
+    try {
+      const res = await apiClient.post<{
+        data: { token: string; shortCode: string; qrPayload: string };
+      }>('/pairing/generate', { patientId: patientId || '' });
+      const { token, shortCode, qrPayload } = res.data.data;
+      setPairingToken(token);
+      setPairingShortCode(shortCode);
+      setPairingQrPayload(qrPayload);
+      setPairingOpen(true);
+    } catch {
+      toast.error('Failed to request live sync');
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -632,6 +662,9 @@ export default function PatientDetail() {
         open={pairingOpen}
         onOpenChange={setPairingOpen}
         patientId={patientId || ''}
+        initialToken={pairingToken}
+        initialShortCode={pairingShortCode}
+        initialQrPayload={pairingQrPayload}
       />
     </div>
   );
