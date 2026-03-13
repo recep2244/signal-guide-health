@@ -145,7 +145,6 @@ model User {
   passwordResetTokens  PasswordResetToken[]
   auditLogs            AuditLog[]
   notifications        Notification[]
-  doctorAssignments    DoctorPatientAssignment[] @relation("PatientUser")
   alertsResolved       Alert[]                 @relation("AlertResolver")
   alertsAcknowledged   Alert[]                 @relation("AlertAcknowledger")
   triageUpdates        Patient[]               @relation("TriageUpdater")
@@ -317,8 +316,8 @@ model DoctorPatientAssignment {
   status     String   @default("active")
   notes      String?
 
-  doctor  Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  patient User   @relation("PatientUser", fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@unique([doctorId, patientId])
   @@map("doctor_patient_assignments")
@@ -687,6 +686,51 @@ model PatientDailyStats {
 
   @@unique([patientId, statDate])
   @@map("patient_daily_stats")
+}
+
+// =============================================================================
+// INTEGRATION KEY VAULT
+// =============================================================================
+
+model AdminIntegrationKey {
+  id                    String    @id @default(uuid())
+  provider              String
+  keyName               String    @map("key_name")
+  encryptedValue        String    @map("encrypted_value")
+  valueFingerprint      String    @map("value_fingerprint")
+  version               Int       @default(1)
+  lastRotatedAt         DateTime? @map("last_rotated_at")
+  lastValidatedAt       DateTime? @map("last_validated_at")
+  lastValidationStatus  String?   @map("last_validation_status")
+  lastValidationMessage String?   @map("last_validation_message")
+  createdBy             String?   @map("created_by")
+  updatedBy             String?   @map("updated_by")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  versions AdminIntegrationKeyVersion[]
+
+  @@unique([provider, keyName])
+  @@map("admin_integration_keys")
+}
+
+model AdminIntegrationKeyVersion {
+  id               String    @id @default(uuid())
+  provider         String
+  keyName          String    @map("key_name")
+  version          Int
+  encryptedValue   String    @map("encrypted_value")
+  valueFingerprint String    @map("value_fingerprint")
+  status           String    @default("active")
+  rotationReason   String?   @map("rotation_reason")
+  rotatedBy        String?   @map("rotated_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  revokedAt        DateTime? @map("revoked_at")
+
+  integrationKey AdminIntegrationKey @relation(fields: [provider, keyName], references: [provider, keyName], onDelete: Cascade)
+
+  @@unique([provider, keyName, version])
+  @@map("admin_integration_key_versions")
 }
 
 model SystemDailyStats {
