@@ -32,6 +32,7 @@ import appointmentRoutes from './routes/appointments';
 import adminRoutes from './routes/admin';
 import clinicalRoutes from './routes/clinical';
 import webhookRoutes from './routes/webhooks';
+import pairingRoutes from './routes/pairing';
 import { pilotSchedulerService } from './services/pilotSchedulerService';
 
 const app: Express = express();
@@ -248,6 +249,7 @@ apiRouter.use('/wearables', wearableRoutes);
 apiRouter.use('/appointments', appointmentRoutes);
 apiRouter.use('/admin', requireLocalAdminAccess, adminRoutes);
 apiRouter.use('/clinical', clinicalRoutes);
+apiRouter.use('/pairing', pairingRoutes);
 
 // API version prefix
 app.use('/api/v1', apiRouter);

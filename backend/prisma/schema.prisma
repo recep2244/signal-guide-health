@@ -284,6 +284,7 @@ model Patient {
   conversations       Conversation[]
   appointments        Appointment[]
   dailyStats          PatientDailyStats[]
+  pairingTokens       PairingToken[]
 
   @@index([nhsNumber])
   @@index([triageLevel])
@@ -755,4 +756,26 @@ model SystemDailyStats {
   createdAt                DateTime @default(now()) @map("created_at")
 
   @@map("system_daily_stats")
+}
+
+// =============================================================================
+// DEVICE PAIRING
+// =============================================================================
+
+model PairingToken {
+  id          String        @id @default(uuid())
+  patientId   String        @map("patient_id")
+  token       String        @unique
+  shortCode   String        @map("short_code")
+  expiresAt   DateTime      @map("expires_at")
+  usedAt      DateTime?     @map("used_at")
+  deviceType  WearableType? @map("device_type")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([shortCode])
+  @@index([patientId])
+  @@map("pairing_tokens")
 }
