@@ -121,12 +121,49 @@ const probeEndpoint = async (args: {
   }
 };
 
-router.get('/users', async (_req: Request, res: Response) => {
-  res.json({ status: 'success', data: { users: [] } });
+router.get('/users', async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query['page'] as string) || 1;
+    const limit = parseInt(req.query['limit'] as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        skip,
+        take: limit,
+        select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.user.count(),
+    ]);
+
+    res.json({ status: 'success', data: { users, total, page, limit } });
+  } catch (error) {
+    logger.error({ message: 'Failed to fetch users', error: error instanceof Error ? error.message : 'Unknown' });
+    res.status(500).json({ status: 'error', message: 'Failed to fetch users' });
+  }
 });
 
 router.get('/audit-logs', async (req: Request, res: Response) => {
-  res.json({ status: 'success', data: { logs: [] } });
+  try {
+    const page = parseInt(req.query['page'] as string) || 1;
+    const limit = parseInt(req.query['limit'] as string) || 20;
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.auditLog.count(),
+    ]);
+
+    res.json({ status: 'success', data: { logs, total, page, limit } });
+  } catch (error) {
+    logger.error({ message: 'Failed to fetch audit logs', error: error instanceof Error ? error.message : 'Unknown' });
+    res.status(500).json({ status: 'error', message: 'Failed to fetch audit logs' });
+  }
 });
 
 router.get('/stats', async (_req: Request, res: Response) => {
