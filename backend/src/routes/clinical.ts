@@ -823,4 +823,168 @@ router.get('/pilot/whatsapp/patients/:patientId/messages', async (req: Request, 
   }
 });
 
+// GET /overview — clinical dashboard summary
+router.get('/overview', async (req: Request, res: Response) => {
+  try {
+    const scopedPatientIds = await getScopedPatientIds(req);
+    const patientWhere: Prisma.PatientWhereInput =
+      scopedPatientIds === null ? {} : { id: { in: scopedPatientIds } };
+    const patientIdScope =
+      scopedPatientIds === null ? {} : { patientId: { in: scopedPatientIds } };
+
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+
+    const [totalPatients, redTriage, amberTriage, alertsToday, avgHrAgg] = await Promise.all([
+      prisma.patient.count({ where: patientWhere }),
+      prisma.patient.count({ where: { ...patientWhere, triageLevel: 'red' } }),
+      prisma.patient.count({ where: { ...patientWhere, triageLevel: 'amber' } }),
+      prisma.alert.count({
+        where: { ...patientIdScope, resolved: false, createdAt: { gte: todayStart } },
+      }),
+      prisma.wearableReading.aggregate({
+        where: { ...patientIdScope },
+        _avg: { avgHeartRate: true },
+      }),
+    ]);
+
+    res.json({
+      status: 'success',
+      data: {
+        totalPatients,
+        redTriage,
+        amberTriage,
+        alertsToday,
+        avgHeartRate:
+          avgHrAgg._avg.avgHeartRate !== null
+            ? Math.round(avgHrAgg._avg.avgHeartRate)
+            : null,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Failed to fetch clinical overview',
+    });
+  }
+});
+
+// GET /patients — scoped patient list with triageLevel, lastCheckIn, wearableCount
+router.get('/patients', async (req: Request, res: Response) => {
+  try {
+    const requestedLimit = Number(req.query['limit']);
+    const limit = Number.isFinite(requestedLimit)
+      ? Math.max(1, Math.min(300, requestedLimit))
+      : 100;
+
+    const scopedPatientIds = await getScopedPatientIds(req);
+    const patientWhere: Prisma.PatientWhereInput =
+      scopedPatientIds === null ? {} : { id: { in: scopedPatientIds } };
+
+    const patients = await prisma.patient.findMany({
+      where: patientWhere,
+      select: {
+        id: true,
+        triageLevel: true,
+        lastCheckIn: true,
+        user: { select: { firstName: true, lastName: true } },
+        _count: { select: { wearableDevices: { where: { isConnected: true } } } },
+      },
+      take: limit,
+      orderBy: [{ triageLevel: 'asc' }, { lastCheckIn: 'asc' }],
+    });
+
+    res.json({
+      status: 'success',
+      data: {
+        generatedAt: new Date().toISOString(),
+        patients: patients.map((p) => ({
+          id: p.id,
+          name: `${p.user.firstName} ${p.user.lastName}`.trim(),
+          triageLevel: p.triageLevel,
+          lastCheckIn: p.lastCheckIn ? p.lastCheckIn.toISOString() : null,
+          wearableCount: p._count.wearableDevices,
+        })),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Failed to fetch patients',
+    });
+  }
+});
+
+// GET /patient/:id/trend — 7-day aggregated WearableReadings
+router.get('/patient/:id/trend', async (req: Request, res: Response) => {
+  try {
+    const patientId = req.params['id'];
+    if (!patientId) {
+      res.status(400).json({ status: 'error', message: 'patientId required' });
+      return;
+    }
+
+    const scopedPatientIds = await getScopedPatientIds(req);
+    if (scopedPatientIds !== null && !scopedPatientIds.includes(patientId)) {
+      res.status(403).json({ status: 'error', message: 'Access denied' });
+      return;
+    }
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+
+    const readings = await prisma.wearableReading.findMany({
+      where: {
+        patientId,
+        readingDate: { gte: sevenDaysAgo },
+      },
+      orderBy: { readingDate: 'asc' },
+      select: {
+        readingDate: true,
+        avgHeartRate: true,
+        steps: true,
+        bloodOxygenPercent: true,
+      },
+    });
+
+    // Aggregate by day
+    const byDay = new Map<
+      string,
+      { heartRateSum: number; hrCount: number; stepsSum: number; oxySum: number; oxyCount: number }
+    >();
+
+    for (const r of readings) {
+      const day = r.readingDate.toISOString().slice(0, 10);
+      const current = byDay.get(day) || { heartRateSum: 0, hrCount: 0, stepsSum: 0, oxySum: 0, oxyCount: 0 };
+      if (typeof r.avgHeartRate === 'number') {
+        current.heartRateSum += r.avgHeartRate;
+        current.hrCount += 1;
+      }
+      if (typeof r.steps === 'number') {
+        current.stepsSum += r.steps;
+      }
+      if (r.bloodOxygenPercent !== null) {
+        current.oxySum += Number(r.bloodOxygenPercent);
+        current.oxyCount += 1;
+      }
+      byDay.set(day, current);
+    }
+
+    const trend = Array.from(byDay.entries()).map(([date, agg]) => ({
+      date,
+      avgHeartRate: agg.hrCount > 0 ? Math.round(agg.heartRateSum / agg.hrCount) : null,
+      steps: agg.stepsSum || null,
+      bloodOxygenPercent: agg.oxyCount > 0 ? Number((agg.oxySum / agg.oxyCount).toFixed(1)) : null,
+    }));
+
+    res.json({ status: 'success', data: { patientId, trend } });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Failed to fetch trend',
+    });
+  }
+});
+
 export default router;
