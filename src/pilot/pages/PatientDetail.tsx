@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { applyResolvedAlerts, getPatientById, mockPatients } from '@/data/mockPatients';
+import { usePatientDetail } from '@/hooks/usePatientData';
 import { PilotDashboardHeader } from '@/pilot/components/PilotDashboardHeader';
 import { TriageBadge } from '@/components/TriageBadge';
 import { VitalTrends } from '@/components/VitalTrends';
@@ -35,23 +35,29 @@ import {
   Waves,
   Building2,
   FlaskConical,
+  Smartphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAlerts } from '@/context/AlertsContext';
-import { calculateBaseline } from '@/data/mockPatients';
+import { DevicePairingModal } from '@/pilot/components/DevicePairingModal';
 
 export default function PatientDetail() {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const dashboardPath = '/pilot/dashboard';
   const { resolvedAlertIds, resolveAlert } = useAlerts();
-  const patient = useMemo(() => {
-    const patients = applyResolvedAlerts(mockPatients, resolvedAlertIds);
-    return getPatientById(patientId || '', patients);
-  }, [patientId, resolvedAlertIds]);
+  const { data: patient, isLoading, error } = usePatientDetail(patientId || '');
+  const [pairingOpen, setPairingOpen] = useState(false);
 
-  if (!patient) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center"><p className="text-muted-foreground">Loading patient data...</p></div>
+      </div>
+    );
+  }
+  if (error || !patient) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -77,12 +83,25 @@ export default function PatientDetail() {
 
   const clinicianName = 'Dr. Sarah Mitchell';
   const pharmacyName = 'CityCare Pharmacy';
-  const latestWearable = patient.wearableData[patient.wearableData.length - 1];
-  const baseline = calculateBaseline(patient.wearableData);
-  const hrDelta = Math.round(latestWearable.restingHR - baseline.avgRestingHR);
-  const hrvDelta = Math.round(latestWearable.hrv - baseline.avgHRV);
-  const sleepDelta = +(latestWearable.sleepHours - baseline.avgSleepHours).toFixed(1);
-  const stepsDelta = Math.round(latestWearable.steps - baseline.avgSteps);
+
+  const latestWearable = patient.wearableData?.[patient.wearableData.length - 1];
+
+  let hrDelta = 0;
+  let hrvDelta = 0;
+  let sleepDelta = 0;
+  let stepsDelta = 0;
+
+  if (latestWearable && patient.wearableData && patient.wearableData.length > 0) {
+    const data = patient.wearableData;
+    const avgRestingHR = data.reduce((s, d) => s + d.restingHR, 0) / data.length;
+    const avgHRV = data.reduce((s, d) => s + d.hrv, 0) / data.length;
+    const avgSleepHours = data.reduce((s, d) => s + d.sleepHours, 0) / data.length;
+    const avgSteps = data.reduce((s, d) => s + d.steps, 0) / data.length;
+    hrDelta = Math.round(latestWearable.restingHR - avgRestingHR);
+    hrvDelta = Math.round(latestWearable.hrv - avgHRV);
+    sleepDelta = +(latestWearable.sleepHours - avgSleepHours).toFixed(1);
+    stepsDelta = Math.round(latestWearable.steps - avgSteps);
+  }
 
   const handleCallClinician = () => {
     toast.info(`Calling ${clinicianName}...`);
@@ -112,7 +131,7 @@ export default function PatientDetail() {
     });
   };
 
-  const unresolvedAlerts = patient.alerts.filter((a) => !a.resolved);
+  const unresolvedAlerts = patient.alerts.filter((a) => !resolvedAlertIds.has(a.id) && !a.resolved);
 
   return (
     <div className="min-h-screen bg-background">
@@ -156,6 +175,10 @@ export default function PatientDetail() {
               <Button variant="outline" size="sm" onClick={() => toast.info(`Calling ${patient.name}...`)}>
                 <Phone size={16} className="mr-1.5" />
                 Call
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPairingOpen(true)}>
+                <Smartphone size={16} className="mr-1.5" />
+                Connect Device
               </Button>
               <Button size="sm" onClick={handleRequestAppointment}>
                 <Calendar size={16} className="mr-1.5" />
@@ -468,56 +491,60 @@ export default function PatientDetail() {
                   </Button>
                 </div>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Card className={cn("p-4 border-2 transition-colors", Math.abs(hrDelta) > 15 ? "border-red-200 bg-red-50/50" : Math.abs(hrDelta) > 10 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Heart size={14} className="text-red-500" />
-                    <p className="text-xs font-medium text-slate-500">Resting HR</p>
-                  </div>
-                  <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.restingHR)} <span className="text-xs font-normal text-slate-500">bpm</span></p>
-                  <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", hrDelta > 10 ? "text-red-600" : hrDelta > 0 ? "text-amber-600" : "text-green-600")}>
-                    {hrDelta > 0 ? <TrendingUp size={12} /> : hrDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
-                    {hrDelta > 0 ? '+' : ''}{hrDelta} vs baseline
-                  </div>
-                </Card>
-                <Card className={cn("p-4 border-2 transition-colors", hrvDelta < -15 ? "border-red-200 bg-red-50/50" : hrvDelta < -8 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Activity size={14} className="text-teal-500" />
-                    <p className="text-xs font-medium text-slate-500">HRV</p>
-                  </div>
-                  <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.hrv)} <span className="text-xs font-normal text-slate-500">ms</span></p>
-                  <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", hrvDelta < -15 ? "text-red-600" : hrvDelta < 0 ? "text-amber-600" : "text-green-600")}>
-                    {hrvDelta > 0 ? <TrendingUp size={12} /> : hrvDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
-                    {hrvDelta > 0 ? '+' : ''}{hrvDelta} vs baseline
-                  </div>
-                </Card>
-                <Card className={cn("p-4 border-2 transition-colors", latestWearable.sleepHours < 5 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Moon size={14} className="text-blue-500" />
-                    <p className="text-xs font-medium text-slate-500">Sleep</p>
-                  </div>
-                  <p className="text-xl font-bold text-slate-900">{latestWearable.sleepHours.toFixed(1)} <span className="text-xs font-normal text-slate-500">hrs</span></p>
-                  <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", sleepDelta < -1 ? "text-amber-600" : sleepDelta > 0 ? "text-green-600" : "text-slate-500")}>
-                    {sleepDelta > 0 ? <TrendingUp size={12} /> : sleepDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
-                    {sleepDelta > 0 ? '+' : ''}{sleepDelta} vs baseline
-                  </div>
-                </Card>
-                <Card className="p-4 border-2 border-slate-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Footprints size={14} className="text-green-500" />
-                    <p className="text-xs font-medium text-slate-500">Steps</p>
-                  </div>
-                  <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.steps).toLocaleString()}</p>
-                  <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", stepsDelta < -2000 ? "text-amber-600" : stepsDelta > 0 ? "text-green-600" : "text-slate-500")}>
-                    {stepsDelta > 0 ? <TrendingUp size={12} /> : stepsDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
-                    {stepsDelta > 0 ? '+' : ''}{stepsDelta.toLocaleString()} vs baseline
-                  </div>
-                </Card>
-              </div>
+              {latestWearable ? (
+                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  <Card className={cn("p-4 border-2 transition-colors", Math.abs(hrDelta) > 15 ? "border-red-200 bg-red-50/50" : Math.abs(hrDelta) > 10 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Heart size={14} className="text-red-500" />
+                      <p className="text-xs font-medium text-slate-500">Resting HR</p>
+                    </div>
+                    <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.restingHR)} <span className="text-xs font-normal text-slate-500">bpm</span></p>
+                    <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", hrDelta > 10 ? "text-red-600" : hrDelta > 0 ? "text-amber-600" : "text-green-600")}>
+                      {hrDelta > 0 ? <TrendingUp size={12} /> : hrDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
+                      {hrDelta > 0 ? '+' : ''}{hrDelta} vs baseline
+                    </div>
+                  </Card>
+                  <Card className={cn("p-4 border-2 transition-colors", hrvDelta < -15 ? "border-red-200 bg-red-50/50" : hrvDelta < -8 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Activity size={14} className="text-teal-500" />
+                      <p className="text-xs font-medium text-slate-500">HRV</p>
+                    </div>
+                    <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.hrv)} <span className="text-xs font-normal text-slate-500">ms</span></p>
+                    <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", hrvDelta < -15 ? "text-red-600" : hrvDelta < 0 ? "text-amber-600" : "text-green-600")}>
+                      {hrvDelta > 0 ? <TrendingUp size={12} /> : hrvDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
+                      {hrvDelta > 0 ? '+' : ''}{hrvDelta} vs baseline
+                    </div>
+                  </Card>
+                  <Card className={cn("p-4 border-2 transition-colors", latestWearable.sleepHours < 5 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Moon size={14} className="text-blue-500" />
+                      <p className="text-xs font-medium text-slate-500">Sleep</p>
+                    </div>
+                    <p className="text-xl font-bold text-slate-900">{latestWearable.sleepHours.toFixed(1)} <span className="text-xs font-normal text-slate-500">hrs</span></p>
+                    <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", sleepDelta < -1 ? "text-amber-600" : sleepDelta > 0 ? "text-green-600" : "text-slate-500")}>
+                      {sleepDelta > 0 ? <TrendingUp size={12} /> : sleepDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
+                      {sleepDelta > 0 ? '+' : ''}{sleepDelta} vs baseline
+                    </div>
+                  </Card>
+                  <Card className="p-4 border-2 border-slate-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Footprints size={14} className="text-green-500" />
+                      <p className="text-xs font-medium text-slate-500">Steps</p>
+                    </div>
+                    <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.steps).toLocaleString()}</p>
+                    <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", stepsDelta < -2000 ? "text-amber-600" : stepsDelta > 0 ? "text-green-600" : "text-slate-500")}>
+                      {stepsDelta > 0 ? <TrendingUp size={12} /> : stepsDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
+                      {stepsDelta > 0 ? '+' : ''}{stepsDelta.toLocaleString()} vs baseline
+                    </div>
+                  </Card>
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-slate-500">No wearable data available yet.</p>
+              )}
             </Card>
             <div className="grid lg:grid-cols-2 gap-4">
               <SBARCard sbar={patient.sbar} />
-              <VitalTrends data={patient.wearableData} />
+              <VitalTrends data={patient.wearableData ?? []} />
             </div>
           </TabsContent>
 
@@ -531,7 +558,7 @@ export default function PatientDetail() {
           </TabsContent>
 
           <TabsContent value="vitals" className="mt-4">
-            <VitalTrends data={patient.wearableData} />
+            <VitalTrends data={patient.wearableData ?? []} />
           </TabsContent>
 
           <TabsContent value="medications" className="mt-4">
@@ -600,6 +627,12 @@ export default function PatientDetail() {
           </div>
         )}
       </main>
+
+      <DevicePairingModal
+        open={pairingOpen}
+        onOpenChange={setPairingOpen}
+        patientId={patientId || ''}
+      />
     </div>
   );
 }

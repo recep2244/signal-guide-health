@@ -1,8 +1,16 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { PrismaClient, UserRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const BCRYPT_ROUNDS = 12;
+
+function generatePassword(length = 20): string {
+  return crypto.randomBytes(Math.ceil(length * 3 / 4))
+    .toString('base64')
+    .replace(/[+/=]/g, '')
+    .slice(0, length);
+}
 
 type SeedUser = {
   email: string;
@@ -25,27 +33,24 @@ type SeedPatient = {
   primaryDiagnosis: string;
 };
 
-const PILOT_USERS: SeedUser[] = [
+const PILOT_USERS: Omit<SeedUser, 'password'>[] = [
   {
     email: 'admin@cardiowatch.nhs.uk',
     firstName: 'Sarah',
     lastName: 'Mitchell',
     role: 'super_admin',
-    password: 'admin123',
   },
   {
     email: 'ops@cardiowatch.nhs.uk',
     firstName: 'James',
     lastName: 'Wilson',
     role: 'admin',
-    password: 'admin123',
   },
   {
     email: 'dr.patel@nhs.uk',
     firstName: 'Raj',
     lastName: 'Patel',
     role: 'doctor',
-    password: 'doctor123',
   },
 ];
 
@@ -159,9 +164,10 @@ async function upsertUser(user: SeedUser, organizationId: string): Promise<void>
 
 async function upsertPatient(
   patient: SeedPatient,
-  organizationId: string
+  organizationId: string,
+  password: string
 ): Promise<{ userId: string; patientId: string }> {
-  const passwordHash = await bcrypt.hash('patient123', BCRYPT_ROUNDS);
+  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
   const createdUser = await prisma.user.upsert({
     where: { email: patient.email.toLowerCase() },
@@ -413,6 +419,12 @@ async function seedPilotOperationalData(
 }
 
 async function main(): Promise<void> {
+  const generatedPasswords: Record<string, string> = {};
+  for (const user of PILOT_USERS) {
+    generatedPasswords[user.email] = generatePassword();
+  }
+  const patientPassword = generatePassword();
+
   const org = await prisma.organization.upsert({
     where: { id: 'org-local-001' },
     update: {
@@ -430,7 +442,7 @@ async function main(): Promise<void> {
   });
 
   for (const user of PILOT_USERS) {
-    await upsertUser(user, org.id);
+    await upsertUser({ ...user, password: generatedPasswords[user.email]! }, org.id);
   }
 
   const doctorUser = await prisma.user.findUnique({
@@ -451,18 +463,19 @@ async function main(): Promise<void> {
 
   const patientIdsByKey: Record<string, string> = {};
   for (const patient of PILOT_PATIENTS) {
-    const result = await upsertPatient(patient, org.id);
+    const result = await upsertPatient(patient, org.id, patientPassword);
     patientIdsByKey[patient.key] = result.patientId;
   }
 
   await ensureDoctorAssignments(doctorRecord.id, Object.values(patientIdsByKey));
   await seedPilotOperationalData(patientIdsByKey, doctorRecord.id);
 
-  console.log('Pilot users seeded:');
+  console.log('\n=== GENERATED PILOT CREDENTIALS (save these — shown once) ===');
   for (const user of PILOT_USERS) {
-    console.log(`- ${user.email} / ${user.password}`);
+    console.log(`${user.email}  ${generatedPasswords[user.email]}`);
   }
-  console.log('- patient local accounts seeded with password: patient123');
+  console.log(`patient accounts (all):  ${patientPassword}`);
+  console.log('=============================================================\n');
 }
 
 main()

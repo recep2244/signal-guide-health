@@ -5,8 +5,10 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { Prisma } from '@prisma/client';
 import { logger } from '../utils/logger';
 import { env } from '../config/env';
+import { prisma } from '../config/database';
 
 // Audit event types
 export type AuditAction =
@@ -248,8 +250,18 @@ export const auditLogger = (
       ...auditEntry,
     });
 
-    // In production, also write to audit_logs table
-    // await prisma.auditLog.create({ data: auditEntry });
+    prisma.auditLog.create({
+      data: {
+        id: auditEntry.id,
+        userId: auditEntry.userId ?? null,
+        action: auditEntry.action,
+        entityType: auditEntry.entityType ?? 'api_request',
+        entityId: auditEntry.entityId ?? null,
+        ipAddress: auditEntry.metadata?.ipAddress ?? null,
+        status: auditEntry.status ?? 'success',
+        errorMessage: auditEntry.errorMessage ?? null,
+      },
+    }).catch((dbErr: unknown) => logger.error({ type: 'audit_persist_error', err: dbErr }));
   });
 
   next();
@@ -302,6 +314,22 @@ export const logAuditEvent = async (
     ...auditEntry,
   });
 
-  // In production, persist to database
-  // await prisma.auditLog.create({ data: auditEntry });
+  try {
+    await prisma.auditLog.create({
+      data: {
+        id: auditEntry.id,
+        userId: auditEntry.userId ?? null,
+        action: auditEntry.action,
+        entityType: auditEntry.entityType ?? 'unknown',
+        entityId: auditEntry.entityId ?? null,
+        oldValues: auditEntry.oldValues ? (auditEntry.oldValues as unknown as Prisma.InputJsonValue) : undefined,
+        newValues: auditEntry.newValues ? (auditEntry.newValues as unknown as Prisma.InputJsonValue) : undefined,
+        ipAddress: auditEntry.metadata?.ipAddress ?? null,
+        status: auditEntry.status ?? 'success',
+        errorMessage: auditEntry.errorMessage ?? null,
+      },
+    });
+  } catch (dbErr) {
+    logger.error({ type: 'audit_persist_error', err: dbErr });
+  }
 };

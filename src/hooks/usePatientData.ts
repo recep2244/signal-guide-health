@@ -11,7 +11,7 @@ import { PatientListParams, PatientListResponse } from "@/services/patients/pati
 import { HealthTrend } from "@/services/wearables/types";
 
 // Check if we should use mock data
-const USE_MOCK = import.meta.env.VITE_ENABLE_MOCK_DATA !== "false";
+const USE_MOCK = import.meta.env.VITE_ENABLE_MOCK_DATA === "true";
 
 // Query keys
 export const patientDataKeys = {
