@@ -158,15 +158,22 @@ export class AppleHealthKitProvider implements Partial<WearableProviderInterface
       return false;
     }
 
+    const normalizedSignature = signature.startsWith('sha256=')
+      ? signature.slice('sha256='.length)
+      : signature;
+
     const expectedSignature = crypto
       .createHmac('sha256', this.webhookSecret)
       .update(payload)
       .digest('hex');
 
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
+    const actual = Buffer.from(normalizedSignature);
+    const expected = Buffer.from(expectedSignature);
+    if (actual.length !== expected.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(actual, expected);
   }
 
   /**
@@ -208,13 +215,13 @@ export class AppleHealthKitProvider implements Partial<WearableProviderInterface
   ): 'resting' | 'active' | 'workout' | 'sleep' | undefined {
     const metadata = sample.metadata || {};
 
-    if (metadata.HKHeartRateMotionContext === 1) {
+    if (metadata['HKHeartRateMotionContext'] === 1) {
       return 'active';
     }
-    if (metadata.HKHeartRateMotionContext === 2) {
+    if (metadata['HKHeartRateMotionContext'] === 2) {
       return 'resting';
     }
-    if (metadata.HKMetadataKeyWasUserEntered) {
+    if (metadata['HKMetadataKeyWasUserEntered']) {
       return undefined;
     }
 
@@ -287,8 +294,8 @@ export class AppleHealthKitProvider implements Partial<WearableProviderInterface
 
       if (sessionSamples.length > 0) {
         sleepData.push({
-          startTime: new Date(sessionSamples[0].startDate),
-          endTime: new Date(sessionSamples[sessionSamples.length - 1].endDate),
+          startTime: new Date(sessionSamples[0]!.startDate),
+          endTime: new Date(sessionSamples[sessionSamples.length - 1]!.endDate),
           totalMinutes: Math.round(totalMinutes),
           stages: {
             awake: Math.round(stages.awake),
@@ -353,7 +360,7 @@ export class AppleHealthKitProvider implements Partial<WearableProviderInterface
     const byDate: Map<string, Partial<ActivityData>> = new Map();
 
     for (const sample of samples) {
-      const dateStr = new Date(sample.startDate).toISOString().split('T')[0];
+      const dateStr = new Date(sample.startDate).toISOString().split('T')[0]!;
       if (!byDate.has(dateStr)) {
         byDate.set(dateStr, { date: new Date(dateStr) });
       }

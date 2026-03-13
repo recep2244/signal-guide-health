@@ -12,7 +12,7 @@ import { authenticate, requireRole } from '../middleware/auth';
 import { logAuditEvent } from '../middleware/audit';
 import { prisma } from '../config/database';
 
-const router = Router();
+const router: Router = Router();
 
 // All patient routes require authentication
 router.use(authenticate);

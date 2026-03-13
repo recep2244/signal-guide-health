@@ -5,7 +5,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticate, requireRole } from '../middleware/auth';
 
-const router = Router();
+const router: Router = Router();
 router.use(authenticate);
 
 router.get('/', requireRole('admin', 'super_admin'), async (_req: Request, res: Response) => {

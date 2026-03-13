@@ -176,7 +176,13 @@ export class GoogleFitProvider implements WearableProviderInterface {
         return { success: false, error: `Token exchange failed: ${error}` };
       }
 
-      const data = await response.json();
+      const data = await response.json() as {
+        access_token: string;
+        refresh_token?: string;
+        expires_in: number;
+        token_type: string;
+        scope?: string;
+      };
 
       return {
         success: true,
@@ -217,7 +223,12 @@ export class GoogleFitProvider implements WearableProviderInterface {
       throw new Error(`Token refresh failed: ${await response.text()}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as {
+      access_token: string;
+      refresh_token?: string;
+      expires_in: number;
+      token_type: string;
+    };
 
     return {
       accessToken: data.access_token,
@@ -309,7 +320,7 @@ export class GoogleFitProvider implements WearableProviderInterface {
     const url = `${this.baseUrl}/dataSources/derived:com.google.heart_rate.bpm:com.google.android.gms:merge_heart_rate_bpm/datasets/${datasetId}`;
 
     const response = await this.fetchWithAuth(url, accessToken);
-    const data: GoogleFitDataset = await response.json();
+    const data = await response.json() as GoogleFitDataset;
 
     return (data.point || []).map((point) => ({
       timestamp: new Date(parseInt(point.startTimeNanos) / 1e6),
@@ -337,7 +348,7 @@ export class GoogleFitProvider implements WearableProviderInterface {
     const url = `${this.baseUrl}/sessions?startTime=${startDate.toISOString()}&endTime=${endDate.toISOString()}&activityType=72`;
 
     const response = await this.fetchWithAuth(url, accessToken);
-    const data = await response.json();
+    const data = await response.json() as { session?: Array<{ startTimeMillis: string; endTimeMillis: string }> };
 
     const sleepData: SleepData[] = [];
 
@@ -378,7 +389,7 @@ export class GoogleFitProvider implements WearableProviderInterface {
 
     try {
       const response = await this.fetchWithAuth(url, accessToken);
-      const data: GoogleFitDataset = await response.json();
+      const data = await response.json() as GoogleFitDataset;
 
       const stages = { awake: 0, light: 0, deep: 0, rem: 0 };
 
@@ -439,7 +450,7 @@ export class GoogleFitProvider implements WearableProviderInterface {
     for (const point of stepsData) {
       const dateStr = new Date(parseInt(point.startTimeNanos) / 1e6)
         .toISOString()
-        .split('T')[0];
+        .split('T')[0]!;
       if (!activities.has(dateStr)) {
         activities.set(dateStr, { date: new Date(dateStr) });
       }
@@ -458,7 +469,7 @@ export class GoogleFitProvider implements WearableProviderInterface {
     for (const point of distanceData) {
       const dateStr = new Date(parseInt(point.startTimeNanos) / 1e6)
         .toISOString()
-        .split('T')[0];
+        .split('T')[0]!;
       if (!activities.has(dateStr)) {
         activities.set(dateStr, { date: new Date(dateStr) });
       }
@@ -477,7 +488,7 @@ export class GoogleFitProvider implements WearableProviderInterface {
     for (const point of caloriesData) {
       const dateStr = new Date(parseInt(point.startTimeNanos) / 1e6)
         .toISOString()
-        .split('T')[0];
+        .split('T')[0]!;
       if (!activities.has(dateStr)) {
         activities.set(dateStr, { date: new Date(dateStr) });
       }
@@ -567,7 +578,7 @@ export class GoogleFitProvider implements WearableProviderInterface {
 
     try {
       const response = await this.fetchWithAuth(url, accessToken);
-      const data: GoogleFitDataset = await response.json();
+      const data = await response.json() as GoogleFitDataset;
       return data.point || [];
     } catch {
       return [];

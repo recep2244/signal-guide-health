@@ -19,7 +19,7 @@ import {
 import type { WearableProvider } from '../services/wearables/types';
 import type { WearableType } from '@prisma/client';
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication
 router.use(authenticate);

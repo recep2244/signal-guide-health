@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { authenticate, requireRole } from '../middleware/auth';
 import { logAuditEvent } from '../middleware/audit';
 
-const router = Router();
+const router: Router = Router();
 router.use(authenticate);
 
 const createAlertSchema = z.object({

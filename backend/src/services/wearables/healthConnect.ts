@@ -163,15 +163,22 @@ export class HealthConnectProvider implements Partial<WearableProviderInterface>
       return false;
     }
 
+    const normalizedSignature = signature.startsWith('sha256=')
+      ? signature.slice('sha256='.length)
+      : signature;
+
     const expectedSignature = crypto
       .createHmac('sha256', this.webhookSecret)
       .update(payload)
       .digest('hex');
 
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
+    const actual = Buffer.from(normalizedSignature);
+    const expected = Buffer.from(expectedSignature);
+    if (actual.length !== expected.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(actual, expected);
   }
 
   /**
@@ -299,7 +306,7 @@ export class HealthConnectProvider implements Partial<WearableProviderInterface>
     record: HealthConnectRecord,
     type: 'steps' | 'distance' | 'calories' | 'floors'
   ): void {
-    const dateStr = new Date(record.startTime).toISOString().split('T')[0];
+    const dateStr = new Date(record.startTime).toISOString().split('T')[0]!;
 
     if (!map.has(dateStr)) {
       map.set(dateStr, { date: new Date(dateStr) });
