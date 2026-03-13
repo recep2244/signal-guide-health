@@ -95,6 +95,8 @@ const PROVIDER_INFO: WearableProviderInfo[] = [
   },
 ];
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '');
+
 function ProviderIcon({ icon }: { icon: WearableProviderInfo['icon'] }) {
   switch (icon) {
     case 'apple':
@@ -123,7 +125,7 @@ export function DevicePairing() {
   const { data: devices, isLoading: devicesLoading } = useQuery<ConnectedDevice[]>({
     queryKey: ['wearable-devices'],
     queryFn: async () => {
-      const response = await fetch('/api/wearables/devices');
+      const response = await fetch(`${API_BASE_URL}/wearables/devices`);
       const data = await response.json();
       return data.data?.devices || [];
     },
@@ -132,7 +134,7 @@ export function DevicePairing() {
   // Connect device mutation
   const connectMutation = useMutation({
     mutationFn: async (provider: WearableProvider) => {
-      const response = await fetch(`/api/wearables/connect/${provider}`, {
+      const response = await fetch(`${API_BASE_URL}/wearables/connect/${provider}`, {
         method: 'POST',
       });
       return response.json();
@@ -150,7 +152,7 @@ export function DevicePairing() {
   // Disconnect device mutation
   const disconnectMutation = useMutation({
     mutationFn: async (deviceId: string) => {
-      const response = await fetch(`/api/wearables/disconnect/${deviceId}`, {
+      const response = await fetch(`${API_BASE_URL}/wearables/disconnect/${deviceId}`, {
         method: 'DELETE',
       });
       return response.json();
@@ -163,7 +165,7 @@ export function DevicePairing() {
   // Sync device mutation
   const syncMutation = useMutation({
     mutationFn: async (deviceId: string) => {
-      const response = await fetch(`/api/wearables/sync/${deviceId}`, {
+      const response = await fetch(`${API_BASE_URL}/wearables/sync/${deviceId}`, {
         method: 'POST',
       });
       return response.json();

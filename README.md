@@ -107,6 +107,10 @@ npm run preview
 | `npm run lint` | Run ESLint |
 | `npm run test` | Run tests |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run phase1:ready` | Local pilot bootstrap (deps, DB sync, tests, build) |
+| `npm run phase2:ready` | Pilot ops checks (scheduler + security + integration tests) |
+| `npm run phase3:ready` | Production-style readiness checks |
+| `npm run phases:ready` | Run Phase 1, 2, and 3 sequentially |
 
 ## Configuration
 
@@ -148,9 +152,23 @@ Test files:
 
 ## Deployment
 
-The project is configured for GitHub Pages deployment via `.github/workflows/deploy.yml`.
+The doctor data-sharing portal is configured for Cloudflare Pages deployment via `.github/workflows/deploy.yml`.
 
-Build output is configured with base URL: `/signal-guide-health/`
+Key production build flags:
+
+- `VITE_DEPLOY_TARGET=cloudflare`
+- `VITE_ENABLE_ADMIN_UI=false`
+
+See `docs/cloudflare-doctor-hosting.md` for full setup (Cloudflare secrets, env, and backend access controls).
+
+## Local Pilot with Real Webhooks
+
+For a local backend that still receives real WhatsApp/Apple/Android callbacks through a secure tunnel, see:
+
+- `docs/local-pilot-tunnel.md`
+- `backend/.env.local-pilot.example`
+- `scripts/setup_cloudflared.sh`
+- `scripts/start_pilot_tunnel.sh`
 
 ## Business Model
 

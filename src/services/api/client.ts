@@ -118,13 +118,26 @@ export class ApiClient {
   // CORE REQUEST HANDLER
   // ---------------------------------------------------------------------------
 
+  private getCsrfTokenFromCookie(): string | null {
+    if (typeof document === "undefined") return null;
+    const match = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("csrf_token="));
+    return match ? decodeURIComponent(match.split("=")[1] || "") : null;
+  }
+
   private async request<T>(path: string, options: RequestInit): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${path}`;
+    const method = (options.method || "GET").toUpperCase();
+    const isStateChanging = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+    const csrfToken = this.getCsrfTokenFromCookie();
 
     let config: RequestInit = {
       ...options,
+      credentials: "include",
       headers: {
         ...this.defaultHeaders,
+        ...(isStateChanging && csrfToken ? { "x-csrf-token": csrfToken } : {}),
         ...(options.headers as Record<string, string>),
       },
     };
@@ -219,7 +232,7 @@ export class ApiClientError extends Error {
 // DEFAULT CLIENT INSTANCE
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 export const apiClient = new ApiClient({
   baseUrl: API_BASE_URL,

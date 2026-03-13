@@ -226,7 +226,7 @@ export class NotificationService {
         patientName,
         alertId,
         triageLevel,
-        actionUrl: `/patient/${patientId}`,
+        actionUrl: `/pilot/patient/${patientId}`,
         actionLabel: "View Patient",
       },
     });
@@ -283,7 +283,7 @@ export class NotificationService {
       data: {
         patientId,
         patientName,
-        actionUrl: `/patient/${patientId}`,
+        actionUrl: `/pilot/patient/${patientId}`,
       },
     });
   }

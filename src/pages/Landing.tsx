@@ -88,7 +88,7 @@ const journeyTabs = [
       "Clinicians get a prioritized list of patients who need attention, complete with SBAR summaries and actionable alert context.",
     bullets: ["Red/amber/green queues", "SBAR summaries", "Actionable alerts", "Trend baselines"],
     ctaLabel: "Open Dashboard",
-    ctaTo: "/dashboard",
+    ctaTo: "/pilot/dashboard",
   },
   {
     value: "operations",
@@ -99,7 +99,7 @@ const journeyTabs = [
       "Leaders see real-time trends, throughput metrics, and response times to keep programs funded and clinically effective.",
     bullets: ["Response time tracking", "Escalation volumes", "Coverage confidence", "ROI dashboards"],
     ctaLabel: "View Analytics",
-    ctaTo: "/dashboard",
+    ctaTo: "/pilot/dashboard",
   },
 ];
 
@@ -152,6 +152,7 @@ const stats = [
 export default function Landing() {
   const navigate = useNavigate();
   const { user, isAuthenticated, demoLogout } = useDemoAuth();
+  const enableDemoLogin = import.meta.env.VITE_ENABLE_MOCK_DATA === "true";
   const [patientsMonitored, setPatientsMonitored] = useState([140]);
   const [readmissionRate, setReadmissionRate] = useState([14]);
   const [contactForm, setContactForm] = useState({
@@ -234,7 +235,7 @@ export default function Landing() {
               variant="ghost"
               size="sm"
               className="hidden text-slate-600 hover:text-teal-600 sm:inline-flex"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/pilot/dashboard")}
             >
               Dashboard
             </Button>
@@ -269,12 +270,12 @@ export default function Landing() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => navigate('/demo/dashboard')} className="cursor-pointer">
                     <Heart className="mr-2 h-4 w-4 text-slate-500" />
                     Dashboard
                   </DropdownMenuItem>
                   {user.role === 'admin' && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => navigate('/demo/admin')} className="cursor-pointer">
                       <Shield className="mr-2 h-4 w-4 text-slate-500" />
                       Admin Console
                     </DropdownMenuItem>
@@ -291,15 +292,27 @@ export default function Landing() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hidden text-slate-600 sm:inline-flex"
-                onClick={() => navigate("/login")}
-              >
-                <LogIn size={16} className="mr-1.5" />
-                Sign in
-              </Button>
+              <>
+                {enableDemoLogin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden text-slate-600 sm:inline-flex"
+                    onClick={() => navigate("/demo-login")}
+                  >
+                    Demo Login
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden text-slate-600 sm:inline-flex"
+                  onClick={() => navigate("/pilot-login")}
+                >
+                  <LogIn size={16} className="mr-1.5" />
+                  Pilot Login
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -341,7 +354,7 @@ export default function Landing() {
                   size="lg"
                   variant="outline"
                   className="w-full sm:w-auto border-slate-300 hover:bg-slate-50 px-8 h-12 text-base"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/pilot/dashboard")}
                 >
                   Explore Dashboard
                   <ArrowRight size={18} className="ml-2" />
@@ -447,7 +460,7 @@ export default function Landing() {
                   <Button
                     variant="outline"
                     className="mt-8 border-blue-300 text-blue-700 hover:bg-blue-50"
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => navigate("/pilot/dashboard")}
                   >
                     Open Dashboard
                     <ChevronRight size={16} className="ml-1" />
@@ -1105,7 +1118,7 @@ export default function Landing() {
                   <Button
                     variant="outline"
                     className="border-teal-500/50 text-teal-300 hover:bg-teal-500/20 px-6"
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => navigate("/pilot/dashboard")}
                   >
                     <Play size={16} className="mr-2" />
                     See Live Demo
@@ -1832,7 +1845,7 @@ export default function Landing() {
                   size="lg"
                   variant="outline"
                   className="w-full sm:w-auto border-teal-400 text-white hover:bg-teal-500 px-8 h-12"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/pilot/dashboard")}
                 >
                   Open Dashboard
                 </Button>

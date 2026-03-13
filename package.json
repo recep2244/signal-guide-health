@@ -17,7 +17,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "phase1:ready": "./scripts/phase1_ready.sh",
+    "phase2:ready": "./scripts/phase2_ready.sh",
+    "phase3:ready": "./scripts/phase3_ready.sh",
+    "phases:ready": "./scripts/run_all_phases.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -62,7 +66,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.61.1",
     "react-resizable-panels": "^2.1.9",
-    "react-router-dom": "^6.30.1",
+    "react-router-dom": "^6.30.2",
     "recharts": "^2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
@@ -90,7 +94,13 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-    "vite": "^5.4.19",
+    "vite": "^5.4.21",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "esbuild": "^0.25.12",
+    "glob": "^10.5.0",
+    "js-yaml": "^4.1.1",
+    "lodash": "^4.17.23"
   }
 }

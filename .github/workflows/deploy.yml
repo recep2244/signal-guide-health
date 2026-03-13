@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Doctor Portal to Cloudflare Pages
 
 on:
   push:
@@ -7,15 +7,13 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: "pages"
+  group: cloudflare-pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,21 +28,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build doctor portal
         run: npm run build
+        env:
+          VITE_DEPLOY_TARGET: cloudflare
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_ENABLE_ADMIN_UI: 'false'
+          VITE_ENABLE_MOCK_DATA: 'false'
+          VITE_ENABLE_PILOT_MOCK_DATA: 'false'
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: signal-guide-health-doctor
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

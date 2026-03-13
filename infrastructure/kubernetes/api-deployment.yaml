@@ -85,6 +85,53 @@ spec:
                 configMapKeyRef:
                   name: cardiowatch-config
                   key: allowed-origins
+            - name: WHATSAPP_API_URL
+              value: "https://graph.facebook.com/v18.0"
+            - name: WHATSAPP_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: whatsapp-access-token
+            - name: WHATSAPP_PHONE_NUMBER_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: whatsapp-phone-number-id
+            - name: WHATSAPP_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: whatsapp-webhook-secret
+            - name: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: whatsapp-webhook-verify-token
+            - name: APPLE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: apple-webhook-secret
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: google-client-id
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: google-client-secret
+            - name: GOOGLE_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: google-redirect-uri
+            - name: HEALTH_CONNECT_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cardiowatch-secrets
+                  key: health-connect-webhook-secret
           resources:
             requests:
               cpu: "100m"

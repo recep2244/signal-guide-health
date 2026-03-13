@@ -9,15 +9,21 @@ import { ApiClient, apiClient } from "../api/client";
 // TYPES
 // ============================================================================
 
-export type UserRole = "clinician" | "patient" | "admin";
+export type UserRole =
+  | "clinician"
+  | "doctor"
+  | "nurse"
+  | "patient"
+  | "admin"
+  | "super_admin";
 
 export interface User {
   id: string;
   email: string;
   name: string;
   role: UserRole;
-  patientId?: string; // For patient accounts
-  clinicianId?: string; // For clinician accounts
+  patientId?: string;
+  clinicianId?: string;
   permissions: Permission[];
   lastLoginAt?: string;
   createdAt: string;
@@ -61,8 +67,8 @@ export interface RegisterRequest {
   password: string;
   name: string;
   role: UserRole;
-  nhsNumber?: string; // For patient registration
-  clinicianId?: string; // For clinician registration
+  nhsNumber?: string;
+  clinicianId?: string;
 }
 
 export interface PasswordResetRequest {
@@ -78,6 +84,53 @@ export interface SessionInfo {
   user: User;
   expiresAt: string;
   isValid: boolean;
+}
+
+interface BackendUserShape {
+  id: string;
+  email: string;
+  role: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  permissions?: string[];
+  createdAt?: string;
+}
+
+interface BackendAuthDataShape {
+  user?: BackendUserShape;
+  accessToken?: string;
+  expiresIn?: number;
+  refreshToken?: string;
+  mfaRequired?: boolean;
+  tokens?: {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresIn?: number;
+    tokenType?: string;
+  };
+}
+
+interface BackendAuthEnvelope {
+  status: string;
+  data: BackendAuthDataShape;
+}
+
+interface BackendRefreshEnvelope {
+  status: string;
+  data: {
+    accessToken: string;
+    expiresIn: number;
+  };
+}
+
+interface BackendSessionEnvelope {
+  status: string;
+  data: {
+    user: BackendUserShape;
+    expiresAt: string;
+    isValid: boolean;
+  };
 }
 
 // ============================================================================
@@ -105,63 +158,110 @@ export class AuthService {
     this.loadStoredSession();
   }
 
+  private toRole(value: string | undefined): UserRole {
+    if (
+      value === "doctor" ||
+      value === "nurse" ||
+      value === "patient" ||
+      value === "admin" ||
+      value === "super_admin"
+    ) {
+      return value;
+    }
+    if (value === "clinician") {
+      return "clinician";
+    }
+    return "clinician";
+  }
+
+  private toUser(value: BackendUserShape | undefined): User {
+    const firstName = value?.firstName?.trim() || "";
+    const lastName = value?.lastName?.trim() || "";
+    const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+    return {
+      id: value?.id || "unknown",
+      email: value?.email || "",
+      name: value?.name || fullName || value?.email || "Unknown User",
+      role: this.toRole(value?.role),
+      permissions: (value?.permissions || []).filter(
+        (item): item is Permission => typeof item === "string"
+      ),
+      createdAt: value?.createdAt || new Date().toISOString(),
+    };
+  }
+
+  private normalizeAuthResponse(payload: BackendAuthDataShape): LoginResponse {
+    const tokens = payload.tokens || {};
+    const accessToken = tokens.accessToken || payload.accessToken || "";
+    const refreshToken = tokens.refreshToken || payload.refreshToken || "";
+    const expiresIn = tokens.expiresIn || payload.expiresIn || 900;
+
+    if (!payload.mfaRequired && (!accessToken || !refreshToken)) {
+      throw new Error("Authentication response missing required tokens");
+    }
+
+    return {
+      user: this.toUser(payload.user),
+      mfaRequired: Boolean(payload.mfaRequired),
+      tokens: {
+        accessToken,
+        refreshToken,
+        expiresIn,
+        tokenType: "Bearer",
+      },
+    };
+  }
+
   // ---------------------------------------------------------------------------
   // AUTHENTICATION
   // ---------------------------------------------------------------------------
 
-  /**
-   * Login with email and password
-   */
   async login(request: LoginRequest): Promise<LoginResponse> {
-    const response = await this.client.post<LoginResponse>("/auth/login", request);
+    const response = await this.client.post<BackendAuthEnvelope>("/auth/login", request);
+    const normalized = this.normalizeAuthResponse(response.data.data);
 
-    if (!response.data.mfaRequired) {
-      this.setSession(response.data.user, response.data.tokens);
+    if (!normalized.mfaRequired) {
+      this.setSession(normalized.user, normalized.tokens);
     }
 
-    return response.data;
+    return normalized;
   }
 
-  /**
-   * Complete MFA verification
-   */
   async verifyMfa(
     email: string,
     mfaCode: string,
     temporaryToken: string
   ): Promise<LoginResponse> {
-    const response = await this.client.post<LoginResponse>("/auth/mfa/verify", {
+    const response = await this.client.post<BackendAuthEnvelope>("/auth/mfa/verify", {
       email,
       mfaCode,
       temporaryToken,
     });
 
-    this.setSession(response.data.user, response.data.tokens);
-    return response.data;
+    const normalized = this.normalizeAuthResponse(response.data.data);
+    this.setSession(normalized.user, normalized.tokens);
+    return normalized;
   }
 
-  /**
-   * Register new user
-   */
   async register(request: RegisterRequest): Promise<LoginResponse> {
-    const response = await this.client.post<LoginResponse>(
-      "/auth/register",
-      request
-    );
+    const [firstName, ...rest] = request.name.trim().split(/\s+/);
+    const response = await this.client.post<BackendAuthEnvelope>("/auth/register", {
+      email: request.email,
+      password: request.password,
+      firstName: firstName || request.name,
+      lastName: rest.join(" ") || "User",
+      role: request.role === "clinician" ? "doctor" : request.role,
+    });
 
-    this.setSession(response.data.user, response.data.tokens);
-    return response.data;
+    const normalized = this.normalizeAuthResponse(response.data.data);
+    this.setSession(normalized.user, normalized.tokens);
+    return normalized;
   }
 
-  /**
-   * Logout and clear session
-   */
   async logout(): Promise<void> {
     try {
-      const refreshToken = this.getRefreshToken();
-      if (refreshToken) {
-        await this.client.post("/auth/logout", { refreshToken });
-      }
+      await this.client.post("/auth/logout", {});
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -169,11 +269,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Refresh access token
-   */
   async refreshAccessToken(): Promise<AuthTokens> {
-    // Prevent multiple simultaneous refresh requests
     if (this.refreshPromise) {
       return this.refreshPromise;
     }
@@ -184,9 +280,14 @@ export class AuthService {
     }
 
     this.refreshPromise = this.client
-      .post<AuthTokens>("/auth/refresh", { refreshToken })
+      .post<BackendRefreshEnvelope>("/auth/refresh", { refreshToken })
       .then((response) => {
-        const tokens = response.data;
+        const tokens: AuthTokens = {
+          accessToken: response.data.data.accessToken,
+          refreshToken,
+          expiresIn: response.data.data.expiresIn,
+          tokenType: "Bearer",
+        };
         this.storeTokens(tokens);
         this.client.setAuthToken(tokens.accessToken);
         return tokens;
@@ -202,27 +303,15 @@ export class AuthService {
   // PASSWORD MANAGEMENT
   // ---------------------------------------------------------------------------
 
-  /**
-   * Request password reset email
-   */
   async requestPasswordReset(request: PasswordResetRequest): Promise<void> {
     await this.client.post("/auth/password/reset", request);
   }
 
-  /**
-   * Confirm password reset with token
-   */
   async confirmPasswordReset(request: PasswordResetConfirm): Promise<void> {
     await this.client.post("/auth/password/confirm", request);
   }
 
-  /**
-   * Change password (authenticated)
-   */
-  async changePassword(
-    currentPassword: string,
-    newPassword: string
-  ): Promise<void> {
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
     await this.client.post("/auth/password/change", {
       currentPassword,
       newPassword,
@@ -233,16 +322,10 @@ export class AuthService {
   // SESSION MANAGEMENT
   // ---------------------------------------------------------------------------
 
-  /**
-   * Get current user
-   */
   getCurrentUser(): User | null {
     return this.currentUser;
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
     const token = this.getAccessToken();
     const expiresAt = localStorage.getItem(STORAGE_KEYS.EXPIRES_AT);
@@ -255,33 +338,25 @@ export class AuthService {
     return now < expires;
   }
 
-  /**
-   * Check if user has specific permission
-   */
   hasPermission(permission: Permission): boolean {
     return this.currentUser?.permissions.includes(permission) ?? false;
   }
 
-  /**
-   * Check if user has any of the specified permissions
-   */
   hasAnyPermission(permissions: Permission[]): boolean {
     return permissions.some((p) => this.hasPermission(p));
   }
 
-  /**
-   * Check if user has all of the specified permissions
-   */
   hasAllPermissions(permissions: Permission[]): boolean {
     return permissions.every((p) => this.hasPermission(p));
   }
 
-  /**
-   * Get current session info
-   */
   async getSessionInfo(): Promise<SessionInfo> {
-    const response = await this.client.get<SessionInfo>("/auth/session");
-    return response.data;
+    const response = await this.client.get<BackendSessionEnvelope>("/auth/session");
+    return {
+      user: this.toUser(response.data.data.user),
+      expiresAt: response.data.data.expiresAt,
+      isValid: response.data.data.isValid,
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -326,7 +401,7 @@ export class AuthService {
 
     if (userJson && token && this.isAuthenticated()) {
       try {
-        this.currentUser = JSON.parse(userJson);
+        this.currentUser = JSON.parse(userJson) as User;
         this.client.setAuthToken(token);
       } catch {
         this.clearSession();
@@ -338,11 +413,8 @@ export class AuthService {
   // AUTO-REFRESH SETUP
   // ---------------------------------------------------------------------------
 
-  /**
-   * Setup automatic token refresh
-   */
   setupAutoRefresh(): () => void {
-    const checkInterval = 60000; // Check every minute
+    const checkInterval = 60000;
 
     const intervalId = setInterval(async () => {
       const expiresAt = localStorage.getItem(STORAGE_KEYS.EXPIRES_AT);
@@ -352,7 +424,6 @@ export class AuthService {
       const now = Date.now();
       const timeUntilExpiry = expires - now;
 
-      // Refresh if less than 5 minutes until expiry
       if (timeUntilExpiry < 5 * 60 * 1000 && timeUntilExpiry > 0) {
         try {
           await this.refreshAccessToken();
