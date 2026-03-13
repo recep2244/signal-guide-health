@@ -486,6 +486,10 @@ export class WhatsAppPilotService {
     return result;
   }
 
+  async sendWhatsAppMessage(phone: string, message: string): Promise<string | null> {
+    return this.sendTextMessage(normalizePhone(phone), message);
+  }
+
   private async processIncomingMessage(message: IncomingMessage): Promise<boolean> {
     const alreadyProcessed = await this.hasProcessedInboundMessage(message.id);
     if (alreadyProcessed) {
@@ -714,6 +718,19 @@ export class WhatsAppPilotService {
       state.completedAt = new Date().toISOString();
 
       const ruleTriage = triageFromState(state);
+
+      // Supplement with analyzeWellbeingResponse for the full patient message context
+      let analyzeResult: { level: 'green' | 'amber' | 'red'; summary: string; escalate: boolean } | null = null;
+      if (llmRuntime.enabled) {
+        analyzeResult = await localLlmService.analyzeWellbeingResponse(
+          [
+            `Wellbeing: ${state.wellbeingScore ?? 'n/a'}`,
+            `Symptoms: ${state.symptomsReported ? 'yes' : 'no'}`,
+            `Medications taken: ${state.medicationsTaken ? 'yes' : 'no'}`,
+          ].join('. ')
+        );
+      }
+
       const wearableContext = await this.buildWearableContext(patient.id);
       const llmCompletion = llmRuntime.enabled
         ? await localLlmService.summarizeCheckIn({
@@ -834,6 +851,16 @@ export class WhatsAppPilotService {
               aiRiskFlags,
             },
           },
+        });
+      }
+
+      // If analyzeWellbeingResponse recommends escalation for a doctor, log it
+      if (analyzeResult?.escalate && triage === 'red') {
+        logger.warn({
+          message: 'LLM analyzeWellbeingResponse recommends escalation',
+          patientId: patient.id,
+          level: analyzeResult.level,
+          summary: analyzeResult.summary,
         });
       }
 

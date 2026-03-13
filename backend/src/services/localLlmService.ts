@@ -243,6 +243,43 @@ class LocalLlmService {
     };
   }
 
+  async analyzeWellbeingResponse(text: string): Promise<{
+    level: 'green' | 'amber' | 'red';
+    summary: string;
+    escalate: boolean;
+  } | null> {
+    const payload = await this.chatJson<{
+      level?: unknown;
+      summary?: unknown;
+      escalate?: unknown;
+    }>([
+      {
+        role: 'system',
+        content:
+          'Analyse a cardiac patient wellbeing message. Respond with JSON only: {"level": "green|amber|red", "summary": string (max 200 chars, clinician-facing), "escalate": boolean}. Escalate=true only for red.',
+      },
+      {
+        role: 'user',
+        content: `Patient message: ${text}`,
+      },
+    ]);
+
+    if (!payload) return null;
+
+    const level = normalizeTriage(payload.level);
+    if (!level) return null;
+
+    const summary =
+      typeof payload.summary === 'string' && payload.summary.trim()
+        ? payload.summary.trim().slice(0, 200)
+        : `Triage level: ${level}`;
+
+    const escalate =
+      typeof payload.escalate === 'boolean' ? payload.escalate : level === 'red';
+
+    return { level, summary, escalate };
+  }
+
   private async requestOpenAiCompatible(args: {
     url: string;
     headers: Record<string, string>;
