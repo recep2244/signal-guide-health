@@ -80,16 +80,16 @@ class EncryptionService {
         throw new Error('Invalid encrypted data format');
       }
 
-      const iv = Buffer.from(parts[0], 'base64');
-      const authTag = Buffer.from(parts[1], 'base64');
-      const encrypted = parts[2];
+      const iv = Buffer.from(parts[0]!, 'base64');
+      const authTag = Buffer.from(parts[1]!, 'base64');
+      const encrypted = parts[2]!;
 
       // Create decipher
       const decipher = crypto.createDecipheriv(ALGORITHM, this.key, iv);
       decipher.setAuthTag(authTag);
 
       // Decrypt
-      let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+      let decrypted: string = decipher.update(encrypted, 'base64', 'utf8');
       decrypted += decipher.final('utf8');
 
       return decrypted;
@@ -125,7 +125,7 @@ class EncryptionService {
     let password = '';
 
     for (let i = 0; i < length; i++) {
-      password += charset[randomBytes[i] % charset.length];
+      password += charset[randomBytes[i]! % charset.length];
     }
 
     return password;

@@ -438,7 +438,7 @@ class AlertService {
     let newTriageLevel: TriageLevel = 'green';
 
     if (unresolvedAlerts.length > 0) {
-      newTriageLevel = SEVERITY_TRIAGE_MAP[unresolvedAlerts[0].severity];
+      newTriageLevel = SEVERITY_TRIAGE_MAP[unresolvedAlerts[0]!.severity];
     }
 
     await prisma.patient.update({

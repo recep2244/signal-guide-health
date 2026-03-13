@@ -160,16 +160,16 @@ const extractEntityInfo = (
   const entityTypes = ['patients', 'doctors', 'alerts', 'appointments', 'wearables', 'users'];
 
   for (let i = 0; i < pathParts.length; i++) {
-    if (entityTypes.includes(pathParts[i]) && pathParts[i + 1]) {
-      // Check if next part looks like an ID (UUID or alphanumeric)
-      const potentialId = pathParts[i + 1];
+    const part = pathParts[i]!;
+    const nextPart = pathParts[i + 1];
+    if (entityTypes.includes(part) && nextPart) {
       if (
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(potentialId) ||
-        /^[a-z0-9-_]+$/i.test(potentialId)
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextPart) ||
+        /^[a-z0-9-_]+$/i.test(nextPart)
       ) {
         return {
-          entityType: pathParts[i].replace(/s$/, ''), // Remove trailing 's'
-          entityId: potentialId,
+          entityType: part.replace(/s$/, ''),
+          entityId: nextPart,
         };
       }
     }
@@ -238,7 +238,7 @@ export const auditLogger = (
       status: res.statusCode < 400 ? 'success' : res.statusCode < 500 ? 'failure' : 'error',
       errorMessage:
         res.statusCode >= 400 && responseBody && typeof responseBody === 'object'
-          ? (responseBody as Record<string, unknown>).message as string
+          ? (responseBody as Record<string, unknown>)['message'] as string
           : undefined,
     };
 

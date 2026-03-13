@@ -419,7 +419,7 @@ class PatientService {
       entityType: 'patient',
       entityId: patientId,
       oldValues: { triageLevel: existing.triageLevel },
-      newValues: data,
+      newValues: data as unknown as Record<string, unknown>,
     });
 
     return updated;
