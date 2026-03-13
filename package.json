@@ -18,6 +18,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "phase1:ready": "./scripts/phase1_ready.sh",
     "phase2:ready": "./scripts/phase2_ready.sh",
     "phase3:ready": "./scripts/phase3_ready.sh",
@@ -78,6 +79,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",

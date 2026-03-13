@@ -508,6 +508,12 @@ router.delete('/:id', requireRole('admin', 'super_admin'), async (req: Request, 
   }
 
   await prisma.$transaction([
+    // Hard-delete related data for GDPR compliance
+    prisma.alert.deleteMany({ where: { patientId: id } }),
+    prisma.wearableReading.deleteMany({ where: { patientId: id } }),
+    prisma.wearableDevice.deleteMany({ where: { patientId: id } }),
+    prisma.pairingToken.deleteMany({ where: { patientId: id } }),
+    // Soft-delete the patient and anonymise user record
     prisma.user.update({
       where: { id: existing.userId },
       data: {
