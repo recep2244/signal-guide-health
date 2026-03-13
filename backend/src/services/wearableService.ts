@@ -6,7 +6,18 @@
 import { prisma } from '../config/database';
 import { encryptionService } from './encryptionService';
 import { alertService } from './alertService';
-import type { WearableType, TriageLevel, ReadingType } from '@prisma/client';
+import type { WearableType, TriageLevel, AlertSeverity } from '@prisma/client';
+
+// Local ReadingType definition (not in Prisma schema)
+type ReadingType =
+  | 'HEART_RATE'
+  | 'BLOOD_PRESSURE_SYSTOLIC'
+  | 'BLOOD_PRESSURE_DIASTOLIC'
+  | 'OXYGEN_SATURATION'
+  | 'TEMPERATURE'
+  | 'STEPS'
+  | 'SLEEP_HOURS'
+  | 'HRV';
 
 // Thresholds for health metrics
 const THRESHOLDS = {
@@ -73,6 +84,32 @@ interface AnalysisResult {
   };
 }
 
+/**
+ * Map a ReadingType + value to the correct WearableReading schema column(s)
+ */
+function mapReadingToColumns(type: ReadingType, value: number): Record<string, number> {
+  const map: Record<ReadingType, string> = {
+    HEART_RATE: 'avgHeartRate',
+    BLOOD_PRESSURE_SYSTOLIC: 'bloodPressureSystolic',
+    BLOOD_PRESSURE_DIASTOLIC: 'bloodPressureDiastolic',
+    OXYGEN_SATURATION: 'bloodOxygenPercent',
+    TEMPERATURE: 'bodyTemperature',
+    STEPS: 'steps',
+    SLEEP_HOURS: 'sleepHours',
+    HRV: 'hrvMs',
+  };
+  return { [map[type]]: value };
+}
+
+/**
+ * Map TriageLevel to AlertSeverity for alert creation
+ */
+function triageLevelToSeverity(level: TriageLevel): AlertSeverity {
+  if (level === 'red') return 'critical';
+  if (level === 'amber') return 'high';
+  return 'medium';
+}
+
 export const wearableService = {
   /**
    * Connect a wearable device
@@ -87,12 +124,12 @@ export const wearableService = {
     const wearable = await prisma.wearableDevice.create({
       data: {
         patientId: data.patientId,
-        type: data.type,
-        deviceId: data.deviceId,
-        accessToken: encryptedAccessToken,
-        refreshToken: encryptedRefreshToken,
+        deviceType: data.type,
+        serialNumber: data.deviceId,
+        accessTokenEncrypted: encryptedAccessToken,
+        refreshTokenEncrypted: encryptedRefreshToken,
         tokenExpiresAt: data.expiresAt,
-        isActive: true,
+        isConnected: true,
         lastSyncAt: new Date(),
       },
     });
@@ -110,9 +147,9 @@ export const wearableService = {
         patientId,
       },
       data: {
-        isActive: false,
-        accessToken: null,
-        refreshToken: null,
+        isConnected: false,
+        accessTokenEncrypted: null,
+        refreshTokenEncrypted: null,
       },
     });
   },
@@ -124,12 +161,11 @@ export const wearableService = {
     return prisma.wearableDevice.findMany({
       where: {
         patientId,
-        isActive: true,
+        isConnected: true,
       },
       select: {
         id: true,
-        type: true,
-        deviceId: true,
+        deviceType: true,
         lastSyncAt: true,
         batteryLevel: true,
         firmwareVersion: true,
@@ -142,16 +178,14 @@ export const wearableService = {
    * Record a wearable reading
    */
   async recordReading(reading: WearableReading): Promise<{ id: string; alert?: { id: string } }> {
-    // Store the reading
+    // Store the reading mapped to the flat schema columns
     const record = await prisma.wearableReading.create({
       data: {
         patientId: reading.patientId,
-        wearableId: reading.wearableId,
-        type: reading.type,
-        value: reading.value,
-        unit: reading.unit,
-        metadata: reading.metadata as any,
-        recordedAt: new Date(),
+        deviceId: reading.wearableId,
+        readingDate: new Date(),
+        rawData: reading.metadata as any,
+        ...mapReadingToColumns(reading.type, reading.value),
       },
     });
 
@@ -165,12 +199,12 @@ export const wearableService = {
     const analysis = this.analyzeReading(reading);
 
     let alertRecord;
-    if (analysis.triageLevel !== 'GREEN') {
+    if (analysis.triageLevel !== 'green') {
       // Create alert for abnormal reading
       alertRecord = await alertService.createAlert({
         patientId: reading.patientId,
-        type: 'VITALS_ABNORMAL',
-        severity: analysis.triageLevel,
+        type: 'vital_signs',
+        severity: triageLevelToSeverity(analysis.triageLevel),
         title: `Abnormal ${reading.type.toLowerCase()} reading`,
         message: analysis.message,
         metadata: {
@@ -200,17 +234,15 @@ export const wearableService = {
         await tx.wearableReading.create({
           data: {
             patientId: reading.patientId,
-            wearableId: reading.wearableId,
-            type: reading.type,
-            value: reading.value,
-            unit: reading.unit,
-            metadata: reading.metadata as any,
-            recordedAt: new Date(),
+            deviceId: reading.wearableId,
+            readingDate: new Date(),
+            rawData: reading.metadata as any,
+            ...mapReadingToColumns(reading.type, reading.value),
           },
         });
 
         const analysis = this.analyzeReading(reading);
-        if (analysis.triageLevel !== 'GREEN') {
+        if (analysis.triageLevel !== 'green') {
           alertCount++;
         }
       }
@@ -219,11 +251,11 @@ export const wearableService = {
     // Create alerts outside transaction to avoid long locks
     for (const reading of readings) {
       const analysis = this.analyzeReading(reading);
-      if (analysis.triageLevel !== 'GREEN') {
+      if (analysis.triageLevel !== 'green') {
         await alertService.createAlert({
           patientId: reading.patientId,
-          type: 'VITALS_ABNORMAL',
-          severity: analysis.triageLevel,
+          type: 'vital_signs',
+          severity: triageLevelToSeverity(analysis.triageLevel),
           title: `Abnormal ${reading.type.toLowerCase()} reading`,
           message: analysis.message,
           metadata: { value: reading.value, unit: reading.unit },
@@ -241,23 +273,21 @@ export const wearableService = {
     return prisma.wearableReading.findMany({
       where: {
         patientId: filter.patientId,
-        ...(filter.type && { type: filter.type }),
         ...(filter.startDate || filter.endDate
           ? {
-              recordedAt: {
+              readingDate: {
                 ...(filter.startDate && { gte: filter.startDate }),
                 ...(filter.endDate && { lte: filter.endDate }),
               },
             }
           : {}),
       },
-      orderBy: { recordedAt: 'desc' },
+      orderBy: { readingDate: 'desc' },
       take: filter.limit || 100,
       include: {
-        wearable: {
+        device: {
           select: {
-            type: true,
-            deviceId: true,
+            deviceType: true,
           },
         },
       },
@@ -265,35 +295,13 @@ export const wearableService = {
   },
 
   /**
-   * Get latest reading of each type for a patient
+   * Get latest reading for a patient (flat schema — returns most recent row)
    */
   async getLatestReadings(patientId: string) {
-    const readingTypes: ReadingType[] = [
-      'HEART_RATE',
-      'BLOOD_PRESSURE_SYSTOLIC',
-      'BLOOD_PRESSURE_DIASTOLIC',
-      'OXYGEN_SATURATION',
-      'TEMPERATURE',
-      'STEPS',
-      'SLEEP_HOURS',
-      'HRV',
-    ];
-
-    const readings: Record<string, any> = {};
-
-    await Promise.all(
-      readingTypes.map(async (type) => {
-        const reading = await prisma.wearableReading.findFirst({
-          where: { patientId, type },
-          orderBy: { recordedAt: 'desc' },
-        });
-        if (reading) {
-          readings[type] = reading;
-        }
-      })
-    );
-
-    return readings;
+    return prisma.wearableReading.findFirst({
+      where: { patientId },
+      orderBy: { readingDate: 'desc' },
+    });
   },
 
   /**
@@ -311,14 +319,14 @@ export const wearableService = {
         const { critical, warning } = THRESHOLDS.heartRate;
         if (value < critical.low || value > critical.high) {
           return {
-            triageLevel: 'RED',
+            triageLevel: 'red',
             message: `Critical heart rate: ${value} bpm`,
             thresholds: critical,
           };
         }
         if (value < warning.low || value > warning.high) {
           return {
-            triageLevel: 'AMBER',
+            triageLevel: 'amber',
             message: `Elevated heart rate: ${value} bpm`,
             thresholds: warning,
           };
@@ -330,14 +338,14 @@ export const wearableService = {
         const { critical, warning } = THRESHOLDS.bloodPressure.systolic;
         if (value < critical.low || value > critical.high) {
           return {
-            triageLevel: 'RED',
+            triageLevel: 'red',
             message: `Critical systolic BP: ${value} mmHg`,
             thresholds: critical,
           };
         }
         if (value < warning.low || value > warning.high) {
           return {
-            triageLevel: 'AMBER',
+            triageLevel: 'amber',
             message: `Elevated systolic BP: ${value} mmHg`,
             thresholds: warning,
           };
@@ -349,14 +357,14 @@ export const wearableService = {
         const { critical, warning } = THRESHOLDS.bloodPressure.diastolic;
         if (value < critical.low || value > critical.high) {
           return {
-            triageLevel: 'RED',
+            triageLevel: 'red',
             message: `Critical diastolic BP: ${value} mmHg`,
             thresholds: critical,
           };
         }
         if (value < warning.low || value > warning.high) {
           return {
-            triageLevel: 'AMBER',
+            triageLevel: 'amber',
             message: `Elevated diastolic BP: ${value} mmHg`,
             thresholds: warning,
           };
@@ -368,14 +376,14 @@ export const wearableService = {
         const { critical, warning } = THRESHOLDS.oxygenSaturation;
         if (value < critical.low) {
           return {
-            triageLevel: 'RED',
+            triageLevel: 'red',
             message: `Critical oxygen saturation: ${value}%`,
             thresholds: critical,
           };
         }
         if (value < warning.low) {
           return {
-            triageLevel: 'AMBER',
+            triageLevel: 'amber',
             message: `Low oxygen saturation: ${value}%`,
             thresholds: warning,
           };
@@ -387,14 +395,14 @@ export const wearableService = {
         const { critical, warning } = THRESHOLDS.temperature;
         if (value < critical.low || value > critical.high) {
           return {
-            triageLevel: 'RED',
+            triageLevel: 'red',
             message: `Critical temperature: ${value}°C`,
             thresholds: critical,
           };
         }
         if (value < warning.low || value > warning.high) {
           return {
-            triageLevel: 'AMBER',
+            triageLevel: 'amber',
             message: `Abnormal temperature: ${value}°C`,
             thresholds: warning,
           };
@@ -403,7 +411,7 @@ export const wearableService = {
       }
     }
 
-    return { triageLevel: 'GREEN', message: 'Normal reading' };
+    return { triageLevel: 'green', message: 'Normal reading' };
   },
 
   /**
@@ -416,29 +424,22 @@ export const wearableService = {
     const readings = await prisma.wearableReading.findMany({
       where: {
         patientId,
-        recordedAt: { gte: startDate },
+        readingDate: { gte: startDate },
       },
-      orderBy: { recordedAt: 'asc' },
+      orderBy: { readingDate: 'asc' },
     });
 
     const alerts: AnalysisResult['alerts'] = [];
     const trends: AnalysisResult['trends'] = {};
 
-    // Group readings by type
-    const grouped = readings.reduce((acc, r) => {
-      if (!acc[r.type]) acc[r.type] = [];
-      acc[r.type].push(r);
-      return acc;
-    }, {} as Record<string, typeof readings>);
-
-    // Analyze heart rate trend
-    if (grouped['HEART_RATE']?.length >= 2) {
-      const hrReadings = grouped['HEART_RATE'];
+    // Analyze heart rate trend using avgHeartRate column
+    const hrReadings = readings.filter((r) => r.avgHeartRate !== null && r.avgHeartRate !== undefined);
+    if (hrReadings.length >= 2) {
       const firstHalf = hrReadings.slice(0, Math.floor(hrReadings.length / 2));
       const secondHalf = hrReadings.slice(Math.floor(hrReadings.length / 2));
 
-      const firstAvg = firstHalf.reduce((s, r) => s + r.value, 0) / firstHalf.length;
-      const secondAvg = secondHalf.reduce((s, r) => s + r.value, 0) / secondHalf.length;
+      const firstAvg = firstHalf.reduce((s, r) => s + (r.avgHeartRate as number), 0) / firstHalf.length;
+      const secondAvg = secondHalf.reduce((s, r) => s + (r.avgHeartRate as number), 0) / secondHalf.length;
 
       const change = ((secondAvg - firstAvg) / firstAvg) * 100;
 
@@ -448,7 +449,7 @@ export const wearableService = {
           alerts.push({
             type: 'TREND',
             message: `Heart rate increasing significantly (${change.toFixed(1)}% over ${days} days)`,
-            severity: 'AMBER',
+            severity: 'amber',
           });
         }
       } else if (change < -10) {
@@ -459,11 +460,11 @@ export const wearableService = {
     }
 
     // Determine overall triage level
-    let triageLevel: TriageLevel = 'GREEN';
-    if (alerts.some((a) => a.severity === 'RED')) {
-      triageLevel = 'RED';
-    } else if (alerts.some((a) => a.severity === 'AMBER')) {
-      triageLevel = 'AMBER';
+    let triageLevel: TriageLevel = 'green';
+    if (alerts.some((a) => a.severity === 'red')) {
+      triageLevel = 'red';
+    } else if (alerts.some((a) => a.severity === 'amber')) {
+      triageLevel = 'amber';
     }
 
     return { triageLevel, alerts, trends };
@@ -477,12 +478,12 @@ export const wearableService = {
       where: { id: wearableId },
     });
 
-    if (!wearable || !wearable.accessToken) {
+    if (!wearable || !wearable.accessTokenEncrypted) {
       throw new Error('Wearable not found or not connected');
     }
 
     // Decrypt access token
-    const accessToken = encryptionService.decrypt(wearable.accessToken);
+    const accessToken = encryptionService.decrypt(wearable.accessTokenEncrypted);
 
     // In production, this would call the actual provider API
     // For now, simulate sync
@@ -500,7 +501,7 @@ export const wearableService = {
    * Simulate provider sync (placeholder for actual API calls)
    */
   async simulateProviderSync(
-    wearable: { id: string; patientId: string; type: WearableType },
+    wearable: { id: string; patientId: string; deviceType: WearableType },
     _accessToken: string
   ): Promise<number> {
     // In production, implement actual API calls to:
@@ -544,28 +545,44 @@ export const wearableService = {
     const readings = await prisma.wearableReading.findMany({
       where: {
         patientId,
-        recordedAt: { gte: startDate },
+        readingDate: { gte: startDate },
       },
     });
+
+    const METRIC_COLUMNS = [
+      'avgHeartRate',
+      'steps',
+      'bloodOxygenPercent',
+      'bodyTemperature',
+      'bloodPressureSystolic',
+      'bloodPressureDiastolic',
+    ] as const;
+    type MetricColumn = typeof METRIC_COLUMNS[number];
 
     const stats: Record<string, { avg: number; min: number; max: number; count: number }> = {};
 
     for (const reading of readings) {
-      if (!stats[reading.type]) {
-        stats[reading.type] = { avg: 0, min: Infinity, max: -Infinity, count: 0 };
+      for (const col of METRIC_COLUMNS) {
+        const val = reading[col];
+        if (val === null || val === undefined) continue;
+        const numVal = typeof val === 'object' ? parseFloat((val as object).toString()) : (val as number);
+        if (!stats[col]) {
+          stats[col] = { avg: 0, min: Infinity, max: -Infinity, count: 0 };
+        }
+        const s = stats[col]!;
+        s.count++;
+        s.min = Math.min(s.min, numVal);
+        s.max = Math.max(s.max, numVal);
+        s.avg = s.avg + (numVal - s.avg) / s.count;
       }
-      const s = stats[reading.type];
-      s.count++;
-      s.min = Math.min(s.min, reading.value);
-      s.max = Math.max(s.max, reading.value);
-      s.avg = s.avg + (reading.value - s.avg) / s.count;
     }
 
     // Round averages
     for (const key of Object.keys(stats)) {
-      stats[key].avg = Math.round(stats[key].avg * 10) / 10;
-      if (stats[key].min === Infinity) stats[key].min = 0;
-      if (stats[key].max === -Infinity) stats[key].max = 0;
+      const s = stats[key]!;
+      s.avg = Math.round(s.avg * 10) / 10;
+      if (s.min === Infinity) s.min = 0;
+      if (s.max === -Infinity) s.max = 0;
     }
 
     return stats;
