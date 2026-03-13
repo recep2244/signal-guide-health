@@ -66,26 +66,10 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { IntegrationKeysPanel } from "@/pilot/components/IntegrationKeysPanel";
 import { toast } from "sonner";
+import { useAdminUsers, useAdminAuditLogs } from "@/hooks/useAdmin";
 import { cn } from "@/lib/utils";
 
-// Mock data
-const mockUsers = [
-  { id: "usr-001", name: "Dr. Sarah Mitchell", email: "s.mitchell@cardiowatch.nhs.uk", role: "clinician", status: "active", lastActive: "2 minutes ago", patientsAssigned: 24 },
-  { id: "usr-002", name: "Dr. James Wilson", email: "j.wilson@cardiowatch.nhs.uk", role: "clinician", status: "active", lastActive: "15 minutes ago", patientsAssigned: 18 },
-  { id: "usr-003", name: "Nurse Emma Thompson", email: "e.thompson@cardiowatch.nhs.uk", role: "clinician", status: "active", lastActive: "1 hour ago", patientsAssigned: 32 },
-  { id: "usr-004", name: "Admin John Smith", email: "j.smith@cardiowatch.nhs.uk", role: "admin", status: "active", lastActive: "Just now", patientsAssigned: 0 },
-  { id: "usr-005", name: "Dr. Lisa Chen", email: "l.chen@cardiowatch.nhs.uk", role: "clinician", status: "inactive", lastActive: "3 days ago", patientsAssigned: 12 },
-];
-
-const mockAuditLogs = [
-  { id: "log-001", timestamp: "2026-01-18 13:45:22", user: "Dr. Sarah Mitchell", action: "PATIENT_VIEW", resource: "Patient: Margaret Thompson", ip: "192.168.1.45", status: "success" },
-  { id: "log-002", timestamp: "2026-01-18 13:42:15", user: "Dr. James Wilson", action: "ALERT_RESOLVE", resource: "Alert: pt-002-alert-01", ip: "192.168.1.67", status: "success" },
-  { id: "log-003", timestamp: "2026-01-18 13:38:44", user: "Admin John Smith", action: "USER_UPDATE", resource: "User: Dr. Lisa Chen", ip: "192.168.1.12", status: "success" },
-  { id: "log-004", timestamp: "2026-01-18 13:35:10", user: "Nurse Emma Thompson", action: "MESSAGE_SEND", resource: "Patient: David Chen", ip: "192.168.1.89", status: "success" },
-  { id: "log-005", timestamp: "2026-01-18 13:30:55", user: "Unknown", action: "LOGIN_ATTEMPT", resource: "Auth System", ip: "203.45.67.89", status: "failed" },
-  { id: "log-006", timestamp: "2026-01-18 13:28:30", user: "Dr. Sarah Mitchell", action: "WEARABLE_SYNC", resource: "Patient: Sarah Okonkwo", ip: "192.168.1.45", status: "success" },
-];
-
+// TODO: replace with real backend endpoint when available
 const mockHospitals = [
   { id: "h-001", name: "Midlands Heart Centre", region: "West Midlands", status: "live", patients: 128, clinicians: 12, uptime: 99.9, lastSync: "2 min ago" },
   { id: "h-002", name: "Royal London Cardiac Unit", region: "London", status: "onboarding", patients: 0, clinicians: 8, uptime: 0, lastSync: "Pending" },
@@ -124,21 +108,27 @@ export default function Admin() {
   const [logFilter, setLogFilter] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useAdminUsers();
+  const { data: auditData, isLoading: auditLoading, error: auditError } = useAdminAuditLogs();
+
+  const adminUsers = usersData?.data?.users ?? [];
+  const auditLogs = auditData?.data?.logs ?? [];
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
-  const filteredUsers = mockUsers.filter(
+  const filteredUsers = adminUsers.filter(
     (user) =>
-      user.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+      `${user.firstName ?? ""} ${user.lastName ?? ""}`.toLowerCase().includes(userSearch.toLowerCase()) ||
       user.email.toLowerCase().includes(userSearch.toLowerCase())
   );
 
   const filteredLogs =
     logFilter === "all"
-      ? mockAuditLogs
-      : mockAuditLogs.filter((log) => log.status === logFilter);
+      ? auditLogs
+      : auditLogs.filter((log) => (log as { status?: string }).status === logFilter);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -888,30 +878,34 @@ export default function Admin() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {usersLoading && (
+                      <TableRow><TableCell colSpan={6}><p className="text-sm text-muted-foreground p-4">Loading users...</p></TableCell></TableRow>
+                    )}
+                    {usersError && (
+                      <TableRow><TableCell colSpan={6}><p className="text-sm text-destructive p-4">Failed to load users</p></TableCell></TableRow>
+                    )}
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell>
                           <div>
-                            <p className="font-medium text-slate-900">{user.name}</p>
+                            <p className="font-medium text-slate-900">{user.firstName} {user.lastName}</p>
                             <p className="text-xs text-slate-500">{user.email}</p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={cn(
-                            user.role === "admin" ? "bg-purple-50 text-purple-700 border-purple-200" : "bg-teal-50 text-teal-700 border-teal-200"
+                            user.role === "admin" || user.role === "super_admin" ? "bg-purple-50 text-purple-700 border-purple-200" : "bg-teal-50 text-teal-700 border-teal-200"
                           )}>
                             {user.role}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={cn(
-                            user.status === "active" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
-                          )}>
-                            {user.status}
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            active
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-semibold">{user.patientsAssigned}</TableCell>
-                        <TableCell className="text-slate-500 text-sm">{user.lastActive}</TableCell>
+                        <TableCell className="font-semibold">-</TableCell>
+                        <TableCell className="text-slate-500 text-sm">{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -966,17 +960,23 @@ export default function Admin() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {auditLoading && (
+                      <TableRow><TableCell colSpan={5}><p className="text-sm text-muted-foreground p-4">Loading audit logs...</p></TableCell></TableRow>
+                    )}
+                    {auditError && (
+                      <TableRow><TableCell colSpan={5}><p className="text-sm text-destructive p-4">Failed to load audit logs</p></TableCell></TableRow>
+                    )}
                     {filteredLogs.map((log) => (
                       <TableRow key={log.id}>
-                        <TableCell className="font-mono text-xs">{log.timestamp}</TableCell>
-                        <TableCell className="font-medium">{log.user}</TableCell>
+                        <TableCell className="font-mono text-xs">{new Date(log.createdAt).toLocaleString()}</TableCell>
+                        <TableCell className="font-medium">{log.userId ?? "System"}</TableCell>
                         <TableCell><Badge variant="outline" className="text-[10px]">{log.action}</Badge></TableCell>
-                        <TableCell className="text-slate-500 text-sm">{log.resource}</TableCell>
+                        <TableCell className="text-slate-500 text-sm">{log.entityType ?? "-"}{log.entityId ? `: ${log.entityId}` : ""}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className={cn(
-                            log.status === "success" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
+                            (log as { status?: string }).status === "success" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
                           )}>
-                            {log.status}
+                            {(log as { status?: string }).status ?? "success"}
                           </Badge>
                         </TableCell>
                       </TableRow>
