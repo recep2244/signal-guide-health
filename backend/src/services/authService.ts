@@ -6,6 +6,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { authenticator } from 'otplib';
 import { prisma } from '../config/database';
 import { env } from '../config/env';
@@ -53,6 +54,21 @@ const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 class AuthService {
+  private createMailTransport(): nodemailer.Transporter | null {
+    if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASSWORD || !env.SMTP_FROM) {
+      return null;
+    }
+    return nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT ?? 587,
+      secure: (env.SMTP_PORT ?? 587) === 465,
+      auth: {
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASSWORD,
+      },
+    });
+  }
+
   /**
    * Register a new user
    */
@@ -370,8 +386,46 @@ class AuthService {
       },
     });
 
-    // TODO: Send email with reset link
     logger.info({ message: 'Password reset token created', userId: user.id });
+
+    const transport = this.createMailTransport();
+    if (transport) {
+      const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+      try {
+        await transport.sendMail({
+          from: env.SMTP_FROM,
+          to: user.email,
+          subject: 'CardioWatch — Reset your password',
+          text: [
+            `Hi ${user.firstName},`,
+            '',
+            'You requested a password reset for your CardioWatch account.',
+            'Click the link below to reset your password (valid for 1 hour):',
+            '',
+            resetUrl,
+            '',
+            'If you did not request this, you can safely ignore this email.',
+          ].join('\n'),
+          html: `<p>Hi ${user.firstName},</p>
+<p>You requested a password reset for your CardioWatch account.</p>
+<p><a href="${resetUrl}">Reset your password</a> (valid for 1 hour)</p>
+<p>If you did not request this, you can safely ignore this email.</p>`,
+        });
+        logger.info({ message: 'Password reset email sent', userId: user.id });
+      } catch (emailError) {
+        logger.error({
+          message: 'Failed to send password reset email',
+          userId: user.id,
+          error: emailError instanceof Error ? emailError.message : 'Unknown error',
+        });
+        // Do not throw — token is still valid; user can retry or use the token directly.
+      }
+    } else {
+      logger.warn({
+        message: 'SMTP not configured — password reset email not sent',
+        userId: user.id,
+      });
+    }
   }
 
   /**
