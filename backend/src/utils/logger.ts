@@ -39,8 +39,22 @@ const redactPaths = PII_FIELDS.flatMap((field) => [
 ]);
 
 // Environment-based configuration
-const isDevelopment = process.env.NODE_ENV === 'development';
-const logLevel = process.env.LOG_LEVEL || (isDevelopment ? 'debug' : 'info');
+const isDevelopment = process.env['NODE_ENV'] === 'development';
+const logLevel = process.env['LOG_LEVEL'] || (isDevelopment ? 'debug' : 'info');
+const hasPinoPretty = (() => {
+  if (!isDevelopment) return false;
+  try {
+    require.resolve('pino-pretty');
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+if (isDevelopment && !hasPinoPretty) {
+  // Keep local startup reliable even when pretty transport is not installed.
+  console.warn('pino-pretty not found; falling back to standard JSON logs.');
+}
 
 // Create logger instance
 export const logger = pino({
@@ -55,15 +69,15 @@ export const logger = pino({
   // Add base fields to all logs
   base: {
     service: 'cardiowatch-api',
-    version: process.env.APP_VERSION || '1.0.0',
-    environment: process.env.NODE_ENV || 'development',
+    version: process.env['APP_VERSION'] || '1.0.0',
+    environment: process.env['NODE_ENV'] || 'development',
   },
 
   // Timestamp format
   timestamp: pino.stdTimeFunctions.isoTime,
 
   // Format for development (pretty print)
-  transport: isDevelopment
+  transport: isDevelopment && hasPinoPretty
     ? {
         target: 'pino-pretty',
         options: {

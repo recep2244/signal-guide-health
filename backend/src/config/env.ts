@@ -45,10 +45,28 @@ const envSchema = z.object({
   WHATSAPP_ACCESS_TOKEN: z.string().optional(),
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
   WHATSAPP_WEBHOOK_SECRET: z.string().optional(),
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
+
+  // Local LLM (DeepSeek/Ollama-compatible)
+  LOCAL_LLM_ENABLED: z.string().transform((val) => val === 'true').default('false'),
+  LOCAL_LLM_BASE_URL: z.string().url().default('http://127.0.0.1:11434/v1'),
+  LOCAL_LLM_MODEL: z.string().default('deepseek-r1:8b'),
+  LOCAL_LLM_API_KEY: z.string().optional(),
+  LOCAL_LLM_TIMEOUT_MS: z.string().transform(Number).default('8000'),
 
   // Wearable OAuth
+  APPLE_WEBHOOK_SECRET: z.string().optional(),
   APPLE_HEALTHKIT_TEAM_ID: z.string().optional(),
   APPLE_HEALTHKIT_KEY_ID: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().optional(),
+  HEALTH_CONNECT_WEBHOOK_SECRET: z.string().optional(),
+  GOOGLE_PUBSUB_TOKEN: z.string().optional(),
+  FITBIT_VERIFY_CODE: z.string().optional(),
+  GARMIN_WEBHOOK_SECRET: z.string().optional(),
+  WITHINGS_WEBHOOK_SECRET: z.string().optional(),
+  SAMSUNG_WEBHOOK_SECRET: z.string().optional(),
   FITBIT_CLIENT_ID: z.string().optional(),
   FITBIT_CLIENT_SECRET: z.string().optional(),
   GARMIN_CONSUMER_KEY: z.string().optional(),
@@ -74,6 +92,10 @@ const envSchema = z.object({
   ENABLE_MFA: z.string().transform((val) => val === 'true').default('true'),
   ENABLE_AUDIT_LOGGING: z.string().transform((val) => val === 'true').default('true'),
   ENABLE_FIELD_ENCRYPTION: z.string().transform((val) => val === 'true').default('true'),
+  ADMIN_LOCAL_ONLY: z.string().transform((val) => val === 'true').default('false'),
+  PILOT_FOLLOWUP_SCHEDULER_ENABLED: z.string().transform((val) => val === 'true').default('false'),
+  PILOT_FOLLOWUP_INTERVAL_MINUTES: z.string().transform(Number).default('1440'),
+  PILOT_FOLLOWUP_BATCH_LIMIT: z.string().transform(Number).default('25'),
 });
 
 // Parse and validate environment

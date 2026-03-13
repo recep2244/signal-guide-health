@@ -19,14 +19,6 @@ export interface JWTPayload {
   exp: number;
 }
 
-// Extend Express Request type
-declare module 'express-serve-static-core' {
-  interface Request {
-    user?: JWTPayload;
-    requestId?: string;
-  }
-}
-
 /**
  * Verify JWT token from Authorization header
  */
@@ -48,9 +40,17 @@ export const authenticate = async (
     }
 
     const token = authHeader.split(' ')[1];
+    if (!token) {
+      res.status(401).json({
+        status: 'error',
+        code: 'UNAUTHORIZED',
+        message: 'No authentication token provided',
+      });
+      return;
+    }
 
     // Verify token
-    const decoded = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as unknown as JWTPayload;
 
     // Check token expiration
     if (decoded.exp * 1000 < Date.now()) {
@@ -123,7 +123,11 @@ export const optionalAuth = async (
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
+    if (!token) {
+      next();
+      return;
+    }
+    const decoded = jwt.verify(token, env.JWT_SECRET) as unknown as JWTPayload;
     req.user = decoded;
     next();
   } catch {
@@ -216,7 +220,7 @@ export const verifyRefreshToken = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const refreshToken = req.signedCookies?.refreshToken;
+    const refreshToken = req.signedCookies?.['refreshToken'];
 
     if (!refreshToken) {
       res.status(401).json({

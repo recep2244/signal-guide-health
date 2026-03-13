@@ -18,6 +18,12 @@ const CSRF_PROTECTED_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 // Paths exempt from CSRF (webhooks, public APIs)
 const CSRF_EXEMPT_PATHS = [
   '/webhooks/',
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/forgot-password',
+  '/auth/password/reset',
+  '/auth/password/confirm',
   '/api/v1/auth/login',
   '/api/v1/auth/register',
   '/api/v1/auth/refresh',

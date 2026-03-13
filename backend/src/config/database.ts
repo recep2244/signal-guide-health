@@ -25,7 +25,7 @@ declare global {
 // Use global singleton in development to prevent multiple instances
 export const prisma = globalThis.prisma ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env['NODE_ENV'] !== 'production') {
   globalThis.prisma = prisma;
 }
 
@@ -43,7 +43,7 @@ interface ErrorEvent {
 
 // Log queries in development
 prisma.$on('query' as never, (e: QueryEvent) => {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env['NODE_ENV'] === 'development') {
     logger.debug({
       message: 'Database query',
       query: e.query,

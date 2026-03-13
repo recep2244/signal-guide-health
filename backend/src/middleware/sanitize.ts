@@ -95,6 +95,12 @@ export const sanitizeInput = (
   _res: Response,
   next: NextFunction
 ): void => {
+  // Signed webhooks must keep the original payload untouched.
+  if (req.path.startsWith('/webhooks')) {
+    next();
+    return;
+  }
+
   // Sanitize body
   if (req.body && typeof req.body === 'object') {
     req.body = sanitizeObject(req.body);
