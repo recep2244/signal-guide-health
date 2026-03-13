@@ -3,11 +3,13 @@
  * Clinical alert management and escalation
  */
 
+import nodemailer from 'nodemailer';
 import { Prisma, AlertType, AlertSeverity, TriageLevel } from '@prisma/client';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
 import { ApiError } from '../middleware/errorHandler';
 import { logAuditEvent } from '../middleware/audit';
+import { env } from '../config/env';
 
 // Types
 interface AlertFilters {
@@ -41,6 +43,18 @@ const SEVERITY_TRIAGE_MAP: Record<AlertSeverity, TriageLevel> = {
 };
 
 class AlertService {
+  private createMailTransport(): nodemailer.Transporter | null {
+    if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASSWORD || !env.SMTP_FROM) {
+      return null;
+    }
+    return nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT ?? 587,
+      secure: (env.SMTP_PORT ?? 587) === 465,
+      auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD },
+    });
+  }
+
   /**
    * Get alerts with filters
    */
@@ -220,7 +234,46 @@ class AlertService {
       severity: data.severity,
     });
 
-    // TODO: Send notification to assigned doctor
+    // Notify assigned doctor by email (fire-and-forget)
+    if (primaryDoctorId) {
+      const transport = this.createMailTransport();
+      if (transport) {
+        const doctor = await prisma.doctor.findUnique({
+          where: { id: primaryDoctorId },
+          include: { user: { select: { email: true, firstName: true } } },
+        });
+        if (doctor?.user.email) {
+          try {
+            await transport.sendMail({
+              from: env.SMTP_FROM,
+              to: doctor.user.email,
+              subject: `CardioWatch Alert — ${data.severity.toUpperCase()}: ${data.title}`,
+              text: [
+                `Hi ${doctor.user.firstName},`,
+                '',
+                `A new ${data.severity} alert has been created for patient ${data.patientId}.`,
+                '',
+                `Alert: ${data.title}`,
+                `Details: ${data.message}`,
+                '',
+                'Please log in to CardioWatch to review and respond.',
+              ].join('\n'),
+              html: `<p>Hi ${doctor.user.firstName},</p>
+<p>A new <strong>${data.severity}</strong> alert has been created for your patient.</p>
+<p><strong>${data.title}</strong><br>${data.message}</p>
+<p>Please log in to CardioWatch to review and respond.</p>`,
+            });
+            logger.info({ message: 'Alert notification email sent', alertId: alert.id, doctorId: primaryDoctorId });
+          } catch (emailError) {
+            logger.error({
+              message: 'Failed to send alert notification email',
+              alertId: alert.id,
+              error: emailError instanceof Error ? emailError.message : 'Unknown error',
+            });
+          }
+        }
+      }
+    }
 
     return alert;
   }
@@ -350,7 +403,7 @@ class AlertService {
     // Increase severity if possible
     const severityOrder: AlertSeverity[] = ['low', 'medium', 'high', 'critical'];
     const currentIndex = severityOrder.indexOf(alert.severity);
-    const newSeverity = currentIndex < 3 ? severityOrder[currentIndex + 1] : alert.severity;
+    const newSeverity = currentIndex < 3 ? severityOrder[currentIndex + 1]! : alert.severity;
 
     const updated = await prisma.$transaction([
       prisma.alert.update({
@@ -391,7 +444,46 @@ class AlertService {
       escalatedBy: escalatedByUserId,
     });
 
-    // TODO: Notify relevant staff about escalation
+    // Notify assigned doctor about escalation (fire-and-forget)
+    if (alert.assignedToId) {
+      const transport = this.createMailTransport();
+      if (transport) {
+        const doctor = await prisma.doctor.findUnique({
+          where: { id: alert.assignedToId },
+          include: { user: { select: { email: true, firstName: true } } },
+        });
+        if (doctor?.user.email) {
+          try {
+            await transport.sendMail({
+              from: env.SMTP_FROM,
+              to: doctor.user.email,
+              subject: `CardioWatch Alert Escalated — now ${newSeverity.toUpperCase()} (Alert ${alertId})`,
+              text: [
+                `Hi ${doctor.user.firstName},`,
+                '',
+                `An alert assigned to you has been escalated.`,
+                `Previous severity: ${alert.severity}`,
+                `New severity: ${newSeverity}`,
+                reason ? `Reason: ${reason}` : '',
+                '',
+                'Please log in to CardioWatch to review urgently.',
+              ].filter(Boolean).join('\n'),
+              html: `<p>Hi ${doctor.user.firstName},</p>
+<p>An alert assigned to you has been <strong>escalated</strong>.</p>
+<p>Severity: <strong>${alert.severity}</strong> → <strong>${newSeverity}</strong>${reason ? `<br>Reason: ${reason}` : ''}</p>
+<p>Please log in to CardioWatch to review urgently.</p>`,
+            });
+            logger.info({ message: 'Escalation notification email sent', alertId, doctorId: alert.assignedToId });
+          } catch (emailError) {
+            logger.error({
+              message: 'Failed to send escalation notification email',
+              alertId,
+              error: emailError instanceof Error ? emailError.message : 'Unknown error',
+            });
+          }
+        }
+      }
+    }
 
     return updated[0];
   }
