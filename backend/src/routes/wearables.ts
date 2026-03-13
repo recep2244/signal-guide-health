@@ -30,7 +30,7 @@ router.use(authenticate);
  */
 router.get('/devices', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
 
     // Get patient ID for this user
     const patient = await prisma.patient.findUnique({
@@ -39,10 +39,11 @@ router.get('/devices', async (req: Request, res: Response, next: NextFunction) =
     });
 
     if (!patient) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Patient profile not found',
       });
+      return;
     }
 
     const devices = await prisma.wearableDevice.findMany({
@@ -159,8 +160,8 @@ router.get('/devices/supported', async (_req: Request, res: Response) => {
  */
 router.post('/connect/:provider', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const providerType = req.params.provider as WearableProvider;
-    const userId = req.user!.id;
+    const providerType = req.params['provider'] as WearableProvider;
+    const userId = req.user!.userId;
 
     // Get patient ID
     const patient = await prisma.patient.findUnique({
@@ -169,10 +170,11 @@ router.post('/connect/:provider', async (req: Request, res: Response, next: Next
     });
 
     if (!patient) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Patient profile not found',
       });
+      return;
     }
 
     // Generate state for OAuth or device registration
@@ -233,22 +235,24 @@ router.post('/connect/:provider', async (req: Request, res: Response, next: Next
  */
 router.post('/callback/:provider', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const providerType = req.params.provider as WearableProvider;
+    const providerType = req.params['provider'] as WearableProvider;
     const { code, state, error: oauthError } = req.body;
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
 
     if (oauthError) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: `OAuth error: ${oauthError}`,
       });
+      return;
     }
 
     if (!code || !state) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: 'Missing authorization code or state',
       });
+      return;
     }
 
     // Get patient ID
@@ -258,10 +262,11 @@ router.post('/callback/:provider', async (req: Request, res: Response, next: Nex
     });
 
     if (!patient) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Patient profile not found',
       });
+      return;
     }
 
     // Exchange code for tokens
@@ -269,10 +274,11 @@ router.post('/callback/:provider', async (req: Request, res: Response, next: Nex
     const result = await provider.exchangeCodeForTokens(code);
 
     if (!result.success || !result.tokens) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: result.error || 'Failed to exchange authorization code',
       });
+      return;
     }
 
     // Encrypt tokens before storing
@@ -337,13 +343,14 @@ router.post('/register-device', async (req: Request, res: Response, next: NextFu
       manufacturer,
       osVersion,
     } = req.body;
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
 
     if (!registrationToken || !provider || !deviceId) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: 'Missing required fields',
       });
+      return;
     }
 
     // Get patient ID
@@ -353,10 +360,11 @@ router.post('/register-device', async (req: Request, res: Response, next: NextFu
     });
 
     if (!patient) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Patient profile not found',
       });
+      return;
     }
 
     // Generate device push token
@@ -385,7 +393,7 @@ router.post('/register-device', async (req: Request, res: Response, next: NextFu
       data: {
         deviceId: device.id,
         pushToken, // Send back unencrypted for device to use
-        syncEndpoint: '/api/wearables/push-data',
+        syncEndpoint: '/api/v1/wearables/push-data',
       },
     });
   } catch (error) {
@@ -402,10 +410,11 @@ router.post('/push-data', async (req: Request, res: Response, next: NextFunction
     const { deviceId, pushToken, provider, data } = req.body;
 
     if (!deviceId || !pushToken || !provider || !data) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: 'Missing required fields',
       });
+      return;
     }
 
     // Find device and verify push token
@@ -417,19 +426,21 @@ router.post('/push-data', async (req: Request, res: Response, next: NextFunction
     });
 
     if (!device || !device.accessTokenEncrypted) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Device not found or not connected',
       });
+      return;
     }
 
     // Verify push token
     const storedToken = encryptionService.decrypt(device.accessTokenEncrypted);
     if (!encryptionService.secureCompare(pushToken, storedToken)) {
-      return res.status(401).json({
+      res.status(401).json({
         status: 'error',
         message: 'Invalid push token',
       });
+      return;
     }
 
     // Process data based on provider
@@ -471,7 +482,7 @@ router.post('/push-data', async (req: Request, res: Response, next: NextFunction
 router.delete('/disconnect/:deviceId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { deviceId } = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
 
     // Get patient ID
     const patient = await prisma.patient.findUnique({
@@ -480,10 +491,11 @@ router.delete('/disconnect/:deviceId', async (req: Request, res: Response, next:
     });
 
     if (!patient) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Patient profile not found',
       });
+      return;
     }
 
     // Find and verify ownership
@@ -495,10 +507,11 @@ router.delete('/disconnect/:deviceId', async (req: Request, res: Response, next:
     });
 
     if (!device) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Device not found',
       });
+      return;
     }
 
     // Revoke access if OAuth provider
@@ -539,7 +552,7 @@ router.delete('/disconnect/:deviceId', async (req: Request, res: Response, next:
 router.post('/sync/:deviceId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { deviceId } = req.params;
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
 
     // Get patient ID
     const patient = await prisma.patient.findUnique({
@@ -548,10 +561,11 @@ router.post('/sync/:deviceId', async (req: Request, res: Response, next: NextFun
     });
 
     if (!patient) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Patient profile not found',
       });
+      return;
     }
 
     // Find device
@@ -564,26 +578,29 @@ router.post('/sync/:deviceId', async (req: Request, res: Response, next: NextFun
     });
 
     if (!device) {
-      return res.status(404).json({
+      res.status(404).json({
         status: 'error',
         message: 'Device not found or not connected',
       });
+      return;
     }
 
     if (!isOAuthProvider(device.deviceType as WearableProvider)) {
-      return res.json({
+      res.json({
         status: 'success',
         message: 'Push-based devices sync automatically from the mobile app',
         data: { lastSync: device.lastSyncAt },
       });
+      return;
     }
 
     // For OAuth providers, pull new data
     if (!device.accessTokenEncrypted) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 'error',
         message: 'Device needs to be reconnected',
       });
+      return;
     }
 
     const accessToken = encryptionService.decrypt(device.accessTokenEncrypted);
@@ -668,7 +685,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { patientId } = req.params;
-      const userId = req.user!.id;
+      const userId = req.user!.userId;
 
       // Patients can only view their own data
       if (req.user!.role === 'patient') {
@@ -677,10 +694,11 @@ router.get(
           select: { id: true },
         });
         if (!patient || patient.id !== patientId) {
-          return res.status(403).json({
+          res.status(403).json({
             status: 'error',
             message: 'Access denied',
           });
+          return;
         }
       }
 
@@ -713,8 +731,8 @@ router.get(
       const { days = '7' } = req.query;
 
       const trends = await wearableService.analyzePatientTrends(
-        patientId,
-        parseInt(days as string)
+        patientId!,
+        parseInt((days ?? '7') as string)
       );
 
       res.json({
