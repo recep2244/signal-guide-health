@@ -2,7 +2,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AlertsProvider } from "@/context/AlertsContext";
-import Dashboard from "@/pages/Dashboard";
+import { AuthProvider } from "@/context/AuthContext";
+import Dashboard from "@/demo/pages/Dashboard";
 
 // Create a fresh QueryClient for each test
 const createTestQueryClient = () =>
@@ -21,11 +22,13 @@ describe("Dashboard", () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <AlertsProvider>
-          <MemoryRouter>
-            <Dashboard />
-          </MemoryRouter>
-        </AlertsProvider>
+        <AuthProvider>
+          <AlertsProvider>
+            <MemoryRouter>
+              <Dashboard />
+            </MemoryRouter>
+          </AlertsProvider>
+        </AuthProvider>
       </QueryClientProvider>
     );
 
@@ -35,7 +38,7 @@ describe("Dashboard", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Margaret Thompson")).toBeInTheDocument();
+      expect(screen.getAllByText("Margaret Thompson").length).toBeGreaterThan(0);
     });
   });
 });
