@@ -9,10 +9,13 @@ import cors from 'cors';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import { RedisStore } from 'rate-limit-redis';
 import { pinoHttp } from 'pino-http';
 
 import { env } from './config/env';
 import { logger } from './utils/logger';
+import { redis } from './config/redis';
+import { checkDatabaseHealth, prisma } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import { notFoundHandler } from './middleware/notFoundHandler';
 import { csrfProtection } from './middleware/csrf';
@@ -27,9 +30,38 @@ import alertRoutes from './routes/alerts';
 import wearableRoutes from './routes/wearables';
 import appointmentRoutes from './routes/appointments';
 import adminRoutes from './routes/admin';
+import clinicalRoutes from './routes/clinical';
 import webhookRoutes from './routes/webhooks';
+import { pilotSchedulerService } from './services/pilotSchedulerService';
 
 const app: Express = express();
+
+const LOOPBACK_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+
+const isLoopbackAddress = (value: string | undefined): boolean => {
+  if (!value) return false;
+  const normalized = value.trim();
+  return LOOPBACK_IPS.has(normalized);
+};
+
+const requireLocalAdminAccess = (req: Request, res: Response, next: NextFunction): void => {
+  if (!env.ADMIN_LOCAL_ONLY) {
+    next();
+    return;
+  }
+
+  // Use socket remote address for authorization checks to avoid spoofed forwarded headers.
+  if (isLoopbackAddress(req.socket.remoteAddress || undefined)) {
+    next();
+    return;
+  }
+
+  res.status(403).json({
+    status: 'error',
+    code: 'FORBIDDEN',
+    message: 'Admin API is restricted to local access.',
+  });
+};
 
 // =============================================================================
 // SECURITY MIDDLEWARE
@@ -37,6 +69,8 @@ const app: Express = express();
 
 // Trust proxy (for rate limiting behind reverse proxy)
 app.set('trust proxy', 1);
+// Use the simple query parser to avoid deep nested parsing edge cases.
+app.set('query parser', 'simple');
 
 // Helmet - Security headers
 app.use(helmet({
@@ -93,6 +127,13 @@ const globalLimiter = rateLimit({
     message: 'You have exceeded the rate limit. Please try again later.',
   },
   skip: (req) => req.path === '/health',
+  ...(redis
+    ? {
+        store: new RedisStore({
+          sendCommand: (...args: string[]) => (redis!.call as (...a: string[]) => Promise<number>)(...args),
+        }),
+      }
+    : {}),
 });
 app.use(globalLimiter);
 
@@ -107,13 +148,31 @@ const authLimiter = rateLimit({
     error: 'Too many login attempts',
     message: 'Account temporarily locked. Please try again in 15 minutes.',
   },
+  ...(redis
+    ? {
+        store: new RedisStore({
+          sendCommand: (...args: string[]) => (redis!.call as (...a: string[]) => Promise<number>)(...args),
+        }),
+      }
+    : {}),
 });
 
 // =============================================================================
 // PARSING & UTILITY MIDDLEWARE
 // =============================================================================
 
-// Body parsing
+const captureRawBody = (req: Request, _res: Response, buf: Buffer): void => {
+  if (buf.length > 0) {
+    const requestWithRawBody = req as Request & { rawBody?: string };
+    requestWithRawBody.rawBody = buf.toString('utf8');
+  }
+};
+
+// Webhooks often include larger batched payloads and require raw body signature validation.
+app.use('/webhooks', express.json({ limit: '512kb', verify: captureRawBody }));
+app.use('/webhooks', express.urlencoded({ extended: true, limit: '512kb', verify: captureRawBody }));
+
+// Body parsing for application APIs
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
@@ -152,16 +211,14 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 app.get('/ready', async (_req: Request, res: Response) => {
-  try {
-    // Check database connection
-    // await prisma.$queryRaw`SELECT 1`;
-
+  const dbHealthy = await checkDatabaseHealth();
+  if (dbHealthy) {
     res.status(200).json({
       status: 'ready',
       database: 'connected',
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
+  } else {
     res.status(503).json({
       status: 'not ready',
       database: 'disconnected',
@@ -189,10 +246,12 @@ apiRouter.use('/doctors', doctorRoutes);
 apiRouter.use('/alerts', alertRoutes);
 apiRouter.use('/wearables', wearableRoutes);
 apiRouter.use('/appointments', appointmentRoutes);
-apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/admin', requireLocalAdminAccess, adminRoutes);
+apiRouter.use('/clinical', clinicalRoutes);
 
 // API version prefix
 app.use('/api/v1', apiRouter);
+app.use('/api', apiRouter);
 
 // Webhook routes (separate - no CSRF, different auth)
 app.use('/webhooks', webhookRoutes);
@@ -220,20 +279,29 @@ const server = app.listen(PORT, () => {
     environment: env.NODE_ENV,
     version: env.APP_VERSION,
   });
+
+  pilotSchedulerService.start();
 });
 
 // Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   logger.info({ message: `${signal} received, shutting down gracefully` });
+  pilotSchedulerService.stop();
 
   server.close(async () => {
     logger.info({ message: 'HTTP server closed' });
 
-    // Close database connection
-    // await prisma.$disconnect();
+    try {
+      await prisma.$disconnect();
+      logger.info({ message: 'Database disconnected' });
+    } catch { /* ignore */ }
 
-    // Close Redis connection
-    // await redis.quit();
+    if (redis) {
+      try {
+        await redis.quit();
+        logger.info({ message: 'Redis disconnected' });
+      } catch { /* ignore */ }
+    }
 
     process.exit(0);
   });
