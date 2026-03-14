@@ -13,6 +13,27 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '@/services/api/client';
+
+interface ApiAlert {
+  id: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  message: string;
+  createdAt: string;
+  patientId: string;
+  patient: {
+    id: string;
+    nhsNumber: string;
+    user: { firstName: string; lastName: string };
+  };
+}
+
+interface AlertsResponse {
+  status: string;
+  data: { alerts: ApiAlert[]; total: number };
+}
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +72,18 @@ export function PilotDashboardHeader({ unreadAlerts = 0 }: PilotDashboardHeaderP
     user?.role === 'admin' ||
     user?.role === 'super_admin';
   const hasAdminAccess = user?.role === 'admin' || user?.role === 'super_admin';
+
+  const { data: alertsData } = useQuery({
+    queryKey: ['header-alerts'],
+    queryFn: async () => {
+      const res = await apiClient.get<AlertsResponse>('/alerts?resolved=false&limit=10');
+      return res.data;
+    },
+    staleTime: 30_000,
+    retry: false,
+  });
+  const liveAlerts = alertsData?.data?.alerts ?? [];
+  const liveUnreadCount = liveAlerts.length;
 
   const handleLogout = async () => {
     await auth.logout();
@@ -120,9 +153,9 @@ export function PilotDashboardHeader({ unreadAlerts = 0 }: PilotDashboardHeaderP
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="relative text-slate-600 hover:text-teal-600 hover:bg-teal-50">
                 <Bell size={20} />
-                {unreadAlerts > 0 && (
+                {liveUnreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
-                    {unreadAlerts}
+                    {liveUnreadCount}
                   </span>
                 )}
               </Button>
@@ -131,53 +164,44 @@ export function PilotDashboardHeader({ unreadAlerts = 0 }: PilotDashboardHeaderP
               <div className="px-4 py-3 border-b bg-slate-50">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-slate-900">Notifications</h4>
-                  {unreadAlerts > 0 && (
-                    <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">{unreadAlerts} unread</Badge>
+                  {liveUnreadCount > 0 && (
+                    <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">{liveUnreadCount} unread</Badge>
                   )}
                 </div>
               </div>
               <div className="max-h-72 overflow-y-auto">
-                {unreadAlerts > 0 ? (
+                {liveUnreadCount > 0 ? (
                   <div className="p-2 space-y-1">
-                    <button
-                      onClick={() => navigate(paths.patient('pt-001'))}
-                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-red-50 transition-colors text-left"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <AlertCircle size={14} className="text-red-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-red-700">URGENT: Chest pressure</p>
-                        <p className="text-xs text-slate-600 mt-0.5">Margaret Thompson - Requires immediate evaluation</p>
-                        <p className="text-[10px] text-slate-400 mt-1">16 Jan, 09:11</p>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => navigate(paths.patient('pt-002'))}
-                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-amber-50 transition-colors text-left"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <AlertTriangle size={14} className="text-amber-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-amber-700">Review today: Breathlessness</p>
-                        <p className="text-xs text-slate-600 mt-0.5">David Chen - Worsening on exertion</p>
-                        <p className="text-[10px] text-slate-400 mt-1">16 Jan, 08:22</p>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => navigate(paths.patient('pt-003'))}
-                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-green-50 transition-colors text-left"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <CheckCircle2 size={14} className="text-green-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-green-700">Check-in complete</p>
-                        <p className="text-xs text-slate-600 mt-0.5">Sarah Okonkwo - All vitals stable</p>
-                        <p className="text-[10px] text-slate-400 mt-1">16 Jan, 07:45</p>
-                      </div>
-                    </button>
+                    {liveAlerts.map((alert) => {
+                      const isCritical = alert.severity === 'critical' || alert.severity === 'high';
+                      const patientName = `${alert.patient.user.firstName} ${alert.patient.user.lastName}`;
+                      return (
+                        <button
+                          key={alert.id}
+                          onClick={() => navigate(paths.patient(alert.patientId))}
+                          className={`w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-left ${
+                            isCritical ? 'hover:bg-red-50' : 'hover:bg-amber-50'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                            isCritical ? 'bg-red-100' : 'bg-amber-100'
+                          }`}>
+                            {isCritical
+                              ? <AlertCircle size={14} className="text-red-600" />
+                              : <AlertTriangle size={14} className="text-amber-600" />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className={`text-xs font-semibold ${isCritical ? 'text-red-700' : 'text-amber-700'}`}>
+                              {alert.title}
+                            </p>
+                            <p className="text-xs text-slate-600 mt-0.5">{patientName} — {alert.message}</p>
+                            <p className="text-[10px] text-slate-400 mt-1">
+                              {new Date(alert.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="p-6 text-center">
