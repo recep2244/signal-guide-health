@@ -41,7 +41,12 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAlerts } from '@/context/AlertsContext';
 import { DevicePairingModal } from '@/pilot/components/DevicePairingModal';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import apiClient from '@/services/api/client';
 
 export default function PatientDetail() {
@@ -55,6 +60,11 @@ export default function PatientDetail() {
   const [pairingToken, setPairingToken] = useState<string | undefined>(undefined);
   const [pairingShortCode, setPairingShortCode] = useState<string | undefined>(undefined);
   const [pairingQrPayload, setPairingQrPayload] = useState<string | undefined>(undefined);
+  const [apptDialogOpen, setApptDialogOpen] = useState(false);
+  const [apptScheduledAt, setApptScheduledAt] = useState('');
+  const [apptType, setApptType] = useState<'routine' | 'urgent' | 'follow_up' | 'telemedicine'>('routine');
+  const [apptNotes, setApptNotes] = useState('');
+  const [apptDoctorId, setApptDoctorId] = useState('');
 
   if (isLoading) {
     return (
@@ -74,6 +84,34 @@ export default function PatientDetail() {
     );
   }
 
+  const createAppointment = useMutation({
+    mutationFn: async () => {
+      const payload: Record<string, unknown> = {
+        patientId: patient!.id,
+        type: apptType,
+        scheduledAt: new Date(apptScheduledAt).toISOString(),
+        durationMinutes: 30,
+      };
+      if (apptNotes.trim()) payload.reason = apptNotes.trim();
+      if (apptDoctorId.trim()) payload.doctorId = apptDoctorId.trim();
+      return apiClient.post('/appointments', payload);
+    },
+    onSuccess: () => {
+      toast.success('Appointment requested successfully');
+      setApptDialogOpen(false);
+      setApptScheduledAt('');
+      setApptType('routine');
+      setApptNotes('');
+      setApptDoctorId('');
+      queryClient.invalidateQueries({ queryKey: ['patientData'] });
+    },
+    onError: (err: unknown) => {
+      const message =
+        err instanceof Error ? err.message : 'Failed to create appointment';
+      toast.error(message);
+    },
+  });
+
   const handleResolveAlert = async (alertId: string) => {
     try {
       await apiClient.patch(`/alerts/${alertId}/acknowledge`);
@@ -88,7 +126,7 @@ export default function PatientDetail() {
   };
 
   const handleRequestAppointment = () => {
-    toast.success('Appointment request sent to scheduling team');
+    setApptDialogOpen(true);
   };
 
   const handleContactPatient = () => {
@@ -666,6 +704,89 @@ export default function PatientDetail() {
         initialShortCode={pairingShortCode}
         initialQrPayload={pairingQrPayload}
       />
+
+      <Dialog open={apptDialogOpen} onOpenChange={setApptDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Appointment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="appt-datetime">Date &amp; Time</Label>
+              <Input
+                id="appt-datetime"
+                type="datetime-local"
+                value={apptScheduledAt}
+                onChange={(e) => setApptScheduledAt(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="appt-type">Appointment Type</Label>
+              <Select
+                value={apptType}
+                onValueChange={(v) =>
+                  setApptType(v as 'routine' | 'urgent' | 'follow_up' | 'telemedicine')
+                }
+              >
+                <SelectTrigger id="appt-type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="routine">Routine</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="follow_up">Follow-up</SelectItem>
+                  <SelectItem value="telemedicine">Telemedicine</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="appt-doctor">Doctor ID (UUID, required by API)</Label>
+              <Input
+                id="appt-doctor"
+                type="text"
+                placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                value={apptDoctorId}
+                onChange={(e) => setApptDoctorId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter the doctor&apos;s UUID. Leave blank to submit without — the API will return an error if required.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="appt-notes">Notes (optional)</Label>
+              <Textarea
+                id="appt-notes"
+                placeholder="Reason for appointment, patient concerns..."
+                value={apptNotes}
+                onChange={(e) => setApptNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setApptDialogOpen(false)}
+              disabled={createAppointment.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!apptScheduledAt) {
+                  toast.error('Please select a date and time');
+                  return;
+                }
+                createAppointment.mutate();
+              }}
+              disabled={createAppointment.isPending}
+            >
+              {createAppointment.isPending ? 'Requesting...' : 'Request Appointment'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
