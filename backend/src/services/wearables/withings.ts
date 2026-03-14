@@ -23,6 +23,8 @@ import type {
   HRVData,
 } from './types';
 import { env } from '../../config/env';
+// Lazy import to avoid circular dependency (wearableService does not import from withings.ts)
+import { wearableService } from '../wearableService';
 
 // ---------------------------------------------------------------------------
 // Withings meastype codes
@@ -465,6 +467,117 @@ export class WithingsProvider implements WearableProviderInterface {
    */
   private scaleWithingsValue(value: number, unit: number): number {
     return value * Math.pow(10, unit);
+  }
+
+  // -------------------------------------------------------------------------
+  // Context-aware sync — fetches measurements and persists via wearableService
+  // -------------------------------------------------------------------------
+
+  /**
+   * Fetch Withings measurements and persist each via wearableService.recordReading().
+   * Groups measurements by date and writes one WearableReading row per day per metric type.
+   */
+  async syncHealthDataWithContext(
+    accessToken: string,
+    since: Date,
+    patientId: string,
+    wearableId: string
+  ): Promise<{ recordsCount: Record<string, number> }> {
+    const startDate = since || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const endDate = new Date();
+
+    const counts: Record<string, number> = {
+      heartRate: 0,
+      sleep: 0,
+      activity: 0,
+      bloodOxygen: 0,
+      temperature: 0,
+      hrv: 0,
+      bloodPressure: 0,
+      ecg: 0,
+    };
+
+    try {
+      const measgrps = await this.getMeasurements(accessToken, startDate, endDate);
+
+      for (const grp of measgrps) {
+        const readingDate = new Date(grp.date * 1000);
+
+        let systolic: number | null = null;
+        let diastolic: number | null = null;
+
+        for (const m of grp.measures) {
+          const val = this.scaleWithingsValue(m.value, m.unit);
+
+          switch (m.type) {
+            case MEASTYPE_HEART_RATE:
+              await wearableService.recordReading({
+                patientId,
+                wearableId,
+                type: 'HEART_RATE',
+                value: Math.round(val),
+                unit: 'bpm',
+                readingDate,
+              });
+              counts['heartRate'] = (counts['heartRate'] ?? 0) + 1;
+              break;
+            case MEASTYPE_SPO2:
+              await wearableService.recordReading({
+                patientId,
+                wearableId,
+                type: 'OXYGEN_SATURATION',
+                value: val,
+                unit: '%',
+                readingDate,
+              });
+              counts['bloodOxygen'] = (counts['bloodOxygen'] ?? 0) + 1;
+              break;
+            case MEASTYPE_TEMPERATURE:
+              await wearableService.recordReading({
+                patientId,
+                wearableId,
+                type: 'TEMPERATURE',
+                value: val,
+                unit: '°C',
+                readingDate,
+              });
+              counts['temperature'] = (counts['temperature'] ?? 0) + 1;
+              break;
+            case MEASTYPE_SYSTOLIC:
+              systolic = val;
+              break;
+            case MEASTYPE_DIASTOLIC:
+              diastolic = val;
+              break;
+          }
+        }
+
+        // Blood pressure: write systolic and diastolic separately (flat schema)
+        if (systolic != null) {
+          await wearableService.recordReading({
+            patientId,
+            wearableId,
+            type: 'BLOOD_PRESSURE_SYSTOLIC',
+            value: Math.round(systolic),
+            unit: 'mmHg',
+            readingDate,
+          });
+          counts['bloodPressure'] = (counts['bloodPressure'] ?? 0) + 1;
+        }
+        if (diastolic != null) {
+          await wearableService.recordReading({
+            patientId,
+            wearableId,
+            type: 'BLOOD_PRESSURE_DIASTOLIC',
+            value: Math.round(diastolic),
+            unit: 'mmHg',
+            readingDate,
+          });
+        }
+      }
+    } catch (_err) { /* non-fatal — return partial counts */ }
+
+    return { recordsCount: counts };
   }
 }
 

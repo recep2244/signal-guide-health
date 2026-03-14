@@ -7,11 +7,17 @@ export * from './types';
 export { appleHealthKitProvider } from './appleHealthKit';
 export { googleFitProvider } from './googleFit';
 export { healthConnectProvider } from './healthConnect';
+export { fitbitProvider } from './fitbit';
+export { garminProvider } from './garmin';
+export { withingsProvider } from './withings';
 
 import type { WearableProvider } from './types';
 import { appleHealthKitProvider } from './appleHealthKit';
 import { googleFitProvider } from './googleFit';
 import { healthConnectProvider } from './healthConnect';
+import { fitbitProvider } from './fitbit';
+import { garminProvider } from './garmin';
+import { withingsProvider } from './withings';
 
 /**
  * Get the appropriate provider for a wearable type
@@ -26,11 +32,13 @@ export function getWearableProvider(type: WearableProvider) {
     case 'health_connect':
       return healthConnectProvider;
     case 'fitbit':
+      return fitbitProvider;
     case 'garmin':
-    case 'samsung':
+      return garminProvider;
     case 'withings':
-      // These would have their own provider implementations
-      throw new Error(`Provider ${type} not yet implemented`);
+      return withingsProvider;
+    case 'samsung':
+      throw new Error('Samsung Health not yet implemented');
     default:
       throw new Error(`Unknown provider: ${type}`);
   }

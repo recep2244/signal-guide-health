@@ -6,6 +6,8 @@
 import { prisma } from '../config/database';
 import { encryptionService } from './encryptionService';
 import { alertService } from './alertService';
+import { getWearableProvider, isOAuthProvider } from './wearables';
+import type { WearableProvider } from './wearables/types';
 import type { WearableType, TriageLevel, AlertSeverity } from '@prisma/client';
 
 // Local ReadingType definition (not in Prisma schema)
@@ -51,6 +53,7 @@ interface WearableReading {
   type: ReadingType;
   value: number;
   unit: string;
+  readingDate?: Date;
   metadata?: Record<string, unknown>;
 }
 
@@ -183,7 +186,7 @@ export const wearableService = {
       data: {
         patientId: reading.patientId,
         deviceId: reading.wearableId,
-        readingDate: new Date(),
+        readingDate: reading.readingDate ?? new Date(),
         rawData: reading.metadata as any,
         ...mapReadingToColumns(reading.type, reading.value),
       },
@@ -471,7 +474,8 @@ export const wearableService = {
   },
 
   /**
-   * Sync data from wearable provider
+   * Sync data from wearable provider using real provider APIs.
+   * Garmin and push-based devices are excluded — they use push/webhook flows.
    */
   async syncFromProvider(wearableId: string): Promise<{ synced: number }> {
     const wearable = await prisma.wearableDevice.findUnique({
@@ -482,57 +486,50 @@ export const wearableService = {
       throw new Error('Wearable not found or not connected');
     }
 
-    // Decrypt access token
-    const accessToken = encryptionService.decrypt(wearable.accessTokenEncrypted);
+    // Garmin is push-only via webhook — no on-demand pull sync
+    if (wearable.deviceType === 'garmin') {
+      return { synced: 0 };
+    }
 
-    // In production, this would call the actual provider API
-    // For now, simulate sync
-    const syncedCount = await this.simulateProviderSync(wearable, accessToken);
+    // Push-based devices (Apple Watch, Wear OS, Health Connect) sync via /push-data route
+    if (!isOAuthProvider(wearable.deviceType as WearableProvider)) {
+      return { synced: 0 };
+    }
+
+    const accessToken = encryptionService.decrypt(wearable.accessTokenEncrypted);
+    const provider = getWearableProvider(wearable.deviceType as WearableProvider);
+    const since = wearable.lastSyncAt || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    // Use context-aware sync if available (Fitbit, Withings) — calls recordReading() internally
+    const providerAny = provider as any;
+    let totalSynced = 0;
+
+    if (typeof providerAny.syncHealthDataWithContext === 'function') {
+      const syncResult = await providerAny.syncHealthDataWithContext(
+        accessToken,
+        since,
+        wearable.patientId,
+        wearable.id
+      );
+      totalSynced = Object.values(syncResult.recordsCount as Record<string, number>).reduce(
+        (s: number, n: number) => s + n,
+        0
+      );
+    } else {
+      // Fallback: call standard syncHealthData (counts only, no DB writes)
+      const syncResult = await provider.syncHealthData(accessToken, since);
+      totalSynced = Object.values(syncResult.recordsCount).reduce(
+        (s: number, n: unknown) => s + (n as number),
+        0
+      );
+    }
 
     await prisma.wearableDevice.update({
       where: { id: wearableId },
       data: { lastSyncAt: new Date() },
     });
 
-    return { synced: syncedCount };
-  },
-
-  /**
-   * Simulate provider sync (placeholder for actual API calls)
-   */
-  async simulateProviderSync(
-    wearable: { id: string; patientId: string; deviceType: WearableType },
-    _accessToken: string
-  ): Promise<number> {
-    // In production, implement actual API calls to:
-    // - Apple HealthKit
-    // - Fitbit API
-    // - Garmin Connect API
-    // - Samsung Health API
-
-    // For demo, create sample readings
-    const readings: WearableReading[] = [
-      {
-        patientId: wearable.patientId,
-        wearableId: wearable.id,
-        type: 'HEART_RATE',
-        value: 72 + Math.floor(Math.random() * 10),
-        unit: 'bpm',
-      },
-      {
-        patientId: wearable.patientId,
-        wearableId: wearable.id,
-        type: 'STEPS',
-        value: Math.floor(Math.random() * 3000) + 2000,
-        unit: 'steps',
-      },
-    ];
-
-    for (const reading of readings) {
-      await this.recordReading(reading);
-    }
-
-    return readings.length;
+    return { synced: totalSynced };
   },
 
   /**

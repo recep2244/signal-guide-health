@@ -19,6 +19,8 @@ import type {
   HRVData,
 } from './types';
 import { env } from '../../config/env';
+// Lazy import to avoid circular dependency (wearableService does not import from fitbit.ts)
+import { wearableService } from '../wearableService';
 
 // ---------------------------------------------------------------------------
 // PKCE helpers (not exported)
@@ -457,6 +459,150 @@ export class FitbitProvider implements WearableProviderInterface {
       userId: data?.userId ?? '',
       dataTypes: data?.collectionType ? [data.collectionType] : [],
     };
+  }
+
+  // -------------------------------------------------------------------------
+  // Context-aware sync — fetches data and persists via wearableService
+  // -------------------------------------------------------------------------
+
+  /**
+   * Fetch health data from Fitbit and persist each reading via wearableService.recordReading().
+   * Unlike syncHealthData(), this method requires patientId and wearableId so it can
+   * write WearableReading rows that trigger the alert pipeline.
+   */
+  async syncHealthDataWithContext(
+    accessToken: string,
+    since: Date,
+    patientId: string,
+    wearableId: string
+  ): Promise<{ recordsCount: Record<string, number> }> {
+    const startDate = since ?? addDays(new Date(), -7);
+    const today = new Date();
+    const headers = { Authorization: `Bearer ${accessToken}` };
+
+    const counts: Record<string, number> = {
+      heartRate: 0,
+      sleep: 0,
+      activity: 0,
+      bloodOxygen: 0,
+      temperature: 0,
+      hrv: 0,
+      bloodPressure: 0,
+      ecg: 0,
+    };
+
+    let current = new Date(startDate);
+    current.setUTCHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
+
+    while (current <= today) {
+      const dateStr = formatDate(current);
+      const readingDate = new Date(current);
+
+      // --- Heart rate ---
+      try {
+        const hrUrl = `${FITBIT_API}/1/user/-/activities/heart/date/${dateStr}/1d.json`;
+        const hrResp = await fetch(hrUrl, { headers });
+        if (hrResp.ok) {
+          const hrData = await hrResp.json() as {
+            'activities-heart'?: Array<{ value: { restingHeartRate?: number } }>;
+            'activities-heart-intraday'?: { dataset: Array<{ value: number }> };
+          };
+          const heartArr = hrData['activities-heart'];
+          const intraday = hrData['activities-heart-intraday'];
+          const resting = heartArr?.[0]?.value?.restingHeartRate;
+          const intradayVals = intraday?.dataset ?? [];
+          const avgIntraday =
+            intradayVals.length > 0
+              ? intradayVals.reduce((s, d) => s + d.value, 0) / intradayVals.length
+              : null;
+          const hrValue = resting ?? avgIntraday;
+          if (hrValue != null && hrValue > 0) {
+            await wearableService.recordReading({
+              patientId,
+              wearableId,
+              type: 'HEART_RATE',
+              value: Math.round(hrValue),
+              unit: 'bpm',
+              readingDate,
+            });
+            counts['heartRate'] = (counts['heartRate'] ?? 0) + 1;
+          }
+        }
+      } catch (_err) { /* non-fatal — continue */ }
+
+      // --- SpO2 ---
+      try {
+        const spo2Url = `${FITBIT_API}/1/user/-/spo2/date/${dateStr}/all.json`;
+        const spo2Resp = await fetch(spo2Url, { headers });
+        if (spo2Resp.ok) {
+          const spo2Data = await spo2Resp.json() as { value?: { avg?: number } };
+          const avg = spo2Data?.value?.avg;
+          if (avg != null) {
+            await wearableService.recordReading({
+              patientId,
+              wearableId,
+              type: 'OXYGEN_SATURATION',
+              value: avg,
+              unit: '%',
+              readingDate,
+            });
+            counts['bloodOxygen'] = (counts['bloodOxygen'] ?? 0) + 1;
+          }
+        }
+      } catch (_err) { /* non-fatal */ }
+
+      // --- Temperature ---
+      try {
+        const tempUrl = `${FITBIT_API}/1/user/-/temp/skin/date/${dateStr}.json`;
+        const tempResp = await fetch(tempUrl, { headers });
+        if (tempResp.ok) {
+          const tempData = await tempResp.json() as {
+            tempSkin?: Array<{ value?: { nightlyRelative?: number } }>;
+          };
+          const nightlyRelative = tempData?.tempSkin?.[0]?.value?.nightlyRelative;
+          if (nightlyRelative != null) {
+            await wearableService.recordReading({
+              patientId,
+              wearableId,
+              type: 'TEMPERATURE',
+              value: nightlyRelative,
+              unit: '°C',
+              readingDate,
+            });
+            counts['temperature'] = (counts['temperature'] ?? 0) + 1;
+          }
+        }
+      } catch (_err) { /* non-fatal */ }
+
+      // --- Steps ---
+      try {
+        const stepsUrl = `${FITBIT_API}/1/user/-/activities/steps/date/${dateStr}/1d.json`;
+        const stepsResp = await fetch(stepsUrl, { headers });
+        if (stepsResp.ok) {
+          const stepsData = await stepsResp.json() as {
+            'activities-steps'?: Array<{ value: string }>;
+          };
+          const stepsArr = stepsData['activities-steps'];
+          const stepsVal = stepsArr?.[0] ? parseInt(stepsArr[0].value, 10) : 0;
+          if (stepsVal > 0) {
+            await wearableService.recordReading({
+              patientId,
+              wearableId,
+              type: 'STEPS',
+              value: stepsVal,
+              unit: 'steps',
+              readingDate,
+            });
+            counts['activity'] = (counts['activity'] ?? 0) + 1;
+          }
+        }
+      } catch (_err) { /* non-fatal */ }
+
+      current = addDays(current, 1);
+    }
+
+    return { recordsCount: counts };
   }
 }
 
