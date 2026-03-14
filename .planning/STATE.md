@@ -1,7 +1,7 @@
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-14 - Completed quick task 7: Replace doctors.ts, appointments.ts, admin /stats stubs with real Prisma queries (8 routes)
+**Last activity:** 2026-03-14 - Completed quick task 8: Remove 4 frontend hardcodings (Patient.whatsappPhone type, live notifications bell, patient.consultant clinicianName, useAdminStats hook)
 
 ## Current Phase
 
@@ -33,10 +33,12 @@ All blockers from quick tasks 1 and 2 resolved:
 - req.params['id'] bracket notation used in route files to satisfy TS4111 (index signature access)
 - Appointment GET / scopes by role: doctor/patient userId lookup injects where.doctorId/where.patientId
 - Promise.all for parallel Prisma count queries in admin /stats handler
+- CheckCircle2 import retained in PilotDashboardHeader — still used in empty-state "All caught up" view
+- unreadAlerts prop kept for backward compat but display now driven by liveUnreadCount from API
 
 ## Session
 
-**Stopped at:** Completed quick/7-backend-stubs-implement-doctors-routes-a — 3/3 tasks, verified
+**Stopped at:** Completed quick/8-frontend-fixes-type-notifications-hardcoded — 3/3 tasks, verified
 
 ### Quick Tasks Completed
 
@@ -49,3 +51,4 @@ All blockers from quick tasks 1 and 2 resolved:
 | 5 | Wire Admin real API data (users/audit-logs Prisma queries), useAdmin.ts React Query hooks, PatientDetail Acknowledge Alert/Live Sync/Contact Patient buttons | 2026-03-13 | e1407ed | Verified | [5-fix-ui-quick-wins-admin-real-api-alert-a](./quick/5-fix-ui-quick-wins-admin-real-api-alert-a/) |
 | 6 | Alert notification emails (createAlert + escalateAlert nodemailer, SMTP-gated, fire-and-forget); remove 7 obsolete src/pages stubs; commit VITE_API_BASE_URL=/api/v1 | 2026-03-13 | 82c8c94 | Verified | [6-alert-notifications-cleanup-old-src-page](./quick/6-alert-notifications-cleanup-old-src-page/) |
 | 7 | Replace doctors.ts, appointments.ts, admin /stats stubs with real Prisma queries (8 routes: doctor list/detail/patients/schedule, appointment CRUD + cancel/confirm, admin stats counts) | 2026-03-14 | 5d5f72f | Verified | [7-backend-stubs-implement-doctors-routes-a](./quick/7-backend-stubs-implement-doctors-routes-a/) |
+| 8 | Remove 4 frontend hardcodings: Patient.whatsappPhone type field, notifications bell wired to GET /alerts, clinicianName from patient.consultant, usageMetrics from useAdminStats hook | 2026-03-14 | 470bd13 | Verified | [8-frontend-fixes-type-notifications-hardcoded](./quick/8-frontend-fixes-type-notifications-hardcoded/) |
