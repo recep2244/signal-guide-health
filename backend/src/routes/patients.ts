@@ -13,6 +13,7 @@ import { authenticate, requireRole } from '../middleware/auth';
 import { logAuditEvent } from '../middleware/audit';
 import { prisma } from '../config/database';
 import { computeGrace, computeCha2ds2vasc } from '../lib/riskScores';
+import { cardiacMetricSchema } from './cardiacMetric.schema';
 
 const router: Router = Router();
 
@@ -288,6 +289,66 @@ router.get('/stats', requireRole('doctor', 'nurse', 'admin', 'super_admin'), asy
     },
   });
 });
+
+/**
+ * POST /patients/:id/cardiac-metrics
+ * Record a new cardiac metric for a patient
+ */
+router.post(
+  '/:id/cardiac-metrics',
+  requireRole('doctor', 'nurse'),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const patient = await prisma.patient.findUnique({ where: { id }, select: { id: true } });
+      if (!patient) {
+        res.status(404).json({ status: 'error', code: 'NOT_FOUND', message: 'Patient not found' });
+        return;
+      }
+      const body = cardiacMetricSchema.parse(req.body);
+      const metric = await prisma.cardiacMetric.create({
+        data: { patientId: id as string, recordedById: req.user?.userId ?? null, ...body },
+      });
+      await logAuditEvent('PATIENT_UPDATE', {
+        userId: req.user?.userId,
+        entityType: 'patient',
+        entityId: id,
+        newValues: body,
+        requestId: req.requestId,
+      });
+      res.status(201).json({ status: 'success', data: { metric } });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ status: 'error', code: 'VALIDATION_ERROR', message: error.message });
+        return;
+      }
+      throw error;
+    }
+  }
+);
+
+/**
+ * GET /patients/:id/cardiac-metrics
+ * Get cardiac metric history for a patient (up to 20 records)
+ */
+router.get(
+  '/:id/cardiac-metrics',
+  requireRole('doctor', 'nurse', 'admin', 'super_admin'),
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const patient = await prisma.patient.findUnique({ where: { id }, select: { id: true } });
+    if (!patient) {
+      res.status(404).json({ status: 'error', code: 'NOT_FOUND', message: 'Patient not found' });
+      return;
+    }
+    const metrics = await prisma.cardiacMetric.findMany({
+      where: { patientId: id },
+      orderBy: { recordedAt: 'desc' },
+      take: 20,
+    });
+    res.json({ status: 'success', data: { metrics } });
+  }
+);
 
 /**
  * GET /patients/:id
