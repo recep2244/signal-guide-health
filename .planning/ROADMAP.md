@@ -63,7 +63,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — CardiacMetric Prisma model + manual migration SQL + riskScores.ts pure functions (tested)
+- [x] 02-01-PLAN.md — CardiacMetric Prisma model + manual migration SQL + riskScores.ts pure functions (tested)
 - [ ] 02-02-PLAN.md — Extend GET /patients and GET /:id API response + POST/GET cardiac-metric endpoints
 - [ ] 02-03-PLAN.md — Update Patient TypeScript type + useRecordCardiacMetric mutation hook
 - [ ] 02-04-PLAN.md — Fix Dashboard.tsx and PatientDetail.tsx field accesses + cardiac metric entry form
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Wearable Data Ingestion | 3/5 | Complete    | 2026-03-14 | - |
-| 2. Dashboard & Cardiac Metrics | v1.1 | 0/4 | Not started | - |
+| 2. Dashboard & Cardiac Metrics | v1.1 | 1/4 | In progress | - |
 | 3. Clinician Alert Notifications | v1.1 | 0/TBD | Not started | - |
 | 4. Security Hardening & Appointment Reminders | v1.1 | 0/TBD | Not started | - |
 | 5. Audit Log Viewer | v1.1 | 0/TBD | Not started | - |

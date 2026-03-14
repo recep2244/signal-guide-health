@@ -2,25 +2,25 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Pilot Hardening & Clinical Completeness
-status: unknown
-stopped_at: Completed 01-wearable-data-ingestion/01-05 — 2/2 tasks, WEAR-01/03/04/05 satisfied. Phase 01 complete (5/5 plans).
-last_updated: "2026-03-14T02:33:39.245Z"
-last_activity: "2026-03-14 - Completed phase 01 plan 05: Wire provider factory + replace simulateProviderSync with real provider calls + Fitbit PKCE Redis"
+status: in_progress
+stopped_at: Completed 02-dashboard-cardiac-metrics/02-01 — 2/2 tasks, CARD-01/CARD-02 satisfied.
+last_updated: "2026-03-14T04:52:22Z"
+last_activity: "2026-03-14 - Completed phase 02 plan 01: CardiacMetric schema + GRACE/CHA2DS2-VASc risk score functions"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-14 - Completed phase 01 plan 05: Wire provider factory + replace simulateProviderSync with real provider calls + Fitbit PKCE Redis
+**Last activity:** 2026-03-14 - Completed phase 02 plan 01: CardiacMetric Prisma model, manual migration SQL, computeGrace/computeCha2ds2vasc pure functions (12 tests pass)
 
 ## Current Phase
 
-Phase 01: Wearable Data Ingestion (plan 05 of 5 complete)
+Phase 02: Dashboard & Cardiac Metrics (plan 01 of N complete)
 
 ## Blockers/Concerns
 
@@ -49,10 +49,13 @@ All blockers from quick tasks 1 and 2 resolved:
 - 01-05: syncHealthDataWithContext pattern: provider fetches + persists via wearableService with per-reading date
 - 01-05: PKCE Redis key pkce:{state} with 10-minute TTL, single-use; falls back to in-memory on Redis unavailability
 - 01-05: Garmin excluded from pull sync — push-only via webhook
+- 02-01: computeGrace returns null not 0 when age absent — 0 implies low risk (clinical safety)
+- 02-01: date-fns added to backend package.json (was only in root/frontend)
+- 02-01: backend vitest.config.ts include extended to src/**/*.test.ts for lib unit tests
 
 ## Session
 
-**Stopped at:** Completed 01-wearable-data-ingestion/01-05 — 2/2 tasks, WEAR-01/03/04/05 satisfied. Phase 01 complete (5/5 plans).
+**Stopped at:** Completed 02-dashboard-cardiac-metrics/02-01 — 2/2 tasks, CARD-01/CARD-02 satisfied.
 
 ### Quick Tasks Completed
 
