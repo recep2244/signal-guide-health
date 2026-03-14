@@ -162,6 +162,8 @@ export interface Patient {
   wellbeingScore: number;
   /** Optional avatar URL */
   avatar?: string;
+  /** WhatsApp contact number for patient outreach */
+  whatsappPhone?: string;
   /** 14 days of wearable readings */
   wearableData: WearableReading[];
   /** Chat conversation history */

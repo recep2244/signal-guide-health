@@ -92,7 +92,7 @@ export default function PatientDetail() {
   };
 
   const handleContactPatient = () => {
-    const phone = (patient as { whatsappPhone?: string }).whatsappPhone?.replace(/\D/g, '');
+    const phone = patient.whatsappPhone?.replace(/\D/g, '');
     if (phone) {
       window.open(`https://wa.me/${phone}`, '_blank');
     } else {
@@ -100,7 +100,7 @@ export default function PatientDetail() {
     }
   };
 
-  const clinicianName = 'Dr. Sarah Mitchell';
+  const clinicianName = patient.consultant ?? '--';
   const pharmacyName = 'CityCare Pharmacy';
 
   const latestWearable = patient.wearableData?.[patient.wearableData.length - 1];
