@@ -9,7 +9,7 @@
 
 - [x] **WEAR-01**: System syncs real heart rate, blood pressure, SpO2, steps, and temperature from Fitbit via OAuth
 - [ ] **WEAR-02**: System syncs real heart rate, blood pressure, SpO2, steps, and temperature from Apple HealthKit push endpoint
-- [ ] **WEAR-03**: System syncs real data from Garmin Connect via OAuth
+- [x] **WEAR-03**: System syncs real data from Garmin Connect via OAuth
 - [ ] **WEAR-04**: System syncs real data from Withings via OAuth
 - [ ] **WEAR-05**: Wearable readings trigger threshold alerts (HR, BP, SpO2) and create Alert records automatically
 
@@ -94,7 +94,7 @@
 |-------------|-------|--------|
 | WEAR-01 | Phase 1 | Complete (01-01) |
 | WEAR-02 | Phase 1 | Pending |
-| WEAR-03 | Phase 1 | Pending |
+| WEAR-03 | Phase 1 | Complete |
 | WEAR-04 | Phase 1 | Pending |
 | WEAR-05 | Phase 1 | Pending |
 | DASH-01 | Phase 2 | Pending |

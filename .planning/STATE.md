@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: Pilot Hardening & Clinical Completeness
+status: executing
+stopped_at: Completed 01-wearable-data-ingestion/01-03-PLAN.md — GarminProvider + webhook route
+last_updated: "2026-03-14T02:16:29.674Z"
+last_activity: 2026-03-14 — Completed 01-02 (WithingsProvider, non-standard OAuth2, BP/HR/SpO2/temp measurement pull)
+progress:
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 3
+  percent: 60
+---
+
 # Project State
 
 ## Project Reference
@@ -14,7 +30,7 @@ Plan: 2 of 5 in current phase (01-01, 01-02 complete)
 Status: In progress
 Last activity: 2026-03-14 — Completed 01-02 (WithingsProvider, non-standard OAuth2, BP/HR/SpO2/temp measurement pull)
 
-Progress: [██░░░░░░░░] 6% (2/~31 plans complete across all phases)
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -34,6 +50,7 @@ Progress: [██░░░░░░░░] 6% (2/~31 plans complete across all p
 - Trend: TDD plans take longer; baseline adjusted
 
 *Updated after each plan completion*
+| Phase 01-wearable-data-ingestion P03 | 6 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -56,6 +73,8 @@ Recent decisions affecting v1.1 work:
 - [01-02] getMeasurements requests meastypes 9,10,11,54,71 in one POST — no per-type API calls
 - [01-02] revokeAccess returns true without API call — Withings has no standard revocation endpoint
 - [01-02] timingSafeEqual requires equal-length buffers — length guard added before comparison
+- [Phase 01-03]: getAuthorizationUrl synchronous per WearableProviderInterface — Garmin OAuth 1.0a async request-token exchange moved to fetchRequestTokenUrl() and /garmin/oauth-start route
+- [Phase 01-03]: Garmin webhook skips signature validation when GARMIN_WEBHOOK_SECRET absent (pilot mode) — 503 only for missing GARMIN_CONSUMER_KEY
 
 ### Pending Todos
 
@@ -67,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-14
-Stopped at: Completed 01-02-PLAN.md — 1 task (TDD: RED+GREEN), all 25 tests passing, SUMMARY.md created
+Last session: 2026-03-14T02:16:29.672Z
+Stopped at: Completed 01-wearable-data-ingestion/01-03-PLAN.md — GarminProvider + webhook route
 Resume file: None
