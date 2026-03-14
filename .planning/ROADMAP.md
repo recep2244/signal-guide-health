@@ -44,7 +44,7 @@ Completed as unstructured quick tasks before GSD workflow was adopted. Covered: 
 **Plans**: 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Fitbit OAuth PKCE provider class + DB unique constraint + oauth-1.0a install
+- [x] 01-01-PLAN.md — Fitbit OAuth PKCE provider class + DB unique constraint + oauth-1.0a install
 - [ ] 01-02-PLAN.md — Withings OAuth2 provider class (non-standard token exchange, BP/HR/SpO2/temp)
 - [ ] 01-03-PLAN.md — Garmin OAuth 1.0a provider class + webhook push route
 - [ ] 01-04-PLAN.md — Apple HealthKit push handler: wire all metric processors to recordReading()
@@ -124,7 +124,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Wearable Data Ingestion | v1.1 | 0/5 | In progress | - |
+| 1. Wearable Data Ingestion | v1.1 | 1/5 | In progress | - |
 | 2. Dashboard & Cardiac Metrics | v1.1 | 0/TBD | Not started | - |
 | 3. Clinician Alert Notifications | v1.1 | 0/TBD | Not started | - |
 | 4. Security Hardening & Appointment Reminders | v1.1 | 0/TBD | Not started | - |

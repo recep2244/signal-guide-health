@@ -7,7 +7,7 @@
 
 ### Wearable Data Ingestion
 
-- [ ] **WEAR-01**: System syncs real heart rate, blood pressure, SpO2, steps, and temperature from Fitbit via OAuth
+- [x] **WEAR-01**: System syncs real heart rate, blood pressure, SpO2, steps, and temperature from Fitbit via OAuth
 - [ ] **WEAR-02**: System syncs real heart rate, blood pressure, SpO2, steps, and temperature from Apple HealthKit push endpoint
 - [ ] **WEAR-03**: System syncs real data from Garmin Connect via OAuth
 - [ ] **WEAR-04**: System syncs real data from Withings via OAuth
@@ -92,7 +92,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WEAR-01 | Phase 1 | Pending |
+| WEAR-01 | Phase 1 | Complete (01-01) |
 | WEAR-02 | Phase 1 | Pending |
 | WEAR-03 | Phase 1 | Pending |
 | WEAR-04 | Phase 1 | Pending |

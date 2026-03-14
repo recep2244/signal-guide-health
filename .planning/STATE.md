@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-14)
 ## Current Position
 
 Phase: 1 of 7 (Wearable Data Ingestion)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-14 — Milestone v1.1 roadmap created; quick tasks 1-12 (v1.0) complete
+Plan: 2 of 5 in current phase (01-01, 01-02 complete)
+Status: In progress
+Last activity: 2026-03-14 — Completed 01-02 (WithingsProvider, non-standard OAuth2, BP/HR/SpO2/temp measurement pull)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██░░░░░░░░] 6% (2/~31 plans complete across all phases)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v1.1 — quick tasks 1-12 were pre-GSD)
-- Average duration: -
-- Total execution time: -
+- Total plans completed: 2
+- Average duration: 9 min
+- Total execution time: 18 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-wearable-data-ingestion | 2/5 | 18 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: none yet
-- Trend: -
+- Last 5 plans: 01-01 (3 min), 01-02 (15 min)
+- Trend: TDD plans take longer; baseline adjusted
 
 *Updated after each plan completion*
 
@@ -47,17 +47,26 @@ Recent decisions affecting v1.1 work:
 - [v1.0] Draft Rx / complaints POST to /alerts — pragmatic stub, full endpoints needed
 - [v1.0] GDPR soft-delete pattern established (email anonymisation) — audit log UI needed in Phase 5
 - [v1.0] TOTP secret derived from token bytes (no DB column change) — 2FA enforcement extends this in Phase 4
+- [01-01] PKCE verifier stored in in-memory Map for dev; route layer uses Redis in production
+- [01-01] exchangeCodeForTokensWithVerifier() added as extra method to avoid breaking WearableProviderInterface
+- [01-01] @types/oauth-1.0a does not exist on npm — oauth-1.0a ships its own types
+- [01-01] Fitbit temperature = nightly relative skin offset, not absolute — caller must document this
+- [01-02] action=requesttoken mandatory in Withings token exchange AND refresh (without it: error 293)
+- [01-02] Withings rotates both access+refresh tokens on every refresh — callers must persist both immediately
+- [01-02] getMeasurements requests meastypes 9,10,11,54,71 in one POST — no per-type API calls
+- [01-02] revokeAccess returns true without API call — Withings has no standard revocation endpoint
+- [01-02] timingSafeEqual requires equal-length buffers — length guard added before comparison
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+- Pre-existing TS error in `garmin.ts` (`getAuthorizationUrl` returns `Promise<string>` instead of `string`) — out of scope for 01-01, must be addressed in 01-03
 
 ## Session Continuity
 
 Last session: 2026-03-14
-Stopped at: v1.1 roadmap created — 7 phases defined, 31 requirements mapped, ready to plan Phase 1
+Stopped at: Completed 01-02-PLAN.md — 1 task (TDD: RED+GREEN), all 25 tests passing, SUMMARY.md created
 Resume file: None
