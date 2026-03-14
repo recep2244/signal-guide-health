@@ -150,8 +150,9 @@ model User {
   triageUpdates        Patient[]               @relation("TriageUpdater")
   appointmentsCreated  Appointment[]           @relation("AppointmentCreator")
   appointmentsCancelled Appointment[]          @relation("AppointmentCanceller")
-  alertActions         AlertAction[]
-  chatMessages         ChatMessage[]
+  alertActions              AlertAction[]
+  chatMessages              ChatMessage[]
+  cardiacMetricsRecorded    CardiacMetric[]         @relation("CardiacMetricRecorder")
 
   @@index([email])
   @@index([role])
@@ -285,6 +286,7 @@ model Patient {
   appointments        Appointment[]
   dailyStats          PatientDailyStats[]
   pairingTokens       PairingToken[]
+  cardiacMetrics      CardiacMetric[]
 
   @@index([nhsNumber])
   @@index([triageLevel])
@@ -779,4 +781,31 @@ model PairingToken {
   @@index([shortCode])
   @@index([patientId])
   @@map("pairing_tokens")
+}
+
+// =============================================================================
+// CARDIAC METRICS
+// =============================================================================
+
+model CardiacMetric {
+  id               String   @id @default(uuid())
+  patientId        String   @map("patient_id")
+  recordedAt       DateTime @default(now()) @map("recorded_at")
+  recordedById     String?  @map("recorded_by")
+  ejectionFraction Decimal? @map("ejection_fraction") @db.Decimal(5, 2)
+  nyhaClass        Int?     @map("nyha_class")
+  ntProBnp         Decimal? @map("nt_pro_bnp") @db.Decimal(10, 2)
+  bnp              Decimal? @db.Decimal(10, 2)
+  hsTroponinI      Decimal? @map("hs_troponin_i") @db.Decimal(10, 4)
+  hsTroponinT      Decimal? @map("hs_troponin_t") @db.Decimal(10, 4)
+  creatinine       Decimal? @db.Decimal(8, 2)
+  killipClass      Int?     @map("killip_class")
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  patient    Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recordedBy User?   @relation("CardiacMetricRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([patientId, recordedAt])
+  @@map("cardiac_metrics")
 }
