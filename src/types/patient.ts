@@ -140,6 +140,102 @@ export interface ClinicalRiskScores {
   hasbled?: number;
 }
 
+/**
+ * Latest wearable sensor reading from the database.
+ * Matches the WearableReading Prisma model shape returned by the API.
+ */
+export interface LatestReading {
+  id: string;
+  patientId: string;
+  deviceId?: string | null;
+  /** ISO date string of the reading */
+  readingDate: string;
+  restingHeartRate?: number | null;
+  avgHeartRate?: number | null;
+  maxHeartRate?: number | null;
+  minHeartRate?: number | null;
+  /** Heart rate variability in milliseconds */
+  hrvMs?: number | null;
+  steps?: number | null;
+  distanceMeters?: number | null;
+  activeMinutes?: number | null;
+  caloriesBurned?: number | null;
+  sleepHours?: number | null;
+  deepSleepHours?: number | null;
+  remSleepHours?: number | null;
+  sleepScore?: number | null;
+  bloodOxygenPercent?: number | null;
+  respiratoryRate?: number | null;
+  bodyTemperature?: number | null;
+  weightKg?: number | null;
+  bloodPressureSystolic?: number | null;
+  bloodPressureDiastolic?: number | null;
+  dataQuality: "good" | "partial" | "poor";
+}
+
+/**
+ * Structured cardiac metric record stored in the database.
+ * Captures clinical measurements recorded by clinicians or imported from labs.
+ */
+export interface CardiacMetric {
+  id: string;
+  patientId: string;
+  /** ISO timestamp when the metric was recorded */
+  recordedAt: string;
+  /** Clinician or system that recorded the metric */
+  recordedBy?: string | null;
+  /** Left ventricular ejection fraction (%) */
+  ejectionFraction?: number | null;
+  /** NYHA functional classification */
+  nyhaClass?: NYHAClass | null;
+  /** NT-proBNP in pg/mL */
+  ntProBNP?: number | null;
+  /** High-sensitivity Troponin I in ng/L */
+  hsTroponinI?: number | null;
+  /** ISO date of last blood draw for biomarkers */
+  lastDrawDate?: string | null;
+  /** Last recorded ECG rhythm */
+  ecgStatus?: ECGStatus | null;
+  /** Systolic blood pressure in mmHg */
+  bloodPressureSystolic?: number | null;
+  /** Diastolic blood pressure in mmHg */
+  bloodPressureDiastolic?: number | null;
+  /** ISO timestamp of blood pressure reading */
+  bloodPressureTimestamp?: string | null;
+  /** Current cardiac rehabilitation phase */
+  cardiacRehabPhase?: CardiacRehabPhase | null;
+  /** GRACE score (0-372) */
+  graceScore?: number | null;
+  /** CHA₂DS₂-VASc score (0-9) */
+  cha2ds2vascScore?: number | null;
+  /** HAS-BLED score (0-9) */
+  hasbledScore?: number | null;
+  /** Referring consultant */
+  consultant?: string | null;
+  notes?: string | null;
+}
+
+/**
+ * Input shape for recording a new cardiac metric via the API.
+ */
+export interface RecordCardiacMetricRequest {
+  ejectionFraction?: number;
+  nyhaClass?: NYHAClass;
+  ntProBNP?: number;
+  hsTroponinI?: number;
+  lastDrawDate?: string;
+  ecgStatus?: ECGStatus;
+  bloodPressureSystolic?: number;
+  bloodPressureDiastolic?: number;
+  bloodPressureTimestamp?: string;
+  cardiacRehabPhase?: CardiacRehabPhase;
+  graceScore?: number;
+  cha2ds2vascScore?: number;
+  hasbledScore?: number;
+  consultant?: string;
+  notes?: string;
+}
+
 // ============================================================================
 // PATIENT TYPES
 // ============================================================================
@@ -162,10 +258,6 @@ export interface Patient {
   wellbeingScore: number;
   /** Optional avatar URL */
   avatar?: string;
-  /** WhatsApp contact number for patient outreach */
-  whatsappPhone?: string;
-  /** 14 days of wearable readings */
-  wearableData: WearableReading[];
   /** Chat conversation history */
   chatHistory: ChatMessage[];
   /** Active and resolved alerts */
@@ -176,24 +268,30 @@ export interface Patient {
   medications: string[];
   /** NHS number identifier */
   nhsNumber: string;
-  /** Left ventricular ejection fraction (%) */
-  ejectionFraction?: number;
   /** NYHA functional classification */
   nyhaClass?: NYHAClass;
-  /** Latest cardiac biomarkers */
-  cardiacBiomarkers?: CardiacBiomarkers;
   /** Last recorded ECG rhythm */
   ecgStatus?: ECGStatus;
   /** Last recorded blood pressure */
   bloodPressure?: BloodPressure;
   /** Current cardiac rehabilitation phase */
   cardiacRehabPhase?: CardiacRehabPhase;
-  /** Clinical risk scores */
+  /** Clinical risk scores (GRACE, CHA₂DS₂-VASc, HAS-BLED) */
   riskScores?: ClinicalRiskScores;
   /** Referring consultant */
   consultant?: string;
   /** Discharge ward/hospital */
   dischargeFrom?: string;
+  /**
+   * Most recent wearable sensor reading from the database.
+   * Replaces the mock wearableData array — fetched separately via usePatientHealthTrends.
+   */
+  latestReading?: LatestReading;
+  /**
+   * Most recent clinician-recorded cardiac metric.
+   * Replaces the mock ejectionFraction and cardiacBiomarkers fields.
+   */
+  latestCardiacMetric?: CardiacMetric;
 }
 
 // ============================================================================

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Pilot Hardening & Clinical Completeness
 status: in_progress
-stopped_at: Completed 02-dashboard-cardiac-metrics/02-02 — 2/2 tasks, DASH-01/DASH-02/CARD-01/CARD-02/CARD-03 satisfied.
-last_updated: "2026-03-14T05:28:02Z"
-last_activity: "2026-03-14 - Completed phase 02 plan 02: Extended GET /patients + GET /:id API with wearable vitals, cardiac metrics, risk scores; POST/GET cardiac-metric sub-routes added"
+stopped_at: Completed 02-dashboard-cardiac-metrics/02-03 — Patient type + useRecordCardiacMetric hook
+last_updated: "2026-03-14T05:30:00Z"
+last_activity: "2026-03-14 - Completed phase 02 plan 03: Updated Patient type (latestReading, latestCardiacMetric), added useRecordCardiacMetric hook"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -56,10 +56,12 @@ All blockers from quick tasks 1 and 2 resolved:
 - 02-02: PATIENT_UPDATE audit action used for cardiac metric creation (AuditAction union has no CARDIAC_METRIC_RECORD)
 - 02-02: prisma generate required after plan 01 schema changes — Prisma client must be regenerated after adding models
 - 02-02: Decimal fields coerced with Number() in serialiser map before JSON serialisation
+- 02-03: CardiacMetric type replaces ejectionFraction+cardiacBiomarkers inline fields on Patient; wearableData[] removed (use usePatientHealthTrends hook)
+- 02-03: LatestReading mirrors Prisma WearableReading shape with nullable columns; useRecordCardiacMetric posts to /patients/:id/cardiac-metrics with mock fallback
 
 ## Session
 
-**Stopped at:** Completed 02-dashboard-cardiac-metrics/02-02 — 2/2 tasks, DASH-01/DASH-02/CARD-01/CARD-02/CARD-03 satisfied.
+**Stopped at:** Completed 02-dashboard-cardiac-metrics/02-03 — Patient type + useRecordCardiacMetric hook
 
 ### Quick Tasks Completed
 
