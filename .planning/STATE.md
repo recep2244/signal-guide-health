@@ -1,7 +1,7 @@
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-13 - Completed quick task 6: Alert notification emails (createAlert + escalateAlert), remove obsolete src/pages stubs, commit VITE_API_BASE_URL fix
+**Last activity:** 2026-03-14 - Completed quick task 7: Replace doctors.ts, appointments.ts, admin /stats stubs with real Prisma queries (8 routes)
 
 ## Current Phase
 
@@ -30,10 +30,13 @@ All blockers from quick tasks 1 and 2 resolved:
 - TS7030 in wearables.ts: split return res.status().json() into two-statement form (compatible with TypeScript 5.9)
 - alertService.createMailTransport duplicated per-service (not shared util) — keeps each service self-contained
 - TS18048 non-null assertion on severityOrder array access bounded by index < 3 guard
+- req.params['id'] bracket notation used in route files to satisfy TS4111 (index signature access)
+- Appointment GET / scopes by role: doctor/patient userId lookup injects where.doctorId/where.patientId
+- Promise.all for parallel Prisma count queries in admin /stats handler
 
 ## Session
 
-**Stopped at:** Completed quick/6-alert-notifications-cleanup-old-src-page — 2/2 tasks, verified
+**Stopped at:** Completed quick/7-backend-stubs-implement-doctors-routes-a — 3/3 tasks, verified
 
 ### Quick Tasks Completed
 
@@ -45,3 +48,4 @@ All blockers from quick tasks 1 and 2 resolved:
 | 4 | Complete remaining pilot gaps: sendWhatsAppMessage public API, analyzeWellbeingResponse + escalation wiring, 3 clinical endpoints (overview/patients/trend), GDPR cascade delete, Playwright E2E suite | 2026-03-13 | a266e51 | Verified | [4-complete-remaining-pilot-gaps-whatsapp-s](./quick/4-complete-remaining-pilot-gaps-whatsapp-s/) |
 | 5 | Wire Admin real API data (users/audit-logs Prisma queries), useAdmin.ts React Query hooks, PatientDetail Acknowledge Alert/Live Sync/Contact Patient buttons | 2026-03-13 | e1407ed | Verified | [5-fix-ui-quick-wins-admin-real-api-alert-a](./quick/5-fix-ui-quick-wins-admin-real-api-alert-a/) |
 | 6 | Alert notification emails (createAlert + escalateAlert nodemailer, SMTP-gated, fire-and-forget); remove 7 obsolete src/pages stubs; commit VITE_API_BASE_URL=/api/v1 | 2026-03-13 | 82c8c94 | Verified | [6-alert-notifications-cleanup-old-src-page](./quick/6-alert-notifications-cleanup-old-src-page/) |
+| 7 | Replace doctors.ts, appointments.ts, admin /stats stubs with real Prisma queries (8 routes: doctor list/detail/patients/schedule, appointment CRUD + cancel/confirm, admin stats counts) | 2026-03-14 | 5d5f72f | Verified | [7-backend-stubs-implement-doctors-routes-a](./quick/7-backend-stubs-implement-doctors-routes-a/) |
