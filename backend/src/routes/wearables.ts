@@ -16,6 +16,7 @@ import {
   appleHealthKitProvider,
   healthConnectProvider,
 } from '../services/wearables';
+import { garminProvider } from '../services/wearables/garmin';
 import type { WearableProvider } from '../services/wearables/types';
 import type { WearableType } from '@prisma/client';
 
@@ -594,6 +595,16 @@ router.post('/sync/:deviceId', async (req: Request, res: Response, next: NextFun
       return;
     }
 
+    // Garmin uses push model — no on-demand pull available
+    if (device.deviceType === 'garmin') {
+      res.json({
+        status: 'success',
+        message: 'Garmin data syncs automatically via webhook — no manual pull available',
+        data: { lastSync: device.lastSyncAt },
+      });
+      return;
+    }
+
     // For OAuth providers, pull new data
     if (!device.accessTokenEncrypted) {
       res.status(400).json({
@@ -744,6 +755,120 @@ router.get(
     }
   }
 );
+
+/**
+ * GET /garmin/oauth-start
+ * Initiates the OAuth 1.0a flow by fetching a request token from Garmin and
+ * redirecting the user to the Garmin authorization page.
+ * This is the async companion to garminProvider.getAuthorizationUrl().
+ */
+router.get('/garmin/oauth-start', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const state = (req.query['state'] as string) || '';
+    const authUrl = await garminProvider.fetchRequestTokenUrl(state);
+    res.redirect(authUrl);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /garmin/webhook
+ * Receive push summaries from Garmin Health API.
+ * This endpoint is called by Garmin servers, not by users.
+ * No authentication middleware — request is validated by webhook signature.
+ *
+ * NOTE: signature validation requires the raw request body bytes.
+ * Since the app uses express.json() globally, req.body is already parsed.
+ * We re-stringify for HMAC verification; this is acceptable for JSON payloads
+ * but may differ from the raw bytes if the client sent non-canonical JSON.
+ * If GARMIN_WEBHOOK_SECRET is not set, signature validation is skipped
+ * with a warning (acceptable for pilot / development environments).
+ */
+router.post('/garmin/webhook', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Guard: if partner credentials not configured, return 503
+    if (!process.env['GARMIN_CONSUMER_KEY']) {
+      res.status(503).json({
+        status: 'error',
+        message:
+          'Garmin integration pending partner program approval — GARMIN_CONSUMER_KEY not configured',
+      });
+      return;
+    }
+
+    // Validate webhook signature if secret is configured
+    const signature = (req.headers['x-garmin-signature'] as string) || '';
+    if (process.env['GARMIN_WEBHOOK_SECRET']) {
+      const rawBody = JSON.stringify(req.body);
+      if (!garminProvider.validateWebhook(signature, rawBody)) {
+        res.status(401).json({ status: 'error', message: 'Invalid webhook signature' });
+        return;
+      }
+    } else {
+      console.warn(
+        '[garmin/webhook] GARMIN_WEBHOOK_SECRET not set — skipping signature validation (pilot mode)'
+      );
+    }
+
+    // Parse payload
+    const { userId, dataTypes } = garminProvider.parseWebhookPayload(req.body);
+
+    // Find patient's Garmin device by Garmin userId stored in serialNumber
+    const device = await prisma.wearableDevice.findFirst({
+      where: {
+        deviceType: 'garmin',
+        serialNumber: userId,
+        isConnected: true,
+      },
+    });
+
+    if (!device) {
+      // Garmin userId not matched — log but return 200 to prevent Garmin retry spam
+      res.json({ status: 'success', message: 'No matching device found — ignored', data: { dataTypes } });
+      return;
+    }
+
+    // Extract and persist readings from summaries
+    const summaries =
+      (req.body as { summaries?: unknown[]; dailies?: unknown[] }).summaries ||
+      (req.body as { summaries?: unknown[]; dailies?: unknown[] }).dailies ||
+      [];
+    let totalRecorded = 0;
+
+    for (const summary of summaries as Array<{
+      summaryId?: string;
+      [key: string]: unknown;
+    }>) {
+      const readings = garminProvider.extractReadingsFromSummary(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        summary as any,
+        device.patientId,
+        device.id
+      );
+      for (const r of readings) {
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: r.type as Parameters<typeof wearableService.recordReading>[0]['type'],
+          value: r.value,
+          unit: r.unit,
+          metadata: { source: 'garmin_webhook', summaryId: summary.summaryId },
+        });
+        totalRecorded++;
+      }
+    }
+
+    await prisma.wearableDevice.update({
+      where: { id: device.id },
+      data: { lastSyncAt: new Date() },
+    });
+
+    res.json({ status: 'success', data: { recordsStored: totalRecorded } });
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * Get device connection instructions
