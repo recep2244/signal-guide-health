@@ -1,7 +1,7 @@
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-14 - Completed quick task 11: wire all 5 remaining toast-only buttons in PatientDetail
+**Last activity:** 2026-03-14 - Completed quick task 12: multi-strategy device pairing (TOTP, NFC, BLE, security)
 
 ## Current Phase
 
@@ -41,7 +41,7 @@ All blockers from quick tasks 1 and 2 resolved:
 
 ## Session
 
-**Stopped at:** Completed quick task 11 — all PatientDetail buttons wired
+**Stopped at:** Completed quick task 12 — multi-strategy device pairing (TOTP, NFC, BLE, security)
 
 ### Quick Tasks Completed
 
@@ -58,3 +58,4 @@ All blockers from quick tasks 1 and 2 resolved:
 | 9 | Infrastructure: postgres-deployment.yaml, redis-deployment.yaml, secrets.yaml HOWTO, .env.production, Dockerfile prisma migrate deploy entrypoint | 2026-03-14 | f9395a2 | Verified | [9-infrastructure-manifests-postgres-redis](./quick/9-infrastructure-manifests-postgres-redis/) |
 | 10 | Wire Request Appointment button: inline RequestAppointmentDialog with useMutation POSTing to /appointments (datetime, type select, doctor UUID input, notes) | 2026-03-14 | 694db28 | Verified | [10-wire-request-appointment-button-in-patie](./quick/10-wire-request-appointment-button-in-patie/) |
 | 11 | Wire all 5 remaining toast-only buttons: Call (tel: link), Call Clinician (directory toast), Draft Rx dialog, Send Medication dialog, Log Complaint dialog — all using POST /alerts type manual | 2026-03-14 | b58b47c | Verified | [11-wire-all-remaining-toast-only-buttons-in](./quick/11-wire-all-remaining-toast-only-buttons-in/) |
+| 12 | Multi-strategy device pairing: TOTP rotating code (WebCrypto useTOTP hook, 30s countdown), NFC Tag tab (NDEFWriter + fallback), BLE Nearby tab (GATT scan/connect/write + fallback), backend rate-limit + createdAfter poll fix + cleanup endpoint | 2026-03-14 | 6b17bf3 | Verified | [12-multi-strategy-device-pairing-totp-nf](./quick/12-multi-strategy-device-pairing-totp-nf/) |
