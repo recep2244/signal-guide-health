@@ -124,7 +124,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Wearable Data Ingestion | 3/5 | In Progress|  | - |
+| 1. Wearable Data Ingestion | 3/5 | Complete    | 2026-03-14 | - |
 | 2. Dashboard & Cardiac Metrics | v1.1 | 0/TBD | Not started | - |
 | 3. Clinician Alert Notifications | v1.1 | 0/TBD | Not started | - |
 | 4. Security Hardening & Appointment Reminders | v1.1 | 0/TBD | Not started | - |
