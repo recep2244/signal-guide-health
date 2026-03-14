@@ -17,8 +17,9 @@ import {
   healthConnectProvider,
 } from '../services/wearables';
 import { HEALTHKIT_DATA_TYPES } from '../services/wearables/appleHealthKit';
-import type { WearableProvider } from '../services/wearables/types';
+import type { WearableProvider, WearableAuthResult } from '../services/wearables/types';
 import type { WearableType } from '@prisma/client';
+import { redis } from '../config/redis';
 
 const router: Router = Router();
 
@@ -195,6 +196,24 @@ router.post('/connect/:provider', async (req: Request, res: Response, next: Next
         const provider = getWearableProvider(providerType);
         const authUrl = provider.getAuthorizationUrl(state);
 
+        // For Fitbit (PKCE), persist the code_verifier in Redis so the callback
+        // can retrieve it even if handled by a different process instance
+        if (providerType === 'fitbit') {
+          const fitbitProv = provider as any;
+          const codeVerifier =
+            typeof fitbitProv.getCodeVerifier === 'function'
+              ? (fitbitProv.getCodeVerifier(state) as string | undefined)
+              : undefined;
+          if (codeVerifier) {
+            if (redis) {
+              await redis.set(`pkce:${state}`, codeVerifier, 'EX', 600); // 10-minute TTL
+            } else {
+              // Redis unavailable — verifier stays in the in-memory Map on FitbitProvider
+              console.warn('[OAuth] Redis unavailable — PKCE verifier stored in memory only');
+            }
+          }
+        }
+
         res.json({
           status: 'success',
           data: {
@@ -272,7 +291,38 @@ router.post('/callback/:provider', async (req: Request, res: Response, next: Nex
 
     // Exchange code for tokens
     const provider = getWearableProvider(providerType);
-    const result = await provider.exchangeCodeForTokens(code);
+
+    // For Fitbit (PKCE), retrieve the code_verifier stored during /connect
+    let result: WearableAuthResult;
+    if (providerType === 'fitbit') {
+      let codeVerifier: string | undefined;
+
+      // Try Redis first (production multi-instance path)
+      if (redis) {
+        const stored = await redis.get(`pkce:${state}`);
+        codeVerifier = stored ?? undefined;
+        if (stored) {
+          await redis.del(`pkce:${state}`); // single-use key
+        }
+      }
+
+      // Fallback: in-memory verifier from FitbitProvider (single-instance dev)
+      if (!codeVerifier) {
+        const fitbitProv = provider as any;
+        if (typeof fitbitProv.getCodeVerifier === 'function') {
+          codeVerifier = fitbitProv.getCodeVerifier(state) as string | undefined;
+        }
+      }
+
+      const fitbitProv = provider as any;
+      if (codeVerifier && typeof fitbitProv.exchangeCodeForTokensWithVerifier === 'function') {
+        result = await fitbitProv.exchangeCodeForTokensWithVerifier(code, codeVerifier) as WearableAuthResult;
+      } else {
+        result = await provider.exchangeCodeForTokens(code);
+      }
+    } else {
+      result = await provider.exchangeCodeForTokens(code);
+    }
 
     if (!result.success || !result.tokens) {
       res.status(400).json({
