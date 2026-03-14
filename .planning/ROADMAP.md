@@ -37,11 +37,18 @@ Completed as unstructured quick tasks before GSD workflow was adopted. Covered: 
 **Depends on**: Nothing (first phase of v1.1; v1.0 device pairing is complete)
 **Requirements**: WEAR-01, WEAR-02, WEAR-03, WEAR-04, WEAR-05
 **Success Criteria** (what must be TRUE):
-  1. A patient's Fitbit heart rate, SpO2, blood pressure, steps, and temperature appear in the dashboard after OAuth authorisation — no simulated data
+  1. A patient's Fitbit heart rate, SpO2, steps, and temperature appear in the dashboard after OAuth authorisation — no simulated data (BP not available on Fitbit hardware)
   2. A patient's Apple HealthKit vitals arrive via the push endpoint and populate the same wearable reading record
-  3. Garmin Connect and Withings OAuth flows complete and their readings persist identically to Fitbit and Apple
+  3. Garmin Connect and Withings OAuth flows complete and their readings persist identically to Fitbit and Apple; Withings provides BP data
   4. When a wearable reading exceeds a configured HR, BP, or SpO2 threshold, an Alert record is created automatically and appears in the alerts list without manual intervention
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Fitbit OAuth PKCE provider class + DB unique constraint + oauth-1.0a install
+- [ ] 01-02-PLAN.md — Withings OAuth2 provider class (non-standard token exchange, BP/HR/SpO2/temp)
+- [ ] 01-03-PLAN.md — Garmin OAuth 1.0a provider class + webhook push route
+- [ ] 01-04-PLAN.md — Apple HealthKit push handler: wire all metric processors to recordReading()
+- [ ] 01-05-PLAN.md — Wire all providers into factory, replace simulateProviderSync(), PKCE Redis storage
 
 ### Phase 2: Dashboard & Cardiac Metrics
 **Goal**: Every value on the dashboard and patient detail page is sourced from the live API, and clinicians can record and view cardiac metrics per patient
@@ -117,7 +124,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Wearable Data Ingestion | v1.1 | 0/TBD | Not started | - |
+| 1. Wearable Data Ingestion | v1.1 | 0/5 | In progress | - |
 | 2. Dashboard & Cardiac Metrics | v1.1 | 0/TBD | Not started | - |
 | 3. Clinician Alert Notifications | v1.1 | 0/TBD | Not started | - |
 | 4. Security Hardening & Appointment Reminders | v1.1 | 0/TBD | Not started | - |
