@@ -1,3 +1,18 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+stopped_at: Completed 02-03-PLAN (type foundations for cardiac metrics)
+last_updated: "2026-03-14T05:26:44.316Z"
+last_activity: "2026-03-13 - Completed quick task 5: Wire Admin real API data, Acknowledge Alert, Live Sync, Contact Patient"
+progress:
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+---
+
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
@@ -28,10 +43,12 @@ All blockers from quick tasks 1 and 2 resolved:
 - wearableService.ts: ReadingType defined as local union type (not Prisma client export)
 - wearableService.ts: WearableReading flat schema — mapReadingToColumns() maps reading types to named metric columns
 - TS7030 in wearables.ts: split return res.status().json() into two-statement form (compatible with TypeScript 5.9)
+- [Phase 02-dashboard-cardiac-metrics]: CardiacMetric type replaces ejectionFraction+cardiacBiomarkers inline fields on Patient; wearableData[] removed (use usePatientHealthTrends hook)
+- [Phase 02-dashboard-cardiac-metrics]: LatestReading mirrors Prisma WearableReading shape with nullable columns; useRecordCardiacMetric posts to /patients/:id/cardiac-metrics with mock fallback
 
 ## Session
 
-**Stopped at:** Completed quick/5-fix-ui-quick-wins-admin-real-api-alert-a — 3/3 tasks, verified
+**Stopped at:** Completed 02-03-PLAN (type foundations for cardiac metrics)
 
 ### Quick Tasks Completed
 
