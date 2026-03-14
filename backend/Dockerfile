@@ -68,5 +68,7 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-# Start the application
-CMD ["node", "dist/app.js"]
+# Run Prisma migrations then start server.
+# Using shell form so the command runs in a shell that can chain statements.
+# migrate deploy is idempotent — safe to run on every startup.
+CMD npx prisma migrate deploy && node dist/app.js
