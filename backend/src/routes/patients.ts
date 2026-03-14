@@ -7,10 +7,12 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { differenceInYears } from 'date-fns';
 import { Prisma } from '@prisma/client';
 import { authenticate, requireRole } from '../middleware/auth';
 import { logAuditEvent } from '../middleware/audit';
 import { prisma } from '../config/database';
+import { computeGrace, computeCha2ds2vasc } from '../lib/riskScores';
 
 const router: Router = Router();
 
@@ -113,6 +115,20 @@ router.get('/', requireRole('doctor', 'nurse', 'admin', 'super_admin'), async (r
             where: { resolved: false },
             select: { id: true, type: true, severity: true, title: true, resolved: true, createdAt: true },
           },
+          wearableReadings: {
+            orderBy: { readingDate: 'desc' },
+            take: 1,
+            select: {
+              restingHeartRate: true, avgHeartRate: true,
+              bloodOxygenPercent: true, steps: true,
+              bloodPressureSystolic: true, bloodPressureDiastolic: true,
+              hrvMs: true, sleepHours: true, readingDate: true,
+            },
+          },
+          cardiacMetrics: {
+            orderBy: { recordedAt: 'desc' },
+            take: 1,
+          },
         },
       }),
       prisma.patient.count({ where }),
@@ -129,10 +145,55 @@ router.get('/', requireRole('doctor', 'nurse', 'admin', 'super_admin'), async (r
       requestId: req.requestId,
     });
 
+    const serialised = patients.map(p => {
+      const r = p.wearableReadings[0];
+      const cm = p.cardiacMetrics[0] ?? null;
+      const age = differenceInYears(new Date(), p.dateOfBirth);
+      return {
+        ...p,
+        ejectionFraction: p.ejectionFraction ? Number(p.ejectionFraction) : null,
+        latestReading: r ? {
+          restingHeartRate: r.restingHeartRate,
+          avgHeartRate: r.avgHeartRate,
+          bloodOxygenPercent: r.bloodOxygenPercent ? Number(r.bloodOxygenPercent) : null,
+          bloodPressureSystolic: r.bloodPressureSystolic,
+          bloodPressureDiastolic: r.bloodPressureDiastolic,
+          steps: r.steps,
+          hrvMs: r.hrvMs,
+          sleepHours: r.sleepHours ? Number(r.sleepHours) : null,
+          readingDate: r.readingDate,
+        } : null,
+        latestCardiacMetric: cm ? {
+          ejectionFraction: cm.ejectionFraction ? Number(cm.ejectionFraction) : null,
+          nyhaClass: cm.nyhaClass,
+          ntProBnp: cm.ntProBnp ? Number(cm.ntProBnp) : null,
+          bnp: cm.bnp ? Number(cm.bnp) : null,
+          hsTroponinI: cm.hsTroponinI ? Number(cm.hsTroponinI) : null,
+          creatinine: cm.creatinine ? Number(cm.creatinine) : null,
+          recordedAt: cm.recordedAt,
+        } : null,
+        computedRiskScores: {
+          cha2ds2vasc: computeCha2ds2vasc({
+            dateOfBirth: p.dateOfBirth,
+            gender: p.gender,
+            chronicConditions: p.chronicConditions,
+          }),
+          grace: computeGrace({
+            age,
+            heartRate: r?.restingHeartRate ?? null,
+            systolicBP: r?.bloodPressureSystolic ?? null,
+            creatinine: cm?.creatinine ? Number(cm.creatinine) : null,
+          }),
+        },
+        wearableReadings: undefined,
+        cardiacMetrics: undefined,
+      };
+    });
+
     res.json({
       status: 'success',
       data: {
-        patients,
+        patients: serialised,
         total,
         page,
         limit,
@@ -242,6 +303,20 @@ router.get('/:id', requireRole('doctor', 'nurse', 'admin', 'super_admin'), async
       alerts: { orderBy: { createdAt: 'desc' } },
       wearableDevices: true,
       checkIns: { orderBy: { timestamp: 'desc' }, take: 10 },
+      wearableReadings: {
+        orderBy: { readingDate: 'desc' },
+        take: 1,
+        select: {
+          restingHeartRate: true, avgHeartRate: true,
+          bloodOxygenPercent: true, steps: true,
+          bloodPressureSystolic: true, bloodPressureDiastolic: true,
+          hrvMs: true, sleepHours: true, readingDate: true,
+        },
+      },
+      cardiacMetrics: {
+        orderBy: { recordedAt: 'desc' },
+        take: 1,
+      },
     },
   });
 
@@ -261,10 +336,54 @@ router.get('/:id', requireRole('doctor', 'nurse', 'admin', 'super_admin'), async
     requestId: req.requestId,
   });
 
+  const r = patient.wearableReadings[0];
+  const cm = patient.cardiacMetrics[0] ?? null;
+  const age = differenceInYears(new Date(), patient.dateOfBirth);
+
+  const serialisedPatient = {
+    ...patient,
+    ejectionFraction: patient.ejectionFraction ? Number(patient.ejectionFraction) : null,
+    latestReading: r ? {
+      restingHeartRate: r.restingHeartRate,
+      avgHeartRate: r.avgHeartRate,
+      bloodOxygenPercent: r.bloodOxygenPercent ? Number(r.bloodOxygenPercent) : null,
+      bloodPressureSystolic: r.bloodPressureSystolic,
+      bloodPressureDiastolic: r.bloodPressureDiastolic,
+      steps: r.steps,
+      hrvMs: r.hrvMs,
+      sleepHours: r.sleepHours ? Number(r.sleepHours) : null,
+      readingDate: r.readingDate,
+    } : null,
+    latestCardiacMetric: cm ? {
+      ejectionFraction: cm.ejectionFraction ? Number(cm.ejectionFraction) : null,
+      nyhaClass: cm.nyhaClass,
+      ntProBnp: cm.ntProBnp ? Number(cm.ntProBnp) : null,
+      bnp: cm.bnp ? Number(cm.bnp) : null,
+      hsTroponinI: cm.hsTroponinI ? Number(cm.hsTroponinI) : null,
+      creatinine: cm.creatinine ? Number(cm.creatinine) : null,
+      recordedAt: cm.recordedAt,
+    } : null,
+    computedRiskScores: {
+      cha2ds2vasc: computeCha2ds2vasc({
+        dateOfBirth: patient.dateOfBirth,
+        gender: patient.gender,
+        chronicConditions: patient.chronicConditions,
+      }),
+      grace: computeGrace({
+        age,
+        heartRate: r?.restingHeartRate ?? null,
+        systolicBP: r?.bloodPressureSystolic ?? null,
+        creatinine: cm?.creatinine ? Number(cm.creatinine) : null,
+      }),
+    },
+    wearableReadings: undefined,
+    cardiacMetrics: undefined,
+  };
+
   res.json({
     status: 'success',
     data: {
-      patient,
+      patient: serialisedPatient,
     },
   });
 });
