@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { usePatientDetail } from '@/hooks/usePatientData';
+import { usePatientDetail, useRecordCardiacMetric } from '@/hooks/usePatientData';
+import type { RecordCardiacMetricRequest, NYHAClass } from '@/types/patient';
 import { PilotDashboardHeader } from '@/pilot/components/PilotDashboardHeader';
 import { TriageBadge } from '@/components/TriageBadge';
 import { VitalTrends } from '@/components/VitalTrends';
@@ -77,6 +78,10 @@ export default function PatientDetail() {
   const [complaintDialogOpen, setComplaintDialogOpen] = useState(false);
   const [complaintCategory, setComplaintCategory] = useState('Clinical Care');
   const [complaintDescription, setComplaintDescription] = useState('');
+
+  const [showMetricForm, setShowMetricForm] = useState(false);
+  const [metricInput, setMetricInput] = useState<RecordCardiacMetricRequest>({});
+  const recordMetric = useRecordCardiacMetric();
 
   if (isLoading) {
     return (
@@ -213,24 +218,11 @@ export default function PatientDetail() {
   const clinicianName = patient.consultant ?? '--';
   const pharmacyName = 'CityCare Pharmacy';
 
-  const latestWearable = patient.wearableData?.[patient.wearableData.length - 1];
-
-  let hrDelta = 0;
-  let hrvDelta = 0;
-  let sleepDelta = 0;
-  let stepsDelta = 0;
-
-  if (latestWearable && patient.wearableData && patient.wearableData.length > 0) {
-    const data = patient.wearableData;
-    const avgRestingHR = data.reduce((s, d) => s + d.restingHR, 0) / data.length;
-    const avgHRV = data.reduce((s, d) => s + d.hrv, 0) / data.length;
-    const avgSleepHours = data.reduce((s, d) => s + d.sleepHours, 0) / data.length;
-    const avgSteps = data.reduce((s, d) => s + d.steps, 0) / data.length;
-    hrDelta = Math.round(latestWearable.restingHR - avgRestingHR);
-    hrvDelta = Math.round(latestWearable.hrv - avgHRV);
-    sleepDelta = +(latestWearable.sleepHours - avgSleepHours).toFixed(1);
-    stepsDelta = Math.round(latestWearable.steps - avgSteps);
-  }
+  const latestReading = patient.latestReading ?? null;
+  const hrDelta = 0;
+  const hrvDelta = 0;
+  const sleepDelta = 0;
+  const stepsDelta = 0;
 
   const handleCallClinician = () => {
     toast.info(`${clinicianName} — contact via internal staff directory`);
@@ -393,7 +385,7 @@ export default function PatientDetail() {
         </div>
 
         {/* Cardiac Clinical Panel */}
-        {patient.ejectionFraction !== undefined && (
+        {patient.latestCardiacMetric != null && (
           <Card className="mb-6 border-2 border-slate-200 overflow-hidden">
             <div className="bg-gradient-to-r from-slate-50 to-white px-5 py-3 border-b border-slate-200">
               <div className="flex items-center gap-2">
@@ -415,14 +407,16 @@ export default function PatientDetail() {
             <div className="p-5">
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {/* Ejection Fraction */}
-                <div className={cn("rounded-xl p-3 border-2", patient.ejectionFraction < 40 ? "border-red-200 bg-red-50/50" : patient.ejectionFraction < 50 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                {patient.latestCardiacMetric?.ejectionFraction != null && (
+                <div className={cn("rounded-xl p-3 border-2", patient.latestCardiacMetric!.ejectionFraction! < 40 ? "border-red-200 bg-red-50/50" : patient.latestCardiacMetric!.ejectionFraction! < 50 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
                   <div className="flex items-center gap-1.5 mb-1">
-                    <Gauge size={12} className={cn(patient.ejectionFraction < 40 ? "text-red-500" : patient.ejectionFraction < 50 ? "text-amber-500" : "text-green-500")} />
+                    <Gauge size={12} className={cn(patient.latestCardiacMetric!.ejectionFraction! < 40 ? "text-red-500" : patient.latestCardiacMetric!.ejectionFraction! < 50 ? "text-amber-500" : "text-green-500")} />
                     <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">LVEF</p>
                   </div>
-                  <p className="text-lg font-bold text-slate-900">{patient.ejectionFraction}%</p>
-                  <p className="text-[10px] text-slate-500">{patient.ejectionFraction >= 50 ? "Preserved" : patient.ejectionFraction >= 40 ? "Mildly reduced" : "Reduced (HFrEF)"}</p>
+                  <p className="text-lg font-bold text-slate-900">{patient.latestCardiacMetric!.ejectionFraction!}%</p>
+                  <p className="text-[10px] text-slate-500">{patient.latestCardiacMetric!.ejectionFraction! >= 50 ? "Preserved" : patient.latestCardiacMetric!.ejectionFraction! >= 40 ? "Mildly reduced" : "Reduced (HFrEF)"}</p>
                 </div>
+                )}
 
                 {/* NYHA Class */}
                 {patient.nyhaClass && (
@@ -462,26 +456,26 @@ export default function PatientDetail() {
                 )}
 
                 {/* NT-proBNP */}
-                {patient.cardiacBiomarkers && (
-                  <div className={cn("rounded-xl p-3 border-2", patient.cardiacBiomarkers.ntProBNP > 900 ? "border-red-200 bg-red-50/50" : patient.cardiacBiomarkers.ntProBNP > 300 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                {patient.latestCardiacMetric?.ntProBNP != null && (
+                  <div className={cn("rounded-xl p-3 border-2", patient.latestCardiacMetric!.ntProBNP! > 900 ? "border-red-200 bg-red-50/50" : patient.latestCardiacMetric!.ntProBNP! > 300 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
                     <div className="flex items-center gap-1.5 mb-1">
                       <FlaskConical size={12} className="text-indigo-500" />
                       <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">NT-proBNP</p>
                     </div>
-                    <p className="text-lg font-bold text-slate-900">{patient.cardiacBiomarkers.ntProBNP.toLocaleString()}</p>
-                    <p className="text-[10px] text-slate-500">pg/mL{patient.cardiacBiomarkers.ntProBNP > 900 ? " (elevated)" : ""}</p>
+                    <p className="text-lg font-bold text-slate-900">{patient.latestCardiacMetric!.ntProBNP!.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-500">pg/mL{patient.latestCardiacMetric!.ntProBNP! > 900 ? " (elevated)" : ""}</p>
                   </div>
                 )}
 
                 {/* Troponin */}
-                {patient.cardiacBiomarkers && (
-                  <div className={cn("rounded-xl p-3 border-2", patient.cardiacBiomarkers.hsTroponinI > 26 ? "border-red-200 bg-red-50/50" : patient.cardiacBiomarkers.hsTroponinI > 14 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
+                {patient.latestCardiacMetric?.hsTroponinI != null && (
+                  <div className={cn("rounded-xl p-3 border-2", patient.latestCardiacMetric!.hsTroponinI! > 26 ? "border-red-200 bg-red-50/50" : patient.latestCardiacMetric!.hsTroponinI! > 14 ? "border-amber-200 bg-amber-50/50" : "border-green-200 bg-green-50/50")}>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <AlertTriangle size={12} className={cn(patient.cardiacBiomarkers.hsTroponinI > 26 ? "text-red-500" : "text-slate-400")} />
+                      <AlertTriangle size={12} className={cn(patient.latestCardiacMetric!.hsTroponinI! > 26 ? "text-red-500" : "text-slate-400")} />
                       <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">hs-TnI</p>
                     </div>
-                    <p className="text-lg font-bold text-slate-900">{patient.cardiacBiomarkers.hsTroponinI}</p>
-                    <p className="text-[10px] text-slate-500">ng/L{patient.cardiacBiomarkers.hsTroponinI > 26 ? " (above 99th %ile)" : ""}</p>
+                    <p className="text-lg font-bold text-slate-900">{patient.latestCardiacMetric!.hsTroponinI!}</p>
+                    <p className="text-[10px] text-slate-500">ng/L{patient.latestCardiacMetric!.hsTroponinI! > 26 ? " (above 99th %ile)" : ""}</p>
                   </div>
                 )}
               </div>
@@ -493,14 +487,14 @@ export default function PatientDetail() {
                     {patient.cardiacRehabPhase}
                   </Badge>
                 )}
-                {patient.riskScores?.grace !== undefined && (
-                  <Badge variant="outline" className={cn("text-xs", patient.riskScores.grace > 140 ? "bg-red-50 text-red-700 border-red-200" : patient.riskScores.grace > 108 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-green-50 text-green-700 border-green-200")}>
-                    GRACE: {patient.riskScores.grace} ({patient.riskScores.grace > 140 ? "High" : patient.riskScores.grace > 108 ? "Intermediate" : "Low"})
+                {((patient.computedRiskScores?.grace ?? patient.riskScores?.grace) != null) && (
+                  <Badge variant="outline" className={cn("text-xs", (patient.computedRiskScores?.grace ?? patient.riskScores?.grace)! > 140 ? "bg-red-50 text-red-700 border-red-200" : (patient.computedRiskScores?.grace ?? patient.riskScores?.grace)! > 108 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-green-50 text-green-700 border-green-200")}>
+                    GRACE: {(patient.computedRiskScores?.grace ?? patient.riskScores?.grace)!} ({(patient.computedRiskScores?.grace ?? patient.riskScores?.grace)! > 140 ? "High" : (patient.computedRiskScores?.grace ?? patient.riskScores?.grace)! > 108 ? "Intermediate" : "Low"})
                   </Badge>
                 )}
-                {patient.riskScores?.cha2ds2vasc !== undefined && (
-                  <Badge variant="outline" className={cn("text-xs", patient.riskScores.cha2ds2vasc >= 2 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-green-50 text-green-700 border-green-200")}>
-                    CHA₂DS₂-VASc: {patient.riskScores.cha2ds2vasc}
+                {((patient.computedRiskScores?.cha2ds2vasc ?? patient.riskScores?.cha2ds2vasc) != null) && (
+                  <Badge variant="outline" className={cn("text-xs", (patient.computedRiskScores?.cha2ds2vasc ?? patient.riskScores?.cha2ds2vasc)! >= 2 ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-green-50 text-green-700 border-green-200")}>
+                    CHA₂DS₂-VASc: {(patient.computedRiskScores?.cha2ds2vasc ?? patient.riskScores?.cha2ds2vasc)!}
                   </Badge>
                 )}
                 {patient.riskScores?.hasbled !== undefined && (
@@ -508,9 +502,9 @@ export default function PatientDetail() {
                     HAS-BLED: {patient.riskScores.hasbled}
                   </Badge>
                 )}
-                {patient.cardiacBiomarkers && (
+                {patient.latestCardiacMetric?.lastDrawDate && (
                   <span className="text-[10px] text-slate-400 ml-auto">
-                    Bloods drawn: {formatDate(patient.cardiacBiomarkers.lastDrawDate)}
+                    Bloods drawn: {formatDate(patient.latestCardiacMetric.lastDrawDate)}
                   </span>
                 )}
               </div>
@@ -535,6 +529,73 @@ export default function PatientDetail() {
             </div>
           </Card>
         )}
+
+        {/* Record Cardiac Metrics */}
+        <Card className="mb-6 border-2 border-slate-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-50 to-white px-5 py-3 border-b border-slate-200">
+            <div className="flex items-center gap-2">
+              <FlaskConical size={16} className="text-indigo-500" />
+              <h3 className="text-sm font-semibold text-slate-900">Record Cardiac Metrics</h3>
+            </div>
+          </div>
+          <div className="p-5">
+            {!showMetricForm ? (
+              <Button variant="outline" size="sm" onClick={() => setShowMetricForm(true)}>
+                Record Metrics
+              </Button>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  await recordMetric.mutateAsync({ patientId: patient.id, metric: metricInput });
+                  setMetricInput({});
+                  setShowMetricForm(false);
+                }}
+                className="space-y-3"
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    type="number" placeholder="EF (%)" min={0} max={100} step={0.1}
+                    value={metricInput.ejectionFraction ?? ''}
+                    onChange={e => setMetricInput(v => ({ ...v, ejectionFraction: e.target.value ? Number(e.target.value) : undefined }))}
+                  />
+                  <Input
+                    type="number" placeholder="NT-proBNP (pg/mL)" min={0}
+                    value={metricInput.ntProBNP ?? ''}
+                    onChange={e => setMetricInput(v => ({ ...v, ntProBNP: e.target.value ? Number(e.target.value) : undefined }))}
+                  />
+                  <Input
+                    type="number" placeholder="hs-TnI (ng/L)" min={0}
+                    value={metricInput.hsTroponinI ?? ''}
+                    onChange={e => setMetricInput(v => ({ ...v, hsTroponinI: e.target.value ? Number(e.target.value) : undefined }))}
+                  />
+                  <select
+                    value={metricInput.nyhaClass ?? ''}
+                    onChange={e => setMetricInput(v => ({ ...v, nyhaClass: e.target.value as NYHAClass || undefined }))}
+                    className="w-full border rounded p-2 text-sm"
+                  >
+                    <option value="">NYHA Class</option>
+                    <option value="I">Class I</option>
+                    <option value="II">Class II</option>
+                    <option value="III">Class III</option>
+                    <option value="IV">Class IV</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button type="submit" size="sm" disabled={recordMetric.isPending}>
+                    {recordMetric.isPending ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setShowMetricForm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+                {recordMetric.isError && (
+                  <p className="text-sm text-destructive">Failed to save. Please try again.</p>
+                )}
+              </form>
+            )}
+          </div>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-2 mb-6">
           <Card className="p-5 border-2 border-slate-200">
@@ -637,14 +698,14 @@ export default function PatientDetail() {
                   </Button>
                 </div>
               </div>
-              {latestWearable ? (
+              {latestReading ? (
                 <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
                   <Card className={cn("p-4 border-2 transition-colors", Math.abs(hrDelta) > 15 ? "border-red-200 bg-red-50/50" : Math.abs(hrDelta) > 10 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
                     <div className="flex items-center gap-2 mb-2">
                       <Heart size={14} className="text-red-500" />
                       <p className="text-xs font-medium text-slate-500">Resting HR</p>
                     </div>
-                    <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.restingHR)} <span className="text-xs font-normal text-slate-500">bpm</span></p>
+                    <p className="text-xl font-bold text-slate-900">{Math.round(latestReading.restingHeartRate ?? 0)} <span className="text-xs font-normal text-slate-500">bpm</span></p>
                     <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", hrDelta > 10 ? "text-red-600" : hrDelta > 0 ? "text-amber-600" : "text-green-600")}>
                       {hrDelta > 0 ? <TrendingUp size={12} /> : hrDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
                       {hrDelta > 0 ? '+' : ''}{hrDelta} vs baseline
@@ -655,18 +716,18 @@ export default function PatientDetail() {
                       <Activity size={14} className="text-teal-500" />
                       <p className="text-xs font-medium text-slate-500">HRV</p>
                     </div>
-                    <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.hrv)} <span className="text-xs font-normal text-slate-500">ms</span></p>
+                    <p className="text-xl font-bold text-slate-900">{Math.round(latestReading.hrvMs ?? 0)} <span className="text-xs font-normal text-slate-500">ms</span></p>
                     <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", hrvDelta < -15 ? "text-red-600" : hrvDelta < 0 ? "text-amber-600" : "text-green-600")}>
                       {hrvDelta > 0 ? <TrendingUp size={12} /> : hrvDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
                       {hrvDelta > 0 ? '+' : ''}{hrvDelta} vs baseline
                     </div>
                   </Card>
-                  <Card className={cn("p-4 border-2 transition-colors", latestWearable.sleepHours < 5 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
+                  <Card className={cn("p-4 border-2 transition-colors", (latestReading.sleepHours ?? 0) < 5 ? "border-amber-200 bg-amber-50/50" : "border-slate-200")}>
                     <div className="flex items-center gap-2 mb-2">
                       <Moon size={14} className="text-blue-500" />
                       <p className="text-xs font-medium text-slate-500">Sleep</p>
                     </div>
-                    <p className="text-xl font-bold text-slate-900">{latestWearable.sleepHours.toFixed(1)} <span className="text-xs font-normal text-slate-500">hrs</span></p>
+                    <p className="text-xl font-bold text-slate-900">{(latestReading.sleepHours ?? 0).toFixed(1)} <span className="text-xs font-normal text-slate-500">hrs</span></p>
                     <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", sleepDelta < -1 ? "text-amber-600" : sleepDelta > 0 ? "text-green-600" : "text-slate-500")}>
                       {sleepDelta > 0 ? <TrendingUp size={12} /> : sleepDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
                       {sleepDelta > 0 ? '+' : ''}{sleepDelta} vs baseline
@@ -677,7 +738,7 @@ export default function PatientDetail() {
                       <Footprints size={14} className="text-green-500" />
                       <p className="text-xs font-medium text-slate-500">Steps</p>
                     </div>
-                    <p className="text-xl font-bold text-slate-900">{Math.round(latestWearable.steps).toLocaleString()}</p>
+                    <p className="text-xl font-bold text-slate-900">{Math.round(latestReading.steps ?? 0).toLocaleString()}</p>
                     <div className={cn("flex items-center gap-1 mt-1 text-xs font-medium", stepsDelta < -2000 ? "text-amber-600" : stepsDelta > 0 ? "text-green-600" : "text-slate-500")}>
                       {stepsDelta > 0 ? <TrendingUp size={12} /> : stepsDelta < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
                       {stepsDelta > 0 ? '+' : ''}{stepsDelta.toLocaleString()} vs baseline
@@ -690,7 +751,7 @@ export default function PatientDetail() {
             </Card>
             <div className="grid lg:grid-cols-2 gap-4">
               <SBARCard sbar={patient.sbar} />
-              <VitalTrends data={patient.wearableData ?? []} />
+              <VitalTrends data={[]} />
             </div>
           </TabsContent>
 
@@ -704,7 +765,7 @@ export default function PatientDetail() {
           </TabsContent>
 
           <TabsContent value="vitals" className="mt-4">
-            <VitalTrends data={patient.wearableData ?? []} />
+            <VitalTrends data={[]} />
           </TabsContent>
 
           <TabsContent value="medications" className="mt-4">

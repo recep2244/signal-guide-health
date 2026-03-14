@@ -149,15 +149,18 @@ export default function Dashboard() {
         {displayPatients.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {(() => {
-              const avgHR = Math.round(
-                displayPatients.reduce((acc, p) => acc + p.wearableData[p.wearableData.length - 1].restingHR, 0) / displayPatients.length
-              );
-              const avgHRV = Math.round(
-                displayPatients.reduce((acc, p) => acc + p.wearableData[p.wearableData.length - 1].hrv, 0) / displayPatients.length
-              );
-              const avgSleep = (
-                displayPatients.reduce((acc, p) => acc + p.wearableData[p.wearableData.length - 1].sleepHours, 0) / displayPatients.length
-              ).toFixed(1);
+              const patientsWithHR = displayPatients.filter(p => p.latestReading?.restingHeartRate != null);
+              const avgHR = patientsWithHR.length > 0
+                ? Math.round(patientsWithHR.reduce((acc, p) => acc + p.latestReading!.restingHeartRate!, 0) / patientsWithHR.length)
+                : null;
+              const patientsWithHRV = displayPatients.filter(p => p.latestReading?.hrvMs != null);
+              const avgHRV = patientsWithHRV.length > 0
+                ? Math.round(patientsWithHRV.reduce((acc, p) => acc + p.latestReading!.hrvMs!, 0) / patientsWithHRV.length)
+                : null;
+              const patientsWithSleep = displayPatients.filter(p => p.latestReading?.sleepHours != null);
+              const avgSleep = patientsWithSleep.length > 0
+                ? (patientsWithSleep.reduce((acc, p) => acc + p.latestReading!.sleepHours!, 0) / patientsWithSleep.length).toFixed(1)
+                : null;
               const avgWellbeing = (
                 displayPatients.reduce((acc, p) => acc + p.wellbeingScore, 0) / displayPatients.length
               ).toFixed(1);
@@ -167,24 +170,24 @@ export default function Dashboard() {
               return [
                 {
                   label: "Avg Resting HR",
-                  value: `${avgHR} bpm`,
+                  value: avgHR != null ? `${avgHR} bpm` : 'Not recorded',
                   icon: Heart,
-                  color: avgHR > 80 ? "text-red-600 bg-red-50 border-red-100" : "text-teal-600 bg-teal-50 border-teal-100",
-                  detail: avgHR > 80 ? "Above normal range" : "Within normal range",
+                  color: (avgHR ?? 0) > 80 ? "text-red-600 bg-red-50 border-red-100" : "text-teal-600 bg-teal-50 border-teal-100",
+                  detail: (avgHR ?? 0) > 80 ? "Above normal range" : "Within normal range",
                 },
                 {
                   label: "Avg HRV",
-                  value: `${avgHRV} ms`,
+                  value: avgHRV != null ? `${avgHRV} ms` : 'Not recorded',
                   icon: Activity,
-                  color: avgHRV < 30 ? "text-amber-600 bg-amber-50 border-amber-100" : "text-blue-600 bg-blue-50 border-blue-100",
-                  detail: avgHRV < 30 ? "Below baseline" : "Healthy variability",
+                  color: (avgHRV ?? 30) < 30 ? "text-amber-600 bg-amber-50 border-amber-100" : "text-blue-600 bg-blue-50 border-blue-100",
+                  detail: (avgHRV ?? 30) < 30 ? "Below baseline" : "Healthy variability",
                 },
                 {
                   label: "Avg Sleep",
-                  value: `${avgSleep} hrs`,
+                  value: avgSleep != null ? `${avgSleep} hrs` : 'Not recorded',
                   icon: Moon,
-                  color: parseFloat(avgSleep) < 6 ? "text-amber-600 bg-amber-50 border-amber-100" : "text-purple-600 bg-purple-50 border-purple-100",
-                  detail: parseFloat(avgSleep) < 6 ? "Below 6hr threshold" : "Adequate recovery",
+                  color: parseFloat(avgSleep ?? '6') < 6 ? "text-amber-600 bg-amber-50 border-amber-100" : "text-purple-600 bg-purple-50 border-purple-100",
+                  detail: parseFloat(avgSleep ?? '6') < 6 ? "Below 6hr threshold" : "Adequate recovery",
                 },
                 {
                   label: "Avg Wellbeing",
@@ -280,14 +283,14 @@ export default function Dashboard() {
                   <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Ejection Fraction</p>
                 </div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {displayPatients.filter(p => p.ejectionFraction != null).length === 0 ? (
+                  {displayPatients.filter(p => p.latestCardiacMetric?.ejectionFraction != null).length === 0 ? (
                     <p className="text-xs text-slate-400 italic">No EF data available</p>
                   ) : (
                     displayPatients
-                      .filter(p => p.ejectionFraction != null)
-                      .sort((a, b) => (a.ejectionFraction ?? 100) - (b.ejectionFraction ?? 100))
+                      .filter(p => p.latestCardiacMetric?.ejectionFraction != null)
+                      .sort((a, b) => (a.latestCardiacMetric?.ejectionFraction ?? 100) - (b.latestCardiacMetric?.ejectionFraction ?? 100))
                       .map(p => {
-                        const ef = p.ejectionFraction!;
+                        const ef = p.latestCardiacMetric!.ejectionFraction!;
                         const colorClass = ef < 40
                           ? "text-red-700 bg-red-50 border-red-200"
                           : ef < 50
@@ -321,16 +324,16 @@ export default function Dashboard() {
                   <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Biomarker Alerts</p>
                 </div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {displayPatients.filter(p => p.cardiacBiomarkers).length === 0 ? (
+                  {displayPatients.filter(p => p.latestCardiacMetric?.ntProBNP != null || p.latestCardiacMetric?.hsTroponinI != null).length === 0 ? (
                     <p className="text-xs text-slate-400 italic">No biomarker data available</p>
                   ) : (
                     displayPatients
-                      .filter(p => p.cardiacBiomarkers)
-                      .sort((a, b) => (b.cardiacBiomarkers?.ntProBNP ?? 0) - (a.cardiacBiomarkers?.ntProBNP ?? 0))
+                      .filter(p => p.latestCardiacMetric?.ntProBNP != null || p.latestCardiacMetric?.hsTroponinI != null)
+                      .sort((a, b) => (b.latestCardiacMetric?.ntProBNP ?? 0) - (a.latestCardiacMetric?.ntProBNP ?? 0))
                       .map(p => {
-                        const bio = p.cardiacBiomarkers!;
-                        const bnpElevated = bio.ntProBNP > 300;
-                        const tropElevated = bio.hsTroponinI > 14;
+                        const bio = p.latestCardiacMetric!;
+                        const bnpElevated = (bio.ntProBNP ?? 0) > 300;
+                        const tropElevated = (bio.hsTroponinI ?? 0) > 14;
                         return (
                           <div key={p.id} className="text-xs space-y-0.5">
                             <div className="flex items-center justify-between">
@@ -341,10 +344,10 @@ export default function Dashboard() {
                             </div>
                             <div className="flex gap-2">
                               <span className={bnpElevated ? "text-red-600 font-semibold" : "text-slate-500"}>
-                                BNP: {bio.ntProBNP}
+                                BNP: {bio.ntProBNP ?? 0}
                               </span>
                               <span className={tropElevated ? "text-red-600 font-semibold" : "text-slate-500"}>
-                                TnI: {bio.hsTroponinI}
+                                TnI: {bio.hsTroponinI ?? 0}
                               </span>
                             </div>
                           </div>
@@ -424,29 +427,37 @@ export default function Dashboard() {
                 </div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {(() => {
-                    const patientsWithScores = displayPatients.filter(p => p.riskScores);
+                    const patientsWithScores = displayPatients.filter(p => p.computedRiskScores || p.riskScores);
                     if (patientsWithScores.length === 0) {
                       return <p className="text-xs text-slate-400 italic">No risk score data</p>;
                     }
                     const highestGrace = patientsWithScores
-                      .filter(p => p.riskScores?.grace != null)
-                      .sort((a, b) => (b.riskScores?.grace ?? 0) - (a.riskScores?.grace ?? 0))[0];
+                      .filter(p => (p.computedRiskScores?.grace ?? p.riskScores?.grace) != null)
+                      .sort((a, b) => ((b.computedRiskScores?.grace ?? b.riskScores?.grace) ?? 0) - ((a.computedRiskScores?.grace ?? a.riskScores?.grace) ?? 0))[0];
                     const elevatedCha2 = patientsWithScores.filter(
-                      p => p.riskScores?.cha2ds2vasc != null && p.riskScores.cha2ds2vasc >= 2
+                      p => {
+                        const score = p.computedRiskScores?.cha2ds2vasc ?? p.riskScores?.cha2ds2vasc;
+                        return score != null && score >= 2;
+                      }
                     );
                     const elevatedHasbled = patientsWithScores.filter(
                       p => p.riskScores?.hasbled != null && p.riskScores.hasbled >= 3
                     );
                     return (
                       <div className="space-y-2 text-xs">
-                        {highestGrace && highestGrace.riskScores?.grace != null && (
+                        {highestGrace && (p => (p.computedRiskScores?.grace ?? p.riskScores?.grace) != null)(highestGrace) && (
                           <div>
                             <p className="text-slate-500 font-medium mb-0.5">Highest GRACE</p>
                             <div className="flex items-center justify-between">
                               <span className="text-slate-600">{highestGrace.name}</span>
-                              <span className={`font-bold ${highestGrace.riskScores.grace > 140 ? "text-red-600" : highestGrace.riskScores.grace > 108 ? "text-amber-600" : "text-green-600"}`}>
-                                {highestGrace.riskScores.grace}
-                              </span>
+                              {(() => {
+                                const graceScore = (highestGrace.computedRiskScores?.grace ?? highestGrace.riskScores?.grace)!;
+                                return (
+                                  <span className={`font-bold ${graceScore > 140 ? "text-red-600" : graceScore > 108 ? "text-amber-600" : "text-green-600"}`}>
+                                    {graceScore}
+                                  </span>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}
@@ -458,7 +469,7 @@ export default function Dashboard() {
                             {elevatedCha2.map(p => (
                               <div key={p.id} className="flex items-center justify-between">
                                 <span className="text-slate-600">{p.name}</span>
-                                <span className="font-bold text-amber-600">{p.riskScores!.cha2ds2vasc}</span>
+                                <span className="font-bold text-amber-600">{(p.computedRiskScores?.cha2ds2vasc ?? p.riskScores!.cha2ds2vasc)}</span>
                               </div>
                             ))}
                           </div>

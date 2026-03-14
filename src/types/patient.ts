@@ -278,6 +278,8 @@ export interface Patient {
   cardiacRehabPhase?: CardiacRehabPhase;
   /** Clinical risk scores (GRACE, CHA₂DS₂-VASc, HAS-BLED) */
   riskScores?: ClinicalRiskScores;
+  /** Computed risk scores from backend calculation (preferred over mock riskScores) */
+  computedRiskScores?: { grace: number | null; cha2ds2vasc: number | null };
   /** Referring consultant */
   consultant?: string;
   /** Discharge ward/hospital */
