@@ -22,7 +22,7 @@ Completed as unstructured quick tasks before GSD workflow was adopted. Covered: 
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Wearable Data Ingestion** - Replace simulated provider sync with real Fitbit, Apple HealthKit, Garmin, and Withings data plus threshold alert automation
+- [x] **Phase 1: Wearable Data Ingestion** - Replace simulated provider sync with real Fitbit, Apple HealthKit, Garmin, and Withings data plus threshold alert automation
 - [ ] **Phase 2: Dashboard & Cardiac Metrics** - Align all dashboard fields to live API data and add clinician-facing cardiac metric entry and computed risk scores
 - [ ] **Phase 3: Clinician Alert Notifications** - Email and in-app real-time notifications for RED/AMBER triage events with configurable preferences
 - [ ] **Phase 4: Security Hardening & Appointment Reminders** - Account lockout, mandatory 2FA enforcement, and WhatsApp/email appointment reminders
@@ -46,9 +46,9 @@ Completed as unstructured quick tasks before GSD workflow was adopted. Covered: 
 Plans:
 - [x] 01-01-PLAN.md — Fitbit OAuth PKCE provider class + DB unique constraint + oauth-1.0a install
 - [x] 01-02-PLAN.md — Withings OAuth2 provider class (non-standard token exchange, BP/HR/SpO2/temp)
-- [ ] 01-03-PLAN.md — Garmin OAuth 1.0a provider class + webhook push route
-- [ ] 01-04-PLAN.md — Apple HealthKit push handler: wire all metric processors to recordReading()
-- [ ] 01-05-PLAN.md — Wire all providers into factory, replace simulateProviderSync(), PKCE Redis storage
+- [x] 01-03-PLAN.md — Garmin OAuth 1.0a provider class + webhook push route
+- [x] 01-04-PLAN.md — Apple HealthKit push handler: wire all metric processors to recordReading()
+- [x] 01-05-PLAN.md — Wire all providers into factory, replace simulateProviderSync(), PKCE Redis storage
 
 ### Phase 2: Dashboard & Cardiac Metrics
 **Goal**: Every value on the dashboard and patient detail page is sourced from the live API, and clinicians can record and view cardiac metrics per patient
