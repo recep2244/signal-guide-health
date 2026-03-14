@@ -1,11 +1,11 @@
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-13 - Completed quick task 5: Wire Admin real API data, Acknowledge Alert, Live Sync, Contact Patient
+**Last activity:** 2026-03-14 - Completed phase 01 plan 04: Wire all Apple HealthKit push metrics to wearableService.recordReading()
 
 ## Current Phase
 
-Phase 1: Bug Fixes & Infrastructure Hardening (Quick tasks complete)
+Phase 01: Wearable Data Ingestion (plan 04 of 5 complete)
 
 ## Blockers/Concerns
 
@@ -28,10 +28,13 @@ All blockers from quick tasks 1 and 2 resolved:
 - wearableService.ts: ReadingType defined as local union type (not Prisma client export)
 - wearableService.ts: WearableReading flat schema — mapReadingToColumns() maps reading types to named metric columns
 - TS7030 in wearables.ts: split return res.status().json() into two-statement form (compatible with TypeScript 5.9)
+- 01-04: Aggregate HealthKit samples to one WearableReading row per push batch (flat schema requirement)
+- 01-04: Apple Watch BP intentionally omitted — hardware gap, no BP sensor on any Apple Watch model
+- 01-04: Health Connect BP not yet wired — HR/SpO2/steps/HRV added for Health Connect path (matches Apple Watch scope)
 
 ## Session
 
-**Stopped at:** Completed quick/5-fix-ui-quick-wins-admin-real-api-alert-a — 3/3 tasks, verified
+**Stopped at:** Completed 01-wearable-data-ingestion/01-04 — 1/1 tasks, WEAR-02 satisfied
 
 ### Quick Tasks Completed
 
