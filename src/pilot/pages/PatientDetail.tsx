@@ -74,6 +74,10 @@ export default function PatientDetail() {
   const [medDialogOpen, setMedDialogOpen] = useState(false);
   const [medMessage, setMedMessage] = useState('');
 
+  const [complaintDialogOpen, setComplaintDialogOpen] = useState(false);
+  const [complaintCategory, setComplaintCategory] = useState('Clinical Care');
+  const [complaintDescription, setComplaintDescription] = useState('');
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -160,6 +164,26 @@ export default function PatientDetail() {
     },
   });
 
+  const submitComplaint = useMutation({
+    mutationFn: async () =>
+      apiClient.post('/alerts', {
+        patientId: patient!.id,
+        type: 'manual',
+        severity: 'low',
+        title: `Patient Complaint: ${complaintCategory}`,
+        message: complaintDescription,
+      }),
+    onSuccess: () => {
+      toast.success('Complaint logged and routed to patient experience');
+      setComplaintDialogOpen(false);
+      setComplaintCategory('Clinical Care');
+      setComplaintDescription('');
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to log complaint');
+    },
+  });
+
   const handleResolveAlert = async (alertId: string) => {
     try {
       await apiClient.patch(`/alerts/${alertId}/acknowledge`);
@@ -221,9 +245,7 @@ export default function PatientDetail() {
     }
   };
 
-  const handleLogComplaint = () => {
-    toast.success('Complaint logged and routed to patient experience');
-  };
+  const handleLogComplaint = () => { setComplaintDialogOpen(true); };
 
   const handleDraftPrescription = () => { setRxDialogOpen(true); };
 
@@ -804,6 +826,41 @@ export default function PatientDetail() {
             <Button variant="outline" onClick={() => setMedDialogOpen(false)} disabled={submitMedReminder.isPending}>Cancel</Button>
             <Button onClick={() => { if (!medMessage.trim()) { toast.error('Message cannot be empty'); return; } submitMedReminder.mutate(); }} disabled={submitMedReminder.isPending}>
               {submitMedReminder.isPending ? 'Sending...' : 'Send Reminder'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={complaintDialogOpen} onOpenChange={setComplaintDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Log Patient Complaint</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="complaint-category">Category</Label>
+              <Select value={complaintCategory} onValueChange={setComplaintCategory}>
+                <SelectTrigger id="complaint-category">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Clinical Care">Clinical Care</SelectItem>
+                  <SelectItem value="Communication">Communication</SelectItem>
+                  <SelectItem value="Waiting Time">Waiting Time</SelectItem>
+                  <SelectItem value="Staff">Staff</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="complaint-description">Description</Label>
+              <Textarea id="complaint-description" placeholder="Describe the complaint..." value={complaintDescription} onChange={(e) => setComplaintDescription(e.target.value)} rows={4} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setComplaintDialogOpen(false)} disabled={submitComplaint.isPending}>Cancel</Button>
+            <Button onClick={() => { if (!complaintDescription.trim()) { toast.error('Description is required'); return; } submitComplaint.mutate(); }} disabled={submitComplaint.isPending}>
+              {submitComplaint.isPending ? 'Logging...' : 'Log Complaint'}
             </Button>
           </DialogFooter>
         </DialogContent>
