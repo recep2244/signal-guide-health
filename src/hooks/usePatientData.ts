@@ -6,7 +6,14 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getMockPatientService } from "@/services/patients/mockPatientService";
-import { Patient, TriageLevel, TriageStats, Alert } from "@/types/patient";
+import {
+  Patient,
+  TriageLevel,
+  TriageStats,
+  Alert,
+  CardiacMetric,
+  RecordCardiacMetricRequest,
+} from "@/types/patient";
 import { PatientListParams, PatientListResponse } from "@/services/patients/patientService";
 import { HealthTrend } from "@/services/wearables/types";
 
@@ -22,6 +29,7 @@ export const patientDataKeys = {
   trends: (id: string) => [...patientDataKeys.all, "trends", id] as const,
   stats: () => [...patientDataKeys.all, "stats"] as const,
   search: (query: string) => [...patientDataKeys.all, "search", query] as const,
+  cardiacMetrics: (id: string) => [...patientDataKeys.all, "cardiacMetrics", id] as const,
 };
 
 /**
@@ -179,6 +187,57 @@ export function useAlertResolution() {
       });
       queryClient.invalidateQueries({
         queryKey: patientDataKeys.list({}),
+      });
+    },
+  });
+}
+
+/**
+ * Hook to record a new cardiac metric for a patient.
+ *
+ * On success it invalidates the patient detail and cardiac metrics queries
+ * so any UI showing latestCardiacMetric automatically refreshes.
+ *
+ * Usage:
+ *   const { mutate, isPending } = useRecordCardiacMetric();
+ *   mutate({ patientId: "...", metric: { ejectionFraction: 45, nyhaClass: "II" } });
+ */
+export function useRecordCardiacMetric() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      patientId,
+      metric,
+    }: {
+      patientId: string;
+      metric: RecordCardiacMetricRequest;
+    }): Promise<CardiacMetric> => {
+      if (USE_MOCK) {
+        // Mock: return a synthetic CardiacMetric so UI can render without a server
+        return {
+          id: `mock-cm-${Date.now()}`,
+          patientId,
+          recordedAt: new Date().toISOString(),
+          recordedBy: "mock-user",
+          ...metric,
+        } satisfies CardiacMetric;
+      }
+      const { apiClient } = await import("@/services/api/client");
+      const response = await apiClient.post<{ status: string; data: { metric: CardiacMetric } }>(
+        `/patients/${patientId}/cardiac-metrics`,
+        metric
+      );
+      return response.data.data.metric;
+    },
+    onSuccess: (_, variables) => {
+      // Refresh the patient detail so latestCardiacMetric is up to date
+      queryClient.invalidateQueries({
+        queryKey: patientDataKeys.detail(variables.patientId),
+      });
+      // Refresh the cardiac metrics list for this patient
+      queryClient.invalidateQueries({
+        queryKey: patientDataKeys.cardiacMetrics(variables.patientId),
       });
     },
   });
