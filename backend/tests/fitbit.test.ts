@@ -11,6 +11,7 @@ vi.mock('../src/config/env', () => ({
     FITBIT_CLIENT_ID: 'test-client-id',
     FITBIT_CLIENT_SECRET: 'test-client-secret',
     FITBIT_REDIRECT_URI: 'https://example.com/callback/fitbit',
+    ENCRYPTION_KEY: 'test_encryption_key_32_characters_long!',
   },
 }));
 

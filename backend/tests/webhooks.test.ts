@@ -62,6 +62,7 @@ vi.mock('../src/config/env', () => ({
   env: {
     WHATSAPP_WEBHOOK_VERIFY_TOKEN: 'verify-token',
     WHATSAPP_WEBHOOK_SECRET: 'whatsapp-test-secret',
+    ENCRYPTION_KEY: 'test_encryption_key_32_characters_long!',
   },
 }));
 

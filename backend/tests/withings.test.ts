@@ -12,6 +12,7 @@ vi.mock('../src/config/env', () => ({
     WITHINGS_CLIENT_SECRET: 'test-client-secret',
     WITHINGS_REDIRECT_URI: 'https://example.com/callback/withings',
     WITHINGS_WEBHOOK_SECRET: 'test-webhook-secret',
+    ENCRYPTION_KEY: 'test_encryption_key_32_characters_long!',
   },
 }));
 
