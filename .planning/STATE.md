@@ -3,24 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Pilot Hardening & Clinical Completeness
 status: in_progress
-stopped_at: Completed 02-dashboard-cardiac-metrics/02-01 — 2/2 tasks, CARD-01/CARD-02 satisfied.
-last_updated: "2026-03-14T04:52:22Z"
-last_activity: "2026-03-14 - Completed phase 02 plan 01: CardiacMetric schema + GRACE/CHA2DS2-VASc risk score functions"
+stopped_at: Completed 02-dashboard-cardiac-metrics/02-02 — 2/2 tasks, DASH-01/DASH-02/CARD-01/CARD-02/CARD-03 satisfied.
+last_updated: "2026-03-14T05:28:02Z"
+last_activity: "2026-03-14 - Completed phase 02 plan 02: Extended GET /patients + GET /:id API with wearable vitals, cardiac metrics, risk scores; POST/GET cardiac-metric sub-routes added"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-14 - Completed phase 02 plan 01: CardiacMetric Prisma model, manual migration SQL, computeGrace/computeCha2ds2vasc pure functions (12 tests pass)
+**Last activity:** 2026-03-14 - Completed phase 02 plan 02: Extended patients API with latestReading, latestCardiacMetric, computedRiskScores; POST/GET cardiac-metric sub-routes
 
 ## Current Phase
 
-Phase 02: Dashboard & Cardiac Metrics (plan 01 of N complete)
+Phase 02: Dashboard & Cardiac Metrics (plan 02 of 4 complete)
 
 ## Blockers/Concerns
 
@@ -52,10 +52,14 @@ All blockers from quick tasks 1 and 2 resolved:
 - 02-01: computeGrace returns null not 0 when age absent — 0 implies low risk (clinical safety)
 - 02-01: date-fns added to backend package.json (was only in root/frontend)
 - 02-01: backend vitest.config.ts include extended to src/**/*.test.ts for lib unit tests
+- 02-02: cardiacMetricSchema extracted to cardiacMetric.schema.ts — shared by route and unit tests
+- 02-02: PATIENT_UPDATE audit action used for cardiac metric creation (AuditAction union has no CARDIAC_METRIC_RECORD)
+- 02-02: prisma generate required after plan 01 schema changes — Prisma client must be regenerated after adding models
+- 02-02: Decimal fields coerced with Number() in serialiser map before JSON serialisation
 
 ## Session
 
-**Stopped at:** Completed 02-dashboard-cardiac-metrics/02-01 — 2/2 tasks, CARD-01/CARD-02 satisfied.
+**Stopped at:** Completed 02-dashboard-cardiac-metrics/02-02 — 2/2 tasks, DASH-01/DASH-02/CARD-01/CARD-02/CARD-03 satisfied.
 
 ### Quick Tasks Completed
 
