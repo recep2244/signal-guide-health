@@ -161,7 +161,16 @@ export default function PatientDetail() {
   }
 
   const handleCallClinician = () => {
-    toast.info(`Calling ${clinicianName}...`);
+    toast.info(`${clinicianName} — contact via internal staff directory`);
+  };
+
+  const handleCallPatient = () => {
+    const phone = patient.whatsappPhone?.replace(/\D/g, '');
+    if (phone) {
+      window.location.href = `tel:${phone}`;
+    } else {
+      toast.info('No phone number on file for this patient');
+    }
   };
 
   const handleLogComplaint = () => {
@@ -240,7 +249,7 @@ export default function PatientDetail() {
                 <MessageSquare size={16} className="mr-1.5" />
                 Message
               </Button>
-              <Button variant="outline" size="sm" onClick={() => toast.info(`Calling ${patient.name}...`)}>
+              <Button variant="outline" size="sm" onClick={handleCallPatient}>
                 <Phone size={16} className="mr-1.5" />
                 Call
               </Button>
