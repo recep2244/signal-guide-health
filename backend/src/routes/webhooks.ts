@@ -10,6 +10,8 @@ import { prisma } from '../config/database';
 import { env } from '../config/env';
 import { appleHealthKitProvider } from '../services/wearables/appleHealthKit';
 import { healthConnectProvider } from '../services/wearables/healthConnect';
+import { garminProvider } from '../services/wearables/garmin';
+import { wearableService } from '../services/wearableService';
 import { whatsappPilotService } from '../services/whatsappPilotService';
 
 const router: Router = Router();
@@ -712,13 +714,40 @@ router.post('/garmin', async (req: Request, res: Response) => {
       return;
     }
 
+    const body = JSON.parse(payload) as { userId?: string; dailies?: unknown[] };
+
     logger.info({
       message: 'Garmin webhook received',
       payloadBytes: Buffer.byteLength(payload, 'utf8'),
+      userId: body.userId,
     });
 
-    // Process Garmin data
-    // Queue for async processing
+    // Look up the WearableDevice by Garmin userId (stored in serialNumber)
+    const device = body.userId
+      ? await prisma.wearableDevice.findFirst({
+          where: { serialNumber: body.userId, deviceType: 'garmin' },
+        })
+      : null;
+
+    if (device && Array.isArray(body.dailies)) {
+      for (const summary of body.dailies as Record<string, unknown>[]) {
+        const readings = garminProvider.extractReadingsFromSummary(
+          summary as unknown as Parameters<typeof garminProvider.extractReadingsFromSummary>[0],
+          device.patientId,
+          device.id
+        );
+        for (const reading of readings) {
+          await wearableService.recordReading({
+            patientId: device.patientId,
+            wearableId: device.id,
+            type: reading.type as Parameters<typeof wearableService.recordReading>[0]['type'],
+            value: reading.value,
+            unit: reading.unit,
+            readingDate: new Date(),
+          });
+        }
+      }
+    }
 
     res.sendStatus(200);
   } catch (error) {

@@ -819,25 +819,16 @@ router.post('/sync/:deviceId', async (req: Request, res: Response, next: NextFun
       return;
     }
 
-    const accessToken = encryptionService.decrypt(device.accessTokenEncrypted);
-    const provider = getWearableProvider(device.deviceType as WearableProvider);
-
-    // Sync from last sync time
-    const since = device.lastSyncAt || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const result = await provider.syncHealthData(accessToken, since);
-
-    // Update last sync time
-    await prisma.wearableDevice.update({
-      where: { id: deviceId },
-      data: { lastSyncAt: new Date() },
-    });
+    // Route through wearableService.syncFromProvider() — calls syncHealthDataWithContext()
+    // which persists readings via recordReading() and fires threshold alerts
+    const result = await wearableService.syncFromProvider(deviceId as string);
 
     res.json({
       status: 'success',
       message: 'Sync completed',
       data: {
-        syncedAt: result.syncedAt,
-        recordsCount: result.recordsCount,
+        syncedAt: new Date(),
+        recordsCount: result.synced,
       },
     });
   } catch (error) {
