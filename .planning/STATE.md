@@ -1,7 +1,7 @@
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-14 - Completed quick task 10: wire Request Appointment button to real Dialog + POST /appointments
+**Last activity:** 2026-03-14 - Completed quick task 11: wire all 5 remaining toast-only buttons in PatientDetail
 
 ## Current Phase
 
@@ -41,7 +41,7 @@ All blockers from quick tasks 1 and 2 resolved:
 
 ## Session
 
-**Stopped at:** Completed quick task 10 — Request Appointment dialog wired to POST /appointments
+**Stopped at:** Completed quick task 11 — all PatientDetail buttons wired
 
 ### Quick Tasks Completed
 
@@ -57,3 +57,4 @@ All blockers from quick tasks 1 and 2 resolved:
 | 8 | Remove 4 frontend hardcodings: Patient.whatsappPhone type field, notifications bell wired to GET /alerts, clinicianName from patient.consultant, usageMetrics from useAdminStats hook | 2026-03-14 | 470bd13 | Verified | [8-frontend-fixes-type-notifications-hardcoded](./quick/8-frontend-fixes-type-notifications-hardcoded/) |
 | 9 | Infrastructure: postgres-deployment.yaml, redis-deployment.yaml, secrets.yaml HOWTO, .env.production, Dockerfile prisma migrate deploy entrypoint | 2026-03-14 | f9395a2 | Verified | [9-infrastructure-manifests-postgres-redis](./quick/9-infrastructure-manifests-postgres-redis/) |
 | 10 | Wire Request Appointment button: inline RequestAppointmentDialog with useMutation POSTing to /appointments (datetime, type select, doctor UUID input, notes) | 2026-03-14 | 694db28 | Verified | [10-wire-request-appointment-button-in-patie](./quick/10-wire-request-appointment-button-in-patie/) |
+| 11 | Wire all 5 remaining toast-only buttons: Call (tel: link), Call Clinician (directory toast), Draft Rx dialog, Send Medication dialog, Log Complaint dialog — all using POST /alerts type manual | 2026-03-14 | b58b47c | Verified | [11-wire-all-remaining-toast-only-buttons-in](./quick/11-wire-all-remaining-toast-only-buttons-in/) |
