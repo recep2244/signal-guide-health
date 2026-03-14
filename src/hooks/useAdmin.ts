@@ -55,3 +55,34 @@ export function useAdminAuditLogs(page = 1, limit = 20) {
     },
   });
 }
+
+interface AdminStats {
+  dailyActiveUsers?: number;
+  dailyCheckIns?: number;
+  avgResponseTime?: string;
+  alertsResolved?: number;
+  wearablesSynced?: number;
+  messagesExchanged?: number;
+  readmissionReduction?: number;
+  patientSatisfaction?: number;
+  dataPointsCollected?: string;
+  apiCalls24h?: string;
+  storageUsed?: string;
+  bandwidthUsed?: string;
+}
+
+interface AdminStatsResponse {
+  status: string;
+  data: { stats: AdminStats };
+}
+
+export function useAdminStats() {
+  return useQuery({
+    queryKey: ['admin', 'stats'],
+    queryFn: async () => {
+      const res = await apiClient.get<AdminStatsResponse>('/admin/stats');
+      return res.data;
+    },
+    staleTime: 60_000,
+  });
+}

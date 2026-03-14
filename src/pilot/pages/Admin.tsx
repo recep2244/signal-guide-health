@@ -66,7 +66,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { IntegrationKeysPanel } from "@/pilot/components/IntegrationKeysPanel";
 import { toast } from "sonner";
-import { useAdminUsers, useAdminAuditLogs } from "@/hooks/useAdmin";
+import { useAdminUsers, useAdminAuditLogs, useAdminStats } from "@/hooks/useAdmin";
 import { cn } from "@/lib/utils";
 
 // TODO: replace with real backend endpoint when available
@@ -86,20 +86,6 @@ const integrationSteps = [
   { step: 6, title: "Go-Live & Monitoring", description: "Phased rollout with real patients, 24/7 monitoring, weekly review cycles", status: "pending" as const },
 ];
 
-const usageMetrics = {
-  dailyActiveUsers: 24,
-  dailyCheckIns: 342,
-  avgResponseTime: "9 min",
-  alertsResolved: 156,
-  wearablesSynced: 98,
-  messagesExchanged: 1247,
-  readmissionReduction: 24,
-  patientSatisfaction: 92,
-  dataPointsCollected: "2.4M",
-  apiCalls24h: "48,291",
-  storageUsed: "12.4 GB",
-  bandwidthUsed: "3.2 GB",
-};
 
 export default function Admin() {
   const dashboardPath = "/pilot/dashboard";
@@ -110,9 +96,25 @@ export default function Admin() {
 
   const { data: usersData, isLoading: usersLoading, error: usersError } = useAdminUsers();
   const { data: auditData, isLoading: auditLoading, error: auditError } = useAdminAuditLogs();
+  const { data: statsData } = useAdminStats();
 
   const adminUsers = usersData?.data?.users ?? [];
   const auditLogs = auditData?.data?.logs ?? [];
+  const stats = statsData?.data?.stats ?? {};
+  const usageMetrics = {
+    dailyActiveUsers: stats.dailyActiveUsers ?? '--',
+    dailyCheckIns: stats.dailyCheckIns ?? '--',
+    avgResponseTime: stats.avgResponseTime ?? '--',
+    alertsResolved: stats.alertsResolved ?? '--',
+    wearablesSynced: stats.wearablesSynced ?? '--',
+    messagesExchanged: stats.messagesExchanged ?? '--',
+    readmissionReduction: stats.readmissionReduction ?? '--',
+    patientSatisfaction: stats.patientSatisfaction ?? '--',
+    dataPointsCollected: stats.dataPointsCollected ?? '--',
+    apiCalls24h: stats.apiCalls24h ?? '--',
+    storageUsed: stats.storageUsed ?? '--',
+    bandwidthUsed: stats.bandwidthUsed ?? '--',
+  };
 
   const handleRefresh = () => {
     setIsRefreshing(true);
