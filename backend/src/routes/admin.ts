@@ -167,7 +167,40 @@ router.get('/audit-logs', async (req: Request, res: Response) => {
 });
 
 router.get('/stats', async (_req: Request, res: Response) => {
-  res.json({ status: 'success', data: { stats: {} } });
+  try {
+    const [
+      totalPatients,
+      totalDoctors,
+      activeAlerts,
+      totalAppointments,
+      activeUsers,
+    ] = await Promise.all([
+      prisma.patient.count(),
+      prisma.doctor.count(),
+      prisma.alert.count({ where: { resolved: false } }),
+      prisma.appointment.count(),
+      prisma.user.count({ where: { status: 'active' } }),
+    ]);
+
+    res.json({
+      status: 'success',
+      data: {
+        stats: {
+          totalPatients,
+          totalDoctors,
+          activeAlerts,
+          totalAppointments,
+          activeUsers,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error({
+      message: 'Failed to fetch admin stats',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
 });
 
 router.put('/settings', requireRole('super_admin'), async (req: Request, res: Response) => {
