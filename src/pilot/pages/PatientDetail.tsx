@@ -83,23 +83,7 @@ export default function PatientDetail() {
   const [metricInput, setMetricInput] = useState<RecordCardiacMetricRequest>({});
   const recordMetric = useRecordCardiacMetric();
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center"><p className="text-muted-foreground">Loading patient data...</p></div>
-      </div>
-    );
-  }
-  if (error || !patient) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-xl font-semibold mb-2">Patient not found</h1>
-          <Button onClick={() => navigate(dashboardPath)}>Return to Dashboard</Button>
-        </div>
-      </div>
-    );
-  }
+  const pharmacyName = 'CityCare Pharmacy';
 
   const createAppointment = useMutation({
     mutationFn: async () => {
@@ -189,6 +173,24 @@ export default function PatientDetail() {
     },
   });
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center"><p className="text-muted-foreground">Loading patient data...</p></div>
+      </div>
+    );
+  }
+  if (error || !patient) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold mb-2">Patient not found</h1>
+          <Button onClick={() => navigate(dashboardPath)}>Return to Dashboard</Button>
+        </div>
+      </div>
+    );
+  }
+
   const handleResolveAlert = async (alertId: string) => {
     try {
       await apiClient.patch(`/alerts/${alertId}/acknowledge`);
@@ -216,7 +218,6 @@ export default function PatientDetail() {
   };
 
   const clinicianName = patient.consultant ?? '--';
-  const pharmacyName = 'CityCare Pharmacy';
 
   const latestReading = patient.latestReading ?? null;
   const hrDelta = 0;
