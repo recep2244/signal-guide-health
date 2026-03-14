@@ -66,6 +66,14 @@ export default function PatientDetail() {
   const [apptNotes, setApptNotes] = useState('');
   const [apptDoctorId, setApptDoctorId] = useState('');
 
+  const [rxDialogOpen, setRxDialogOpen] = useState(false);
+  const [rxMedName, setRxMedName] = useState('');
+  const [rxDosage, setRxDosage] = useState('');
+  const [rxInstructions, setRxInstructions] = useState('');
+
+  const [medDialogOpen, setMedDialogOpen] = useState(false);
+  const [medMessage, setMedMessage] = useState('');
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -109,6 +117,46 @@ export default function PatientDetail() {
       const message =
         err instanceof Error ? err.message : 'Failed to create appointment';
       toast.error(message);
+    },
+  });
+
+  const submitDraftRx = useMutation({
+    mutationFn: async () =>
+      apiClient.post('/alerts', {
+        patientId: patient!.id,
+        type: 'manual',
+        severity: 'low',
+        title: `Draft Prescription: ${rxMedName}`,
+        message: `Medication: ${rxMedName}\nDosage: ${rxDosage}\nInstructions: ${rxInstructions}`,
+      }),
+    onSuccess: () => {
+      toast.success('Prescription draft created for clinician review');
+      setRxDialogOpen(false);
+      setRxMedName('');
+      setRxDosage('');
+      setRxInstructions('');
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to submit prescription draft');
+    },
+  });
+
+  const submitMedReminder = useMutation({
+    mutationFn: async () =>
+      apiClient.post('/alerts', {
+        patientId: patient!.id,
+        type: 'manual',
+        severity: 'low',
+        title: 'Medication Reminder Sent',
+        message: medMessage,
+      }),
+    onSuccess: () => {
+      toast.success(`Medication reminder sent to ${pharmacyName}`);
+      setMedDialogOpen(false);
+      setMedMessage('');
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to send medication reminder');
     },
   });
 
@@ -177,12 +225,11 @@ export default function PatientDetail() {
     toast.success('Complaint logged and routed to patient experience');
   };
 
-  const handleDraftPrescription = () => {
-    toast.success('Prescription draft created for clinician review');
-  };
+  const handleDraftPrescription = () => { setRxDialogOpen(true); };
 
   const handleSendMedication = () => {
-    toast.success(`Medication order sent to ${pharmacyName}`);
+    setMedMessage(`Medication reminder for ${patient.name}: please take your prescribed medications as directed.`);
+    setMedDialogOpen(true);
   };
 
   const handleRequestLiveSync = async () => {
@@ -713,6 +760,54 @@ export default function PatientDetail() {
         initialShortCode={pairingShortCode}
         initialQrPayload={pairingQrPayload}
       />
+
+      <Dialog open={rxDialogOpen} onOpenChange={setRxDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Draft Prescription</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="rx-med-name">Medication Name</Label>
+              <Input id="rx-med-name" placeholder="e.g. Bisoprolol" value={rxMedName} onChange={(e) => setRxMedName(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="rx-dosage">Dosage</Label>
+              <Input id="rx-dosage" placeholder="e.g. 5mg once daily" value={rxDosage} onChange={(e) => setRxDosage(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="rx-instructions">Instructions (optional)</Label>
+              <Textarea id="rx-instructions" placeholder="Additional instructions..." value={rxInstructions} onChange={(e) => setRxInstructions(e.target.value)} rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRxDialogOpen(false)} disabled={submitDraftRx.isPending}>Cancel</Button>
+            <Button onClick={() => { if (!rxMedName.trim()) { toast.error('Medication name is required'); return; } submitDraftRx.mutate(); }} disabled={submitDraftRx.isPending}>
+              {submitDraftRx.isPending ? 'Submitting...' : 'Submit Draft'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={medDialogOpen} onOpenChange={setMedDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Medication Reminder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="med-message">Reminder Message</Label>
+              <Textarea id="med-message" value={medMessage} onChange={(e) => setMedMessage(e.target.value)} rows={4} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMedDialogOpen(false)} disabled={submitMedReminder.isPending}>Cancel</Button>
+            <Button onClick={() => { if (!medMessage.trim()) { toast.error('Message cannot be empty'); return; } submitMedReminder.mutate(); }} disabled={submitMedReminder.isPending}>
+              {submitMedReminder.isPending ? 'Sending...' : 'Send Reminder'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={apptDialogOpen} onOpenChange={setApptDialogOpen}>
         <DialogContent className="sm:max-w-md">
