@@ -60,7 +60,13 @@ Plans:
   3. When a patient has no cardiac metrics recorded, the dashboard shows "Not recorded" for EF, BNP, and GRACE fields instead of crashing or displaying undefined
   4. A clinician can open a patient detail page and enter ejection fraction, BNP/NT-proBNP, troponin, and NYHA class — the values persist and are visible on reload
   5. GRACE and CHA2DS2-VASc risk scores are computed server-side and displayed on the patient detail page — no client-side scoring logic required
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — CardiacMetric Prisma model + manual migration SQL + riskScores.ts pure functions (tested)
+- [ ] 02-02-PLAN.md — Extend GET /patients and GET /:id API response + POST/GET cardiac-metric endpoints
+- [ ] 02-03-PLAN.md — Update Patient TypeScript type + useRecordCardiacMetric mutation hook
+- [ ] 02-04-PLAN.md — Fix Dashboard.tsx and PatientDetail.tsx field accesses + cardiac metric entry form
 
 ### Phase 3: Clinician Alert Notifications
 **Goal**: Clinicians are notified of critical patient deterioration through email and an in-app bell, and can control how they receive those notifications
@@ -125,7 +131,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Wearable Data Ingestion | 3/5 | Complete    | 2026-03-14 | - |
-| 2. Dashboard & Cardiac Metrics | v1.1 | 0/TBD | Not started | - |
+| 2. Dashboard & Cardiac Metrics | v1.1 | 0/4 | Not started | - |
 | 3. Clinician Alert Notifications | v1.1 | 0/TBD | Not started | - |
 | 4. Security Hardening & Appointment Reminders | v1.1 | 0/TBD | Not started | - |
 | 5. Audit Log Viewer | v1.1 | 0/TBD | Not started | - |
