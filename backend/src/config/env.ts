@@ -69,8 +69,12 @@ const envSchema = z.object({
   SAMSUNG_WEBHOOK_SECRET: z.string().optional(),
   FITBIT_CLIENT_ID: z.string().optional(),
   FITBIT_CLIENT_SECRET: z.string().optional(),
+  FITBIT_REDIRECT_URI: z.string().url().optional(),
   GARMIN_CONSUMER_KEY: z.string().optional(),
   GARMIN_CONSUMER_SECRET: z.string().optional(),
+  WITHINGS_CLIENT_ID: z.string().optional(),
+  WITHINGS_CLIENT_SECRET: z.string().optional(),
+  WITHINGS_REDIRECT_URI: z.string().url().optional(),
 
   // Push Notifications
   FCM_PROJECT_ID: z.string().optional(),

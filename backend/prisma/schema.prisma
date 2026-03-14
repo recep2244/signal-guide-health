@@ -388,6 +388,7 @@ model WearableReading {
   patient Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
   device  WearableDevice? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
 
+  @@unique([patientId, deviceId, readingDate], name: "patientId_deviceId_readingDate")
   @@index([patientId, readingDate])
   @@map("wearable_readings")
 }
