@@ -16,6 +16,7 @@ import {
   appleHealthKitProvider,
   healthConnectProvider,
 } from '../services/wearables';
+import { HEALTHKIT_DATA_TYPES } from '../services/wearables/appleHealthKit';
 import type { WearableProvider } from '../services/wearables/types';
 import type { WearableType } from '@prisma/client';
 
@@ -443,18 +444,183 @@ router.post('/push-data', async (req: Request, res: Response, next: NextFunction
       return;
     }
 
-    // Process data based on provider
-    let processedData;
+    // Process data based on provider and persist each reading via recordReading()
+    // recordReading() internally calls analyzeReading() and creates an Alert if a threshold is exceeded
+    let recordsStored = 0;
+
     if (provider === 'apple_watch') {
-      processedData = appleHealthKitProvider.processHeartRateSamples(data.heartRate || []);
-      // Process other data types...
+      const { dataType, samples } = data as { dataType: string; samples: any[] };
+
+      switch (dataType) {
+        case HEALTHKIT_DATA_TYPES.HEART_RATE:
+        case HEALTHKIT_DATA_TYPES.RESTING_HEART_RATE: {
+          const hrSamples = appleHealthKitProvider.processHeartRateSamples(samples);
+          // Aggregate to daily average to match WearableReading flat schema
+          const avgBpm = hrSamples.length > 0
+            ? Math.round(hrSamples.reduce((s, r) => s + r.bpm, 0) / hrSamples.length)
+            : 0;
+          if (avgBpm > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'HEART_RATE',
+              value: avgBpm,
+              unit: 'bpm',
+              metadata: { source: 'apple_watch', dataType, sampleCount: hrSamples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.BLOOD_OXYGEN: {
+          const spo2Samples = appleHealthKitProvider.processBloodOxygenSamples(samples);
+          const avgSpO2 = spo2Samples.length > 0
+            ? Math.round(spo2Samples.reduce((s, r) => s + r.percentage, 0) / spo2Samples.length * 10) / 10
+            : 0;
+          if (avgSpO2 > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'OXYGEN_SATURATION',
+              value: avgSpO2,
+              unit: '%',
+              metadata: { source: 'apple_watch', dataType, sampleCount: spo2Samples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.BODY_TEMPERATURE: {
+          // Apple Watch Series 8+ measures wrist temperature — map to TEMPERATURE type
+          // Samples have value in Celsius (HealthKit: HKUnit degreesCelsius)
+          const tempValues = samples.map((s: any) =>
+            typeof s.value === 'number' ? s.value : parseFloat(s.value)
+          ).filter((v: number) => !isNaN(v));
+          const avgTemp = tempValues.length > 0
+            ? Math.round(tempValues.reduce((s: number, v: number) => s + v, 0) / tempValues.length * 10) / 10
+            : 0;
+          if (avgTemp > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'TEMPERATURE',
+              value: avgTemp,
+              unit: '°C',
+              metadata: { source: 'apple_watch', dataType, sampleCount: tempValues.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.STEP_COUNT: {
+          const activityData = appleHealthKitProvider.processActivitySamples(samples, dataType);
+          const totalSteps = activityData.reduce((s, a) => s + a.steps, 0);
+          if (totalSteps > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'STEPS',
+              value: totalSteps,
+              unit: 'steps',
+              metadata: { source: 'apple_watch', dataType, sampleCount: samples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.HEART_RATE_VARIABILITY: {
+          const hrvData = appleHealthKitProvider.processHRVSamples(samples);
+          const avgHrv = hrvData.length > 0
+            ? Math.round(hrvData.reduce((s, r) => s + r.sdnn, 0) / hrvData.length)
+            : 0;
+          if (avgHrv > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'HRV',
+              value: avgHrv,
+              unit: 'ms',
+              metadata: { source: 'apple_watch', dataType, sampleCount: samples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        // Blood pressure: Apple Watch has NO BP sensor — intentionally omitted
+        // See WEAR-02 research note: Apple Watch hardware gap for BP
+        default:
+          // Unsupported or unmapped data type — ignore silently
+          break;
+      }
     } else if (provider === 'health_connect' || provider === 'wear_os') {
-      processedData = healthConnectProvider.processHealthConnectPush({
+      const processed = healthConnectProvider.processHealthConnectPush({
         patientId: device.patientId,
         deviceId: device.id,
         deviceInfo: data.deviceInfo || {},
         records: data.records || [],
       });
+
+      // Persist heart rate — average all HR samples to one reading
+      if (processed.heartRate.length > 0) {
+        const avgBpm = Math.round(
+          processed.heartRate.reduce((s, r) => s + r.bpm, 0) / processed.heartRate.length
+        );
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'HEART_RATE',
+          value: avgBpm,
+          unit: 'bpm',
+          metadata: { source: provider, sampleCount: processed.heartRate.length },
+        });
+        recordsStored++;
+      }
+
+      // Persist blood oxygen — average SpO2 samples
+      if (processed.bloodOxygen.length > 0) {
+        const avgSpO2 = Math.round(
+          processed.bloodOxygen.reduce((s, r) => s + r.percentage, 0) / processed.bloodOxygen.length * 10
+        ) / 10;
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'OXYGEN_SATURATION',
+          value: avgSpO2,
+          unit: '%',
+          metadata: { source: provider, sampleCount: processed.bloodOxygen.length },
+        });
+        recordsStored++;
+      }
+
+      // Persist steps — sum across all activity entries
+      const totalSteps = processed.activity.reduce((s, a) => s + a.steps, 0);
+      if (totalSteps > 0) {
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'STEPS',
+          value: totalSteps,
+          unit: 'steps',
+          metadata: { source: provider, sampleCount: processed.activity.length },
+        });
+        recordsStored++;
+      }
+
+      // Persist HRV
+      if (processed.hrv.length > 0) {
+        const avgHrv = Math.round(
+          processed.hrv.reduce((s, r) => s + r.sdnn, 0) / processed.hrv.length
+        );
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'HRV',
+          value: avgHrv,
+          unit: 'ms',
+          metadata: { source: provider, sampleCount: processed.hrv.length },
+        });
+        recordsStored++;
+      }
     }
 
     // Update last sync time
@@ -467,7 +633,7 @@ router.post('/push-data', async (req: Request, res: Response, next: NextFunction
       status: 'success',
       message: 'Data received',
       data: {
-        recordsProcessed: processedData ? Object.values(processedData).flat().length : 0,
+        recordsProcessed: recordsStored,
       },
     });
   } catch (error) {
