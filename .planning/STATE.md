@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Pilot Hardening & Clinical Completeness
 status: in_progress
-stopped_at: Completed 02-dashboard-cardiac-metrics/02-03 — Patient type + useRecordCardiacMetric hook
-last_updated: "2026-03-14T05:30:00Z"
-last_activity: "2026-03-14 - Completed phase 02 plan 03: Updated Patient type (latestReading, latestCardiacMetric), added useRecordCardiacMetric hook"
+stopped_at: Completed 02-dashboard-cardiac-metrics/02-04 — Dashboard + PatientDetail field access; cardiac metric form
+last_updated: "2026-03-14T05:43:00Z"
+last_activity: "2026-03-14 - Completed phase 02 plan 04: Fixed Dashboard.tsx + PatientDetail.tsx to use latestReading/latestCardiacMetric; added Record Cardiac Metrics form"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 8
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -20,7 +20,7 @@ progress:
 
 ## Current Phase
 
-Phase 02: Dashboard & Cardiac Metrics (plan 02 of 4 complete)
+Phase 02: Dashboard & Cardiac Metrics (plan 04 of 4 complete — PHASE COMPLETE)
 
 ## Blockers/Concerns
 
@@ -58,10 +58,13 @@ All blockers from quick tasks 1 and 2 resolved:
 - 02-02: Decimal fields coerced with Number() in serialiser map before JSON serialisation
 - 02-03: CardiacMetric type replaces ejectionFraction+cardiacBiomarkers inline fields on Patient; wearableData[] removed (use usePatientHealthTrends hook)
 - 02-03: LatestReading mirrors Prisma WearableReading shape with nullable columns; useRecordCardiacMetric posts to /patients/:id/cardiac-metrics with mock fallback
+- 02-04: computedRiskScores fallback pattern: (computedRiskScores?.grace ?? riskScores?.grace) — backend-computed scores preferred, mock scores as fallback
+- 02-04: useRecordCardiacMetric takes {patientId, metric} at mutation time (not curried) — form calls mutateAsync({patientId: patient.id, metric: metricInput})
+- 02-04: VitalTrends receives [] until wearable history endpoint exists; wearableData removed from Patient type
 
 ## Session
 
-**Stopped at:** Completed 02-dashboard-cardiac-metrics/02-03 — Patient type + useRecordCardiacMetric hook
+**Stopped at:** Completed 02-dashboard-cardiac-metrics/02-04 — Dashboard + PatientDetail field access; cardiac metric form
 
 ### Quick Tasks Completed
 
