@@ -16,7 +16,7 @@ import {
   appleHealthKitProvider,
   healthConnectProvider,
 } from '../services/wearables';
-import { garminProvider } from '../services/wearables/garmin';
+import { HEALTHKIT_DATA_TYPES } from '../services/wearables/appleHealthKit';
 import type { WearableProvider } from '../services/wearables/types';
 import type { WearableType } from '@prisma/client';
 
@@ -444,18 +444,183 @@ router.post('/push-data', async (req: Request, res: Response, next: NextFunction
       return;
     }
 
-    // Process data based on provider
-    let processedData;
+    // Process data based on provider and persist each reading via recordReading()
+    // recordReading() internally calls analyzeReading() and creates an Alert if a threshold is exceeded
+    let recordsStored = 0;
+
     if (provider === 'apple_watch') {
-      processedData = appleHealthKitProvider.processHeartRateSamples(data.heartRate || []);
-      // Process other data types...
+      const { dataType, samples } = data as { dataType: string; samples: any[] };
+
+      switch (dataType) {
+        case HEALTHKIT_DATA_TYPES.HEART_RATE:
+        case HEALTHKIT_DATA_TYPES.RESTING_HEART_RATE: {
+          const hrSamples = appleHealthKitProvider.processHeartRateSamples(samples);
+          // Aggregate to daily average to match WearableReading flat schema
+          const avgBpm = hrSamples.length > 0
+            ? Math.round(hrSamples.reduce((s, r) => s + r.bpm, 0) / hrSamples.length)
+            : 0;
+          if (avgBpm > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'HEART_RATE',
+              value: avgBpm,
+              unit: 'bpm',
+              metadata: { source: 'apple_watch', dataType, sampleCount: hrSamples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.BLOOD_OXYGEN: {
+          const spo2Samples = appleHealthKitProvider.processBloodOxygenSamples(samples);
+          const avgSpO2 = spo2Samples.length > 0
+            ? Math.round(spo2Samples.reduce((s, r) => s + r.percentage, 0) / spo2Samples.length * 10) / 10
+            : 0;
+          if (avgSpO2 > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'OXYGEN_SATURATION',
+              value: avgSpO2,
+              unit: '%',
+              metadata: { source: 'apple_watch', dataType, sampleCount: spo2Samples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.BODY_TEMPERATURE: {
+          // Apple Watch Series 8+ measures wrist temperature — map to TEMPERATURE type
+          // Samples have value in Celsius (HealthKit: HKUnit degreesCelsius)
+          const tempValues = samples.map((s: any) =>
+            typeof s.value === 'number' ? s.value : parseFloat(s.value)
+          ).filter((v: number) => !isNaN(v));
+          const avgTemp = tempValues.length > 0
+            ? Math.round(tempValues.reduce((s: number, v: number) => s + v, 0) / tempValues.length * 10) / 10
+            : 0;
+          if (avgTemp > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'TEMPERATURE',
+              value: avgTemp,
+              unit: '°C',
+              metadata: { source: 'apple_watch', dataType, sampleCount: tempValues.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.STEP_COUNT: {
+          const activityData = appleHealthKitProvider.processActivitySamples(samples, dataType);
+          const totalSteps = activityData.reduce((s, a) => s + a.steps, 0);
+          if (totalSteps > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'STEPS',
+              value: totalSteps,
+              unit: 'steps',
+              metadata: { source: 'apple_watch', dataType, sampleCount: samples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        case HEALTHKIT_DATA_TYPES.HEART_RATE_VARIABILITY: {
+          const hrvData = appleHealthKitProvider.processHRVSamples(samples);
+          const avgHrv = hrvData.length > 0
+            ? Math.round(hrvData.reduce((s, r) => s + r.sdnn, 0) / hrvData.length)
+            : 0;
+          if (avgHrv > 0) {
+            await wearableService.recordReading({
+              patientId: device.patientId,
+              wearableId: device.id,
+              type: 'HRV',
+              value: avgHrv,
+              unit: 'ms',
+              metadata: { source: 'apple_watch', dataType, sampleCount: samples.length },
+            });
+            recordsStored++;
+          }
+          break;
+        }
+        // Blood pressure: Apple Watch has NO BP sensor — intentionally omitted
+        // See WEAR-02 research note: Apple Watch hardware gap for BP
+        default:
+          // Unsupported or unmapped data type — ignore silently
+          break;
+      }
     } else if (provider === 'health_connect' || provider === 'wear_os') {
-      processedData = healthConnectProvider.processHealthConnectPush({
+      const processed = healthConnectProvider.processHealthConnectPush({
         patientId: device.patientId,
         deviceId: device.id,
         deviceInfo: data.deviceInfo || {},
         records: data.records || [],
       });
+
+      // Persist heart rate — average all HR samples to one reading
+      if (processed.heartRate.length > 0) {
+        const avgBpm = Math.round(
+          processed.heartRate.reduce((s, r) => s + r.bpm, 0) / processed.heartRate.length
+        );
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'HEART_RATE',
+          value: avgBpm,
+          unit: 'bpm',
+          metadata: { source: provider, sampleCount: processed.heartRate.length },
+        });
+        recordsStored++;
+      }
+
+      // Persist blood oxygen — average SpO2 samples
+      if (processed.bloodOxygen.length > 0) {
+        const avgSpO2 = Math.round(
+          processed.bloodOxygen.reduce((s, r) => s + r.percentage, 0) / processed.bloodOxygen.length * 10
+        ) / 10;
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'OXYGEN_SATURATION',
+          value: avgSpO2,
+          unit: '%',
+          metadata: { source: provider, sampleCount: processed.bloodOxygen.length },
+        });
+        recordsStored++;
+      }
+
+      // Persist steps — sum across all activity entries
+      const totalSteps = processed.activity.reduce((s, a) => s + a.steps, 0);
+      if (totalSteps > 0) {
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'STEPS',
+          value: totalSteps,
+          unit: 'steps',
+          metadata: { source: provider, sampleCount: processed.activity.length },
+        });
+        recordsStored++;
+      }
+
+      // Persist HRV
+      if (processed.hrv.length > 0) {
+        const avgHrv = Math.round(
+          processed.hrv.reduce((s, r) => s + r.sdnn, 0) / processed.hrv.length
+        );
+        await wearableService.recordReading({
+          patientId: device.patientId,
+          wearableId: device.id,
+          type: 'HRV',
+          value: avgHrv,
+          unit: 'ms',
+          metadata: { source: provider, sampleCount: processed.hrv.length },
+        });
+        recordsStored++;
+      }
     }
 
     // Update last sync time
@@ -468,7 +633,7 @@ router.post('/push-data', async (req: Request, res: Response, next: NextFunction
       status: 'success',
       message: 'Data received',
       data: {
-        recordsProcessed: processedData ? Object.values(processedData).flat().length : 0,
+        recordsProcessed: recordsStored,
       },
     });
   } catch (error) {
@@ -590,16 +755,6 @@ router.post('/sync/:deviceId', async (req: Request, res: Response, next: NextFun
       res.json({
         status: 'success',
         message: 'Push-based devices sync automatically from the mobile app',
-        data: { lastSync: device.lastSyncAt },
-      });
-      return;
-    }
-
-    // Garmin uses push model — no on-demand pull available
-    if (device.deviceType === 'garmin') {
-      res.json({
-        status: 'success',
-        message: 'Garmin data syncs automatically via webhook — no manual pull available',
         data: { lastSync: device.lastSyncAt },
       });
       return;
@@ -755,120 +910,6 @@ router.get(
     }
   }
 );
-
-/**
- * GET /garmin/oauth-start
- * Initiates the OAuth 1.0a flow by fetching a request token from Garmin and
- * redirecting the user to the Garmin authorization page.
- * This is the async companion to garminProvider.getAuthorizationUrl().
- */
-router.get('/garmin/oauth-start', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const state = (req.query['state'] as string) || '';
-    const authUrl = await garminProvider.fetchRequestTokenUrl(state);
-    res.redirect(authUrl);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * POST /garmin/webhook
- * Receive push summaries from Garmin Health API.
- * This endpoint is called by Garmin servers, not by users.
- * No authentication middleware — request is validated by webhook signature.
- *
- * NOTE: signature validation requires the raw request body bytes.
- * Since the app uses express.json() globally, req.body is already parsed.
- * We re-stringify for HMAC verification; this is acceptable for JSON payloads
- * but may differ from the raw bytes if the client sent non-canonical JSON.
- * If GARMIN_WEBHOOK_SECRET is not set, signature validation is skipped
- * with a warning (acceptable for pilot / development environments).
- */
-router.post('/garmin/webhook', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    // Guard: if partner credentials not configured, return 503
-    if (!process.env['GARMIN_CONSUMER_KEY']) {
-      res.status(503).json({
-        status: 'error',
-        message:
-          'Garmin integration pending partner program approval — GARMIN_CONSUMER_KEY not configured',
-      });
-      return;
-    }
-
-    // Validate webhook signature if secret is configured
-    const signature = (req.headers['x-garmin-signature'] as string) || '';
-    if (process.env['GARMIN_WEBHOOK_SECRET']) {
-      const rawBody = JSON.stringify(req.body);
-      if (!garminProvider.validateWebhook(signature, rawBody)) {
-        res.status(401).json({ status: 'error', message: 'Invalid webhook signature' });
-        return;
-      }
-    } else {
-      console.warn(
-        '[garmin/webhook] GARMIN_WEBHOOK_SECRET not set — skipping signature validation (pilot mode)'
-      );
-    }
-
-    // Parse payload
-    const { userId, dataTypes } = garminProvider.parseWebhookPayload(req.body);
-
-    // Find patient's Garmin device by Garmin userId stored in serialNumber
-    const device = await prisma.wearableDevice.findFirst({
-      where: {
-        deviceType: 'garmin',
-        serialNumber: userId,
-        isConnected: true,
-      },
-    });
-
-    if (!device) {
-      // Garmin userId not matched — log but return 200 to prevent Garmin retry spam
-      res.json({ status: 'success', message: 'No matching device found — ignored', data: { dataTypes } });
-      return;
-    }
-
-    // Extract and persist readings from summaries
-    const summaries =
-      (req.body as { summaries?: unknown[]; dailies?: unknown[] }).summaries ||
-      (req.body as { summaries?: unknown[]; dailies?: unknown[] }).dailies ||
-      [];
-    let totalRecorded = 0;
-
-    for (const summary of summaries as Array<{
-      summaryId?: string;
-      [key: string]: unknown;
-    }>) {
-      const readings = garminProvider.extractReadingsFromSummary(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        summary as any,
-        device.patientId,
-        device.id
-      );
-      for (const r of readings) {
-        await wearableService.recordReading({
-          patientId: device.patientId,
-          wearableId: device.id,
-          type: r.type as Parameters<typeof wearableService.recordReading>[0]['type'],
-          value: r.value,
-          unit: r.unit,
-          metadata: { source: 'garmin_webhook', summaryId: summary.summaryId },
-        });
-        totalRecorded++;
-      }
-    }
-
-    await prisma.wearableDevice.update({
-      where: { id: device.id },
-      data: { lastSyncAt: new Date() },
-    });
-
-    res.json({ status: 'success', data: { recordsStored: totalRecorded } });
-  } catch (error) {
-    next(error);
-  }
-});
 
 /**
  * Get device connection instructions
