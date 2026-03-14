@@ -1,7 +1,7 @@
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-14 - Completed quick task 8: Remove 4 frontend hardcodings (Patient.whatsappPhone type, live notifications bell, patient.consultant clinicianName, useAdminStats hook)
+**Last activity:** 2026-03-14 - Completed quick tasks 7, 8, 9: backend stubs, frontend fixes, infrastructure manifests
 
 ## Current Phase
 
@@ -38,7 +38,7 @@ All blockers from quick tasks 1 and 2 resolved:
 
 ## Session
 
-**Stopped at:** Completed quick/8-frontend-fixes-type-notifications-hardcoded — 3/3 tasks, verified
+**Stopped at:** Completed quick tasks 7+8+9 — backend stubs, frontend fixes, infrastructure
 
 ### Quick Tasks Completed
 
@@ -52,3 +52,4 @@ All blockers from quick tasks 1 and 2 resolved:
 | 6 | Alert notification emails (createAlert + escalateAlert nodemailer, SMTP-gated, fire-and-forget); remove 7 obsolete src/pages stubs; commit VITE_API_BASE_URL=/api/v1 | 2026-03-13 | 82c8c94 | Verified | [6-alert-notifications-cleanup-old-src-page](./quick/6-alert-notifications-cleanup-old-src-page/) |
 | 7 | Replace doctors.ts, appointments.ts, admin /stats stubs with real Prisma queries (8 routes: doctor list/detail/patients/schedule, appointment CRUD + cancel/confirm, admin stats counts) | 2026-03-14 | 5d5f72f | Verified | [7-backend-stubs-implement-doctors-routes-a](./quick/7-backend-stubs-implement-doctors-routes-a/) |
 | 8 | Remove 4 frontend hardcodings: Patient.whatsappPhone type field, notifications bell wired to GET /alerts, clinicianName from patient.consultant, usageMetrics from useAdminStats hook | 2026-03-14 | 470bd13 | Verified | [8-frontend-fixes-type-notifications-hardcoded](./quick/8-frontend-fixes-type-notifications-hardcoded/) |
+| 9 | Infrastructure: postgres-deployment.yaml, redis-deployment.yaml, secrets.yaml HOWTO, .env.production, Dockerfile prisma migrate deploy entrypoint | 2026-03-14 | f9395a2 | Verified | [9-infrastructure-manifests-postgres-redis](./quick/9-infrastructure-manifests-postgres-redis/) |
