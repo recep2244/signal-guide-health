@@ -1,11 +1,11 @@
 # Project State
 
 **Project:** CardioWatch / Signal Guide Health
-**Last activity:** 2026-03-14 - Completed phase 01 plan 04: Wire all Apple HealthKit push metrics to wearableService.recordReading()
+**Last activity:** 2026-03-14 - Completed phase 01 plan 05: Wire provider factory + replace simulateProviderSync with real provider calls + Fitbit PKCE Redis
 
 ## Current Phase
 
-Phase 01: Wearable Data Ingestion (plan 04 of 5 complete)
+Phase 01: Wearable Data Ingestion (plan 05 of 5 complete)
 
 ## Blockers/Concerns
 
@@ -31,10 +31,13 @@ All blockers from quick tasks 1 and 2 resolved:
 - 01-04: Aggregate HealthKit samples to one WearableReading row per push batch (flat schema requirement)
 - 01-04: Apple Watch BP intentionally omitted — hardware gap, no BP sensor on any Apple Watch model
 - 01-04: Health Connect BP not yet wired — HR/SpO2/steps/HRV added for Health Connect path (matches Apple Watch scope)
+- 01-05: syncHealthDataWithContext pattern: provider fetches + persists via wearableService with per-reading date
+- 01-05: PKCE Redis key pkce:{state} with 10-minute TTL, single-use; falls back to in-memory on Redis unavailability
+- 01-05: Garmin excluded from pull sync — push-only via webhook
 
 ## Session
 
-**Stopped at:** Completed 01-wearable-data-ingestion/01-04 — 1/1 tasks, WEAR-02 satisfied
+**Stopped at:** Completed 01-wearable-data-ingestion/01-05 — 2/2 tasks, WEAR-01/03/04/05 satisfied. Phase 01 complete (5/5 plans).
 
 ### Quick Tasks Completed
 
